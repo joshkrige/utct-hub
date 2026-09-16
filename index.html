@@ -3,9 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UTCT 100 Miler — Training Hub</title>
+<title>UTCT 100 Miler — Josh Krige</title>
 <script>
-window.__cowork_stub__ = {callMcpTool: function(){return Promise.resolve({content:[{type:'text',text:'[]'}],structuredContent:null,isError:false});}};
+// Cowork stub — API calls return empty data silently
+window.__cowork_stub__ = {
+  callMcpTool: function(){ return Promise.resolve({content:[{type:'text',text:'[]'}],structuredContent:null,isError:false}); }
+};
+
+// Static actuals — last synced 16 Sep 2026
+// W1 (Sep 14-20): Farm Hills x7 (6.97km, 378m) + Morning Trail Run (7.95km, 266m) + Strength session
+var STATIC_ACTUALS = {
+  0: { actKm: 14.9, actVert: 644, runs: 2, str: 1 }
+};
+
+// Patch MATCH after any rerenderAll call
+var __origRerenderAll;
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof rerenderAll === 'function'){
+    __origRerenderAll = rerenderAll;
+    rerenderAll = function(){
+      __origRerenderAll();
+      applyStaticActuals();
+    };
+  }
+});
+
+function applyStaticActuals(){
+  if(typeof MATCH === 'undefined') return;
+  for(var idx in STATIC_ACTUALS){
+    var s = STATIC_ACTUALS[idx];
+    var i = parseInt(idx, 10);
+    if(!MATCH[i]) MATCH[i] = { actKm: 0, actVert: 0, runs: [], allActs: [] };
+    MATCH[i].actKm = s.actKm;
+    MATCH[i].actVert = s.actVert;
+  }
+  // Re-render just the tracking and grid after patching
+  if(typeof renderTracking === 'function') renderTracking();
+  if(typeof renderGrid === 'function') renderGrid();
+  if(typeof renderNextUp === 'function') renderNextUp();
+}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
