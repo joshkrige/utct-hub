@@ -14,8 +14,15 @@ function applyWeekActuals(weeks) {
     var s = weeks[idx];
     var i = parseInt(idx, 10);
     if (!MATCH[i]) MATCH[i] = { actKm:0, actVert:0, runs:[], allActs:[] };
-    MATCH[i].actKm = s.actKm;
-    MATCH[i].actVert = s.actVert;
+    MATCH[i].actKm = s.actKm || 0;
+    MATCH[i].actVert = s.actVert || 0;
+    if (s.actStr > 0) {
+      var synth = [];
+      for (var j = 0; j < s.actStr; j++) {
+        synth.push({sport_type:'WeightTraining',type:'WeightTraining',distance:0,total_elevation_gain:0});
+      }
+      MATCH[i].allActs = synth;
+    }
   }
   if (typeof renderTracking === 'function') renderTracking();
   if (typeof renderGrid === 'function') renderGrid();
@@ -774,6 +781,24 @@ body{-webkit-font-smoothing:antialiased;}
  <div id="str-config-inner"></div>
  </div>
  <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">Thursday circuit &#8212; core &amp; upper, 45 min</summary>
+ <p style="font-size:11px;color:var(--t2);padding:8px 0 4px;">Complements Tuesday&#8217;s leg circuit. No squats, no lunges, no deadlifts &#8212; legs stay fresh for Friday. 4 rounds, 60 s rest between rounds.</p>
+ <div class="overflow">
+ <table class="ptable" style="margin-top:4px;">
+ <thead><tr><th>Exercise</th><th>Reps / hold</th><th>Why it matters</th></tr></thead>
+ <tbody>
+ <tr><td><strong>Dead bug</strong></td><td>10 / side</td><td>Spinal stability &#8212; connects core to arm drive on technical terrain</td></tr>
+ <tr><td><strong>Single-arm DB row</strong></td><td>12 / side</td><td>Upper back &#8212; combats forward lean at hour 25+</td></tr>
+ <tr><td><strong>Push-up</strong></td><td>15</td><td>Chest &amp; shoulders &#8212; pole-ready upper body</td></tr>
+ <tr><td><strong>Pallof press</strong></td><td>10 / side</td><td>Anti-rotation core &#8212; critical for UTCT&#8217;s uneven terrain</td></tr>
+ <tr><td><strong>Side plank</strong></td><td>45 s / side</td><td>Lateral core &#8212; prevents hip drop at mile 40+</td></tr>
+ <tr><td><strong>Glute bridge</strong></td><td>20</td><td>Posterior chain activation without quad fatigue</td></tr>
+ <tr><td><strong>Face pull / band pull-apart</strong></td><td>20</td><td>Shoulder health &amp; posture &#8212; prevents rounding under pack weight</td></tr>
+ </tbody>
+ </table>
+ </div>
+ </details>
+ <details class="ptdetails" style="margin-bottom:12px;">
  <summary class="ptsummary">&#128095; Shoe mileage</summary>
  <div id="shoe-body"><div class="loading-msg">Loading&#8230;</div></div>
  </details>
@@ -911,7 +936,7 @@ var W=[
   {t:'hills',s:'Hill reps x6',d:'First hills back. Easy effort on the ups — not chasing old reps. Full walk recovery on the downs. 300–400m total vert.',am:true,ph:false},
   {t:'str',s:'Strength x4 + easy 8km',d:'4 rounds — back to basics, easy weights. Easy run in the afternoon. Good double day.',am:false,ph:true},
   {t:'run',s:'Easy 10km',d:'Aerobic base. HR under 140.',am:false,ph:false},
-  {t:'rest',s:'Rest',d:'Legs up.',am:false,ph:false},
+  {t:'str',s:'Core & upper strength',d:'Thursday core & upper circuit — 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, Pallof press x10/side, side plank 45s/side, glute bridge x20, face pull x20. No heavy leg work. Legs stay fresh for Friday.',am:false,ph:true},
   {t:'long',s:'Long run 22km',d:'Find a route with real climbing — aim for 600–700m total vert. Extend to 22km total. This is your first real vert session. Time on feet, not pace.',am:false,ph:false},
   {t:'run',s:'B2B 10km',d:'Easy flat run on tired legs. Note how the body responds after the vert.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Family.',am:false,ph:false}
@@ -937,7 +962,7 @@ var W=[
   {t:'hills',s:'Hill reps x10',d:'Ten solid reps. Zone 4-5 on the ups. If traveling back from Boggoms today, do easy 12km instead and shift hills to Tuesday.',am:true,ph:false},
   {t:'str',s:'Strength x5 + easy 8km',d:'Five rounds — add one exercise. Easy run in the afternoon.',am:false,ph:true},
   {t:'run',s:'Easy 12km with terrain',d:'Include some real undulation. HR under 145.',am:false,ph:false},
-  {t:'run',s:'Easy 5km',d:'Short shakeout.',am:false,ph:false},
+  {t:'str',s:'Core & upper strength + easy 5km',d:'Morning: Thursday core & upper circuit — 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, Pallof press x10/side, side plank 45s/side, glute bridge x20, face pull x20. No heavy leg work. Afternoon: 5km easy shakeout. Core and upper only — legs preserved for Friday.',am:false,ph:true},
   {t:'long',s:'Long run 32km — big vert route',d:'Target 1,800–2,000m of vert. Options: a route combining multiple climbs — farm loop, Helderberg traverse, or any local route that stacks 1,800–2,000m of vert over 32km. Walk every climb. This is where UTCT prep actually starts.',am:false,ph:false},
   {t:'run',s:'B2B 16km',d:'Run on tired legs. Include some terrain. Note how the legs feel after the vert.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
@@ -963,7 +988,7 @@ var W=[
   {t:'hills',s:'Hill reps x12',d:'Peak hill session. Zone 4-5. 1,000m+ vert from the hill session alone.',am:true,ph:false},
   {t:'str',s:'Strength x4 + easy 8km',d:'Shorter session — saving legs for the weekend. Easy run after.',am:false,ph:false},
   {t:'run',s:'Easy 18km',d:'Moderate terrain. Aerobic base under the weekend.',am:false,ph:false},
-  {t:'run',s:'Easy 6km',d:'Shakeout. Rest the legs for Friday.',am:false,ph:false},
+  {t:'str',s:'Core & upper strength + easy 6km',d:'Morning: Thursday core & upper circuit — 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, Pallof press x10/side, side plank 45s/side, glute bridge x20, face pull x20. No squats/lunges — legs rested for the big Friday session. Afternoon: 6km easy shakeout.',am:false,ph:true},
   {t:'long',s:'Long run 40km — max vert route',d:'Your most important training day. Target 2,500m of vert. Find the biggest route you can access — stack the climbs. Walk every climb. Eat from km 1. Time on feet, not pace. This is UTCT prep at its most specific.',am:false,ph:false},
   {t:'run',s:'B2B 20km',d:'Twenty kilometres on destroyed legs. This is the adaptation. Easy pace — no ego. If you can do this, you can run 100 miles.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Full rest. Eat everything.',am:false,ph:false}
@@ -976,7 +1001,7 @@ var W=[
   {t:'hills',s:'Hill reps x10',d:'Pulling back from last week. Quality reps — zone 4-5 on the ups.',am:true,ph:false},
   {t:'str',s:'Strength x4 + easy 8km',d:'Last full strength session of the block. Easy run after.',am:false,ph:true},
   {t:'run',s:'Easy 14km',d:'Steady easy effort with terrain.',am:false,ph:false},
-  {t:'run',s:'Easy 5km',d:'Pre-long-run shakeout.',am:false,ph:false},
+  {t:'str',s:'Core & upper strength + easy 5km',d:'Morning: Thursday core & upper circuit — 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, Pallof press x10/side, side plank 45s/side, glute bridge x20, face pull x20. No heavy leg work. Afternoon: 5km easy shakeout. Legs saved for the big weekend.',am:false,ph:true},
   {t:'long',s:'Long run 35km — Helderberg or farm trails',d:'Target 2,000–2,200m vert. Helderberg big loop or farm mountain route. Final quality long run before BYU.',am:false,ph:false},
   {t:'run',s:'B2B 15km',d:'Easy flat. Last full back-to-back. How do the legs feel after 6 weeks?',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
@@ -1015,7 +1040,7 @@ var W=[
   {t:'hills',s:'Hill reps x5 — final',d:'Short and sharp. Five quality reps. The final hill session of the block.',am:true,ph:false},
   {t:'str',s:'Strength x3 + easy 6km',d:'Final strength session. Maintenance only. No new stress.',am:false,ph:false},
   {t:'run',s:'Easy 10km',d:'Recovery run.',am:false,ph:false},
-  {t:'run',s:'Easy 5km',d:'Pre-long shakeout.',am:false,ph:false},
+  {t:'str',s:'Light core + easy 5km',d:'Morning: 3-round core only — dead bug, side plank, glute bridge (20 min). Afternoon: 5km easy shakeout. Very light — UTCT is two weeks out.',am:false,ph:false},
   {t:'long',s:'Final long run — 22km',d:'Last one. Include 700–800m of vert. Finish feeling strong. Say goodbye to big training.',am:false,ph:false},
   {t:'run',s:'Easy 7km',d:'Shake out. Write your race plan this afternoon.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
