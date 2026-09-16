@@ -1,0 +1,2291 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Utct Coaching Hub",
+  "schemaVersion": 1,
+  "description": "UTCT 100 Miler coaching hub — 26-week training plan, pacing guide, strength/physio and nutrition tabs. Pulls recent Strava activities on open, auto-ticks completed sessions, shows actual-vs-planned km/elevation per week and a 'what's next' banner. Data sources: Strava MCP (activities), COROS MCP (recovery/training load), HealthBridge (HRV/sleep/Apple Health).",
+  "mcpTools": [
+    "mcp__a3bfc159-2746-42d4-9f76-57da38a9308b__list_activities",
+    "mcp__a3bfc159-2746-42d4-9f76-57da38a9308b__get_athlete_zones",
+    "mcp__a3bfc159-2746-42d4-9f76-57da38a9308b__get_gear",
+    "mcp__92930870-ff80-4a54-86b8-eb9b4dad2de8__queryRecoveryStatus",
+    "mcp__92930870-ff80-4a54-86b8-eb9b4dad2de8__queryTrainingLoadAssessment",
+    "mcp__92930870-ff80-4a54-86b8-eb9b4dad2de8__queryRestingHeartRate",
+    "mcp__healthbridge__get_context",
+    "mcp__healthbridge__get_samples",
+    "mcp__healthbridge__summarize_sleep"
+  ],
+  "mcpServerNames": [
+    "strava",
+    "strava",
+    "strava",
+    "coros",
+    "coros",
+    "coros",
+    "healthbridge",
+    "healthbridge",
+    "healthbridge"
+  ]
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTCT Coaching Hub — Josh Krige</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F7F6F3;--surf:#FFF;--s2:#F2F0EB;--brd:#E4E1DA;--brdl:#EDEAE4;--txt:#1A1917;--t2:#68665F;--t3:#9A9890;--grn:#1D9E75;--blu:#185FA5;--pur:#534AB7;--amb:#BA7517;--rd:#993C1D;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;}
+.hdr{background:#1A1917;color:#fff;padding:22px 24px 18px;}
+.hdr h1{font-size:19px;font-weight:700;margin-bottom:3px;}
+.hdr p{font-size:11px;color:#9A9890;}
+.hstats{display:flex;gap:20px;margin-top:14px;flex-wrap:wrap;}
+.hs{border-left:2px solid #333;padding-left:10px;}
+.hs .hl{font-size:9px;color:#9A9890;text-transform:uppercase;letter-spacing:.08em;}
+.hs .hv{font-size:13px;font-weight:500;color:#fff;}
+.tabnav{background:#fff;border-bottom:1px solid var(--brd);display:flex;padding:0 20px;position:sticky;top:0;z-index:10;overflow-x:auto;}
+.tn{padding:12px 15px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tn.active{color:var(--grn);border-bottom-color:var(--grn);}
+.cnt{padding:20px;max-width:1100px;margin:0 auto;}
+.sl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin:18px 0 9px;}
+.legrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);}
+.lsq{width:9px;height:9px;border-radius:2px;}
+.flrow{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
+.fl{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600;}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:5px;margin-bottom:14px;}
+.wk{border-radius:8px;padding:7px;cursor:pointer;border:1.5px solid transparent;transition:border-color .12s;}
+.wk:hover{border-color:var(--brd);}
+.wk.sel{border-color:rgba(0,0,0,.45);box-shadow:0 0 0 1px rgba(0,0,0,.15);}
+.wk.current{outline:2px solid #1A1917;outline-offset:1px;}
+.wk.current .wn::after{content:' ◄ NOW';font-size:8px;color:#1A1917;opacity:.7;}
+.wic{font-size:10px;padding:1px 3px;border-radius:3px;}
+.det{background:var(--surf);border:1px solid var(--brd);border-radius:10px;padding:18px;margin-bottom:14px;}
+.dh{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px;}
+.dh h2{font-size:16px;font-weight:700;}
+.dpill{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700;}
+.dstats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.dst{background:var(--s2);border-radius:7px;padding:7px 10px;flex:1;min-width:72px;}
+.dst .sl2{font-size:9px;color:var(--t2);font-weight:600;}
+.dst .sv{font-size:14px;font-weight:700;}
+.strgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.strcard{border-radius:8px;padding:10px 12px;}
+.strcard h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.strcard ul{list-style:none;padding:0;}
+.strcard ul li{font-size:11px;line-height:1.55;padding:1px 0;display:flex;gap:5px;}
+.str-s{background:#DCFCE7;}.str-s h4{color:#14532D;}.str-s li{color:#166534;}
+.str-w{background:#FEF3C7;}.str-w h4{color:#713F12;}.str-w li{color:#92400E;}
+.daykey{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:8px 10px;background:var(--s2);border-radius:7px;}
+.dki{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--t2);}
+.dksq{width:10px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.1);}
+.ddays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px;}
+.day{border-radius:7px;padding:6px 5px;min-height:68px;}
+.dname{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;opacity:.75;}
+.dtype{font-size:10px;font-weight:700;line-height:1.3;margin-bottom:2px;}
+.ddetail{font-size:9px;line-height:1.35;opacity:.8;}
+.dpin{font-size:8px;padding:2px 4px;border-radius:3px;margin-top:3px;display:inline-block;font-weight:600;}
+.d-key{background:#FEF3C7;}.d-key .dname,.d-key .dtype{color:#92400E;}.d-key .ddetail{color:#B45309;}
+.d-train{background:#DBEAFE;}.d-train .dname,.d-train .dtype{color:#1E40AF;}.d-train .ddetail{color:#2563EB;}
+.d-night{background:#EDE9FE;}.d-night .dname,.d-night .dtype{color:#4C1D95;}.d-night .ddetail{color:#6D28D9;}
+.d-rest{background:var(--s2);}.d-rest .dname{color:var(--t3);}.d-rest .dtype{color:var(--t2);}
+.d-travel{background:#FFE4E6;}.d-travel .dname,.d-travel .dtype{color:#9F1239;}.d-travel .ddetail{color:#BE123C;}
+.pin-am{background:#FEF3C7;color:#92400E;}
+.pin-phy{background:#EDE9FE;color:#4C1D95;}
+.callout{border-left:3px solid;border-radius:0 7px 7px 0;padding:10px 13px;margin-bottom:10px;font-size:12px;line-height:1.6;}
+.co-grn{border-color:var(--grn);background:#DCFCE7;color:#14532D;}
+.co-blu{border-color:var(--blu);background:#DBEAFE;color:#1E3A5F;}
+.co-pur{border-color:var(--pur);background:#EDE9FE;color:#3730A3;}
+.co-amb{border-color:var(--amb);background:#FEF3C7;color:#713F12;}
+.co-rd{border-color:#C0392B;background:#FFE4E6;color:#881337;}
+.rn-card{border:1px solid var(--brd);border-radius:8px;padding:10px 13px;margin-bottom:12px;background:var(--s2);}
+.rn-head{font-weight:700;font-size:12px;margin-bottom:6px;}
+.rn-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0;border-top:1px solid var(--brdl);}
+.rn-row:first-of-type{border-top:none;}
+.rn-row.rn-past{opacity:.55;}
+.rn-row.rn-next{font-weight:700;}
+.rn-tag{min-width:22px;text-align:center;background:var(--brdl);border-radius:5px;padding:1px 4px;font-size:10px;}
+.rn-name{flex:1;}
+.rn-km{color:var(--t2);font-size:11px;}
+.rn-clock{font-size:11px;color:var(--t2);}
+.rbox{background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:10px;}
+.rbox-title{font-size:12px;font-weight:700;margin-bottom:4px;}
+.rbox-stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;}
+.rs{font-size:11px;color:var(--t2);}
+.rs strong{color:var(--txt);font-weight:600;}
+.rbox p{font-size:11px;color:var(--t2);line-height:1.55;margin-top:6px;}
+.note{font-size:12px;color:var(--t2);line-height:1.7;padding-top:8px;border-top:1px solid var(--brdl);margin-top:6px;}
+.note p{margin-bottom:6px;}.note p:last-child{margin-bottom:0;}
+.dnav{display:flex;gap:6px;margin-top:10px;}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:7px;border:1px solid var(--brd);font-size:12px;font-weight:500;cursor:pointer;background:var(--surf);color:var(--txt);}
+.btn:hover{background:var(--s2);}
+.psubtabs{display:flex;border-bottom:1px solid var(--brd);margin-bottom:14px;}
+.pst{padding:9px 14px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;}
+.pst.active{color:var(--grn);border-bottom-color:var(--grn);}
+.ptable{width:100%;border-collapse:collapse;font-size:11px;}
+.ptable th{font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;padding:6px 7px;border-bottom:1.5px solid var(--brd);text-align:left;background:var(--surf);}
+.ptable td{padding:6px 7px;border-bottom:1px solid var(--brdl);vertical-align:middle;}
+.ptable tr:last-child td{border-bottom:none;}
+.ptdetails{margin-bottom:0;}
+.ptsummary{cursor:pointer;font-size:12px;font-weight:600;color:var(--txt);padding:8px 12px;list-style:none;
+ background:var(--s2);border:1px solid var(--brd);border-radius:8px;display:flex;align-items:center;gap:8px;
+ user-select:none;transition:background .12s;}
+.ptsummary:hover{background:var(--brdl);}
+.ptsummary::-webkit-details-marker{display:none;}
+.ptsummary::before{content:'▸';font-size:14px;color:var(--t2);display:inline-block;transition:transform .15s;flex-shrink:0;}
+.ptdetails[open] .ptsummary{border-radius:8px 8px 0 0;border-bottom-color:transparent;}
+.ptdetails[open] .ptsummary::before{transform:rotate(90deg);}
+.ptdetails[open]>.ptpreview,.ptdetails[open]>.overflow,.ptdetails[open]>.callout,.ptdetails[open]>div,.ptdetails[open]>.xgrid,.ptdetails[open]>.card{border:1px solid var(--brd);border-top:none;border-radius:0 0 8px 8px;padding:10px 12px;margin-bottom:0;}
+.ptdetails[open]>.overflow{padding:0;}
+.ptpreview{display:flex;flex-direction:column;gap:0;margin-bottom:8px;border:1px solid var(--brdl);border-radius:7px;overflow:hidden;}
+.ptp-row{display:flex;align-items:center;gap:8px;padding:6px 9px;font-size:11px;border-bottom:1px solid var(--brdl);background:var(--surf);}
+.ptp-row:last-child{border-bottom:none;}
+.ptp-tag{min-width:20px;text-align:center;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;background:var(--s2);color:var(--t2);}
+.ptp-tag.kr{background:rgba(83,74,183,.12);color:#3730A3;}
+.ptp-tag.dwr{background:rgba(239,159,39,.15);color:#92400E;}
+.ptp-name{flex:1;font-weight:600;}
+.ptp-meta{font-size:10px;color:var(--t2);white-space:nowrap;}
+.nr{background:rgba(83,74,183,.04);}.dwr{background:rgba(239,159,39,.05);}
+.kr td:first-child{font-weight:700;}
+.zb{font-size:9px;padding:2px 5px;border-radius:10px;font-weight:700;white-space:nowrap;}
+.zn{background:#EDE9FE;color:#4C1D95;}.zd{background:#DCFCE7;color:#14532D;}
+.zw{background:#FEF3C7;color:#92400E;}.zk{background:#FFE4E6;color:#9F1239;}
+.crew{font-size:9px;padding:1px 5px;border-radius:10px;background:#DBEAFE;color:#1E3A5F;font-weight:700;}
+.meal{font-size:9px;padding:1px 5px;border-radius:10px;background:#DCFCE7;color:#14532D;font-weight:700;margin-left:3px;}
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:9px;padding:16px;margin-bottom:10px;}
+.card h3{font-size:13px;font-weight:700;margin-bottom:8px;}
+.card p{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:6px;}
+.card p:last-child{margin-bottom:0;}
+.card ul{padding-left:16px;margin-top:5px;}
+.card ul li{font-size:12px;color:var(--t2);line-height:1.7;}
+.exrow{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--brdl);}
+.exrow:last-child{border-bottom:none;}
+.exn{font-size:12px;font-weight:500;flex:1;}
+.exd{font-size:11px;color:var(--t2);line-height:1.45;}
+/* Strength config sliders */
+.str-rounds-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.str-rnd-grp{display:flex;gap:4px;}
+.rnd-btn{font-size:12px;font-weight:700;padding:4px 13px;border-radius:14px;border:1.5px solid var(--brd);background:var(--surf);color:var(--t2);cursor:pointer;transition:all .12s;}
+.rnd-btn.active{background:var(--grn);border-color:var(--grn);color:#fff;}
+.str-ex-card{background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:7px;}
+.str-ex-card.str-p2{opacity:.55;}
+.str-ex-head{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.str-letter{font-size:10px;font-weight:700;color:var(--t3);width:14px;flex-shrink:0;}
+.str-name{font-size:12px;font-weight:600;flex:1;}
+.str-summary{font-size:11px;font-weight:700;color:var(--grn);background:rgba(29,158,117,.13);padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.str-slider-row{display:flex;align-items:center;gap:8px;margin-top:4px;}
+.str-ctrl-lbl{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;width:36px;flex-shrink:0;}
+.str-range{flex:1;height:4px;accent-color:var(--grn);cursor:pointer;}
+.str-val{font-size:11px;font-weight:700;color:var(--txt);width:46px;text-align:right;flex-shrink:0;}
+.str-note{font-size:10px;color:var(--t3);margin-top:10px;font-style:italic;}
+.str-log-bar{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid var(--brdl);}
+.str-log-btn{padding:5px 14px;border-radius:14px;border:none;background:var(--grn);color:#fff;font-size:11px;font-weight:700;cursor:pointer;}
+.str-last{font-size:10px;color:var(--t2);flex:1;}
+.str-hist-row{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--brdl);font-size:11px;}
+.str-hist-row:last-child{border-bottom:none;}
+.str-hist-date{font-weight:600;min-width:72px;color:var(--txt);}
+.str-hist-rnd{min-width:48px;color:var(--t2);}
+.str-hist-ex{flex:1;color:var(--t2);}
+.str-hist-del{font-size:10px;color:var(--t3);cursor:pointer;padding:0 4px;}
+.nbadge{font-size:9px;padding:2px 6px;border-radius:10px;background:#DCFCE7;color:#14532D;font-weight:700;flex-shrink:0;}
+.pblk{border-left:3px solid var(--brd);padding:8px 12px;border-radius:0 7px 7px 0;margin-bottom:5px;}
+.xgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px;margin-bottom:12px;}
+.xcard{border-radius:8px;padding:12px;background:var(--surf);border:1px solid var(--brd);}
+.xcard .rating{font-size:13px;margin-bottom:4px;}
+.xcard h4{font-size:12px;font-weight:700;margin-bottom:4px;}
+.xcard p{font-size:11px;color:var(--t2);line-height:1.5;}
+.nutrow{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--brdl);font-size:12px;}
+.nutrow:last-child{border-bottom:none;}
+.nuit{font-weight:700;font-size:11px;min-width:125px;}
+.nud{color:var(--t2);line-height:1.5;flex:1;}
+.suprow{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--brdl);align-items:flex-start;}
+.suprow:last-child{border-bottom:none;}
+.supn{font-weight:700;font-size:11px;min-width:148px;}
+.supd{color:var(--t2);line-height:1.5;flex:1;font-size:11px;}
+.suppri{font-size:9px;padding:2px 6px;border-radius:10px;font-weight:700;flex-shrink:0;}
+.p1{background:#DCFCE7;color:#14532D;}.p2{background:#DBEAFE;color:#1E3A5F;}.pk{background:var(--s2);color:var(--t2);}
+.p-base .wl{color:#085041;}.p-base{background:#DCFCE7;}
+.p-b1 .wl{color:#1E3A5F;}.p-b1{background:#DBEAFE;}
+.p-peak .wl{color:#3730A3;}.p-peak{background:#EDE9FE;}
+.p-taper .wl{color:#4B4A46;}.p-taper{background:#F0EDE6;}
+.p-race .wl{color:#881337;}.p-race{background:#FFE4E6;}
+.p-travel .wl,.p-holiday .wl{color:#881337;}
+.p-travel{background:#FFE4E6;}.p-holiday{background:#FEF3C7;}
+.p-holiday .wl{color:#713F12;}
+.overflow{overflow-x:auto;}
+/* Loading / error states */
+.loading-msg{text-align:center;padding:40px 20px;color:var(--t2);font-size:13px;}
+.loading-spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--brd);border-top-color:var(--grn);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.error-box{background:#FFE4E6;border:1px solid #C0392B;border-radius:8px;padding:14px 16px;margin:16px 0;font-size:12px;color:#881337;}
+.error-box strong{display:block;margin-bottom:4px;}
+/* Sheet config panel */
+.cfg-bar{background:var(--surf);border-bottom:1px solid var(--brd);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;}
+.cfg-bar input{flex:1;min-width:280px;border:1px solid var(--brd);border-radius:6px;padding:5px 9px;font-size:12px;font-family:inherit;}
+.cfg-bar input:focus{outline:none;border-color:var(--grn);}
+.cfg-bar label{color:var(--t2);font-weight:500;white-space:nowrap;}
+.sync-btn{padding:5px 12px;border-radius:6px;border:none;background:var(--grn);color:#fff;font-size:12px;font-weight:600;cursor:pointer;}
+.sync-btn:hover{opacity:.88;}
+.sync-btn:disabled{opacity:.5;cursor:not-allowed;}
+.sync-status{font-size:11px;color:var(--t3);}
+.sync-status.ok{color:var(--grn);}
+.sync-status.err{color:#C0392B;}
+@media(max-width:600px){.strgrid{grid-template-columns:1fr;}.ddays{grid-template-columns:repeat(4,1fr);}.hstats{gap:12px;}}
+/* Strava live integration */
+html{color-scheme:light;}
+.strava-bar{background:var(--surf);border-bottom:1px solid var(--brd);padding:9px 20px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12px;}
+.strava-dot{width:9px;height:9px;border-radius:50%;background:#FC4C02;flex-shrink:0;}
+.strava-bar strong{font-weight:700;}
+.strava-status{color:var(--t2);}
+.strava-status.ok{color:var(--grn);font-weight:500;}
+.strava-status.err{color:#C0392B;font-weight:500;}
+.strava-hint{color:var(--t3);font-size:11px;margin-left:auto;}
+.nextup{background:#1A1917;color:#fff;border-radius:10px;padding:13px 15px;margin-bottom:14px;}
+.nextup .nl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#9A9890;margin-bottom:3px;}
+.nextup .nv{font-size:15px;font-weight:700;line-height:1.3;}
+.nextup .nd{font-size:11px;color:#C9C7C0;margin-top:3px;line-height:1.45;}
+.weekprog{display:flex;gap:18px;flex-wrap:wrap;margin-top:11px;padding-top:11px;border-top:1px solid #333;}
+.wp{font-size:10px;color:#9A9890;text-transform:uppercase;letter-spacing:.06em;}
+.wp .wpv{color:#fff;font-weight:700;font-size:13px;display:block;text-transform:none;letter-spacing:0;margin-top:2px;}
+.wp .wpb{height:4px;border-radius:2px;background:#333;width:120px;margin-top:5px;overflow:hidden;}
+.wp .wpf{height:4px;border-radius:2px;background:#1D9E75;}
+.wk .wcheck{font-size:9px;font-weight:700;float:right;line-height:1.1;}
+.wcheck.done{color:#1D9E75;}
+.wcheck.part{color:#BA7517;}
+.day .dcheck{font-size:10px;font-weight:700;color:#1D9E75;float:right;margin-top:-1px;}
+.actbox{background:var(--s2);border-radius:8px;padding:10px 12px;margin-bottom:12px;}
+.actbox .at{font-size:11px;font-weight:700;margin-bottom:7px;line-height:1.4;}
+.actrow{display:flex;gap:6px;flex-wrap:wrap;}
+.actpill{font-size:10px;background:var(--surf);border:1px solid var(--brd);border-radius:20px;padding:3px 9px;color:var(--t2);}
+.actpill.done{border-color:#1D9E75;color:#14532D;background:#DCFCE7;}
+.actpill a{color:inherit;text-decoration:none;}
+.actnone{font-size:11px;color:var(--t3);}
+/* ── v3 redesign + new features ──────────────────────────────────────────── */
+body{-webkit-font-smoothing:antialiased;}
+.hdr{background:linear-gradient(135deg,#1A1917,#2C2A27);}
+.det,.card{box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.wk{box-shadow:0 1px 2px rgba(0,0,0,.05);}
+.tabnav{gap:2px;}
+/* race ticker */
+.ticker{display:flex;gap:8px;overflow-x:auto;padding:10px 16px;background:#100F0E;border-bottom:1px solid #2A2825;-webkit-overflow-scrolling:touch;}
+.ticker::-webkit-scrollbar{height:0;}
+.rchip{flex:0 0 auto;background:#1F1E1C;border:1px solid #34322F;border-radius:10px;padding:7px 13px;min-width:92px;}
+.rchip .rd{font-size:13px;font-weight:700;color:#fff;line-height:1.15;}
+.rchip .rn{font-size:10px;color:#9A9890;margin-top:2px;white-space:nowrap;}
+.rchip.next{background:#1D9E75;border-color:#1D9E75;}
+.rchip.next .rd,.rchip.next .rn{color:#fff;}
+.rchip.arace{border-color:#BA7517;}
+.rchip.arace .rd{color:#F5C24B;}
+.rchip.next.arace{background:#BA7517;border-color:#BA7517;}
+.rchip.next.arace .rd,.rchip.next.arace .rn{color:#fff;}
+.rchip.rdone{opacity:.4;}
+.rchip.rnote{background:none;border:none;min-width:0;display:flex;align-items:center;color:#68665F;font-size:9px;padding-left:0;}
+/* tracking */
+.tracksum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.tsum{background:var(--surf);border:1px solid var(--brd);border-radius:9px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.tsl{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;}
+.tsv{font-size:16px;font-weight:700;margin:4px 0 6px;}
+.tsb{height:5px;background:var(--s2);border-radius:3px;overflow:hidden;}
+.tsf{height:5px;background:var(--grn);border-radius:3px;}
+.tsp{font-size:10px;color:var(--t3);margin-top:3px;}
+/* drag + reorder */
+.dhandle{display:inline-block;cursor:grab;color:rgba(0,0,0,.30);font-weight:700;margin-right:5px;letter-spacing:-3px;font-size:12px;touch-action:none;user-select:none;}
+.dhandle:active{cursor:grabbing;}
+.day.dragging{opacity:.9;box-shadow:0 8px 22px rgba(0,0,0,.20);transform:scale(1.02);position:relative;z-index:5;}
+.order-reset{font-size:11px;color:var(--blu);background:none;border:none;cursor:pointer;padding:0;margin:0 0 6px;text-decoration:underline;}
+.draghint{font-size:10px;color:var(--t3);margin:0 0 8px;}
+/* mobile day stacking for easy drag */
+@media(max-width:620px){
+ .ddays{grid-template-columns:1fr !important;gap:6px;}
+ .day{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;min-height:0;padding:9px 11px;}
+ .day .dname{width:auto;margin-bottom:0;}
+ .day .dtype{flex:1 1 auto;font-size:11px;}
+ .day .ddetail{flex-basis:100%;}
+ .cnt{padding:14px;}
+ .ticker{padding:9px 14px;}
+}
+
+/* ── v4 fixes ─────────────────────────────────────────────────────────────── */
+.fl{min-width:104px;justify-content:center;text-align:center;display:inline-flex;align-items:center;gap:4px;}
+.fl.ico{background:var(--s2)!important;color:var(--t2)!important;}
+.day{display:block;}
+.dseg{margin-top:6px;}
+.dlbl{display:block;font-size:8px;font-weight:700;letter-spacing:.08em;color:var(--t3);opacity:.85;margin-bottom:2px;}
+.dlog{border-top:1px dashed rgba(0,0,0,.13);padding-top:5px;}
+.ddate{font-weight:500;opacity:.6;font-size:9px;}
+.logact{display:block;font-size:10px;font-weight:600;line-height:1.35;}
+.logact a{color:inherit;text-decoration:none;}
+.dlmuted{font-size:10px;color:var(--t3);}
+.dlmiss{font-size:10px;color:#B45309;}
+.dcheck{float:right;color:#1D9E75;font-weight:700;font-size:11px;}
+.dmiss{float:right;font-size:8px;font-weight:700;color:#C0392B;opacity:.6;text-transform:uppercase;letter-spacing:.04em;}
+.dup{float:right;color:var(--t3);font-size:11px;}
+.dtoday{float:right;font-size:8px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:.04em;background:#DBEAFE;padding:1px 5px;border-radius:8px;}
+.phys{margin-top:7px;font-size:10px;font-weight:600;border:1px solid var(--brd);background:var(--surf);border-radius:14px;padding:3px 10px;cursor:pointer;color:var(--t2);}
+.phys.on{background:#EDE9FE;border-color:#C4B5FD;color:#4C1D95;}
+.donerow{display:flex;gap:8px;align-items:center;margin-top:8px;}
+.donebtn{font-size:10px;font-weight:600;border:1px solid var(--brd);background:var(--surf);border-radius:14px;padding:3px 11px;cursor:pointer;color:var(--t2);}
+.donebtn.on{background:#DCFCE7;border-color:#1D9E75;color:#14532D;}
+.autobtn{font-size:9px;color:var(--blu);background:none;border:none;cursor:pointer;text-decoration:underline;padding:2px;}
+.manmark{font-size:9px;color:var(--blu);margin-left:3px;}
+.shoes{display:flex;flex-direction:column;gap:11px;}
+.shoe-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.shoe-name{font-size:12px;font-weight:600;}
+.shoe-cur{font-size:8px;font-weight:700;background:#DBEAFE;color:#1E3A5F;padding:1px 6px;border-radius:8px;margin-left:6px;text-transform:uppercase;letter-spacing:.04em;}
+.shoe-km{font-size:12px;font-weight:700;color:var(--t2);white-space:nowrap;}
+.shoe-bar{height:6px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden;margin:4px 0 3px;}
+.shoe-fill{display:block;height:6px;border-radius:3px;}
+.shoe-fill.grn{background:#1D9E75;}.shoe-fill.amb{background:#BA7517;}.shoe-fill.red{background:#C0392B;}
+.shoe-st{font-size:10px;font-weight:600;}
+.shoe-st.grn{color:#14532D;}.shoe-st.amb{color:#92400E;}.shoe-st.red{color:#9F1239;}
+.trendstats{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.04em;}
+.trendstats span{display:flex;flex-direction:column;}
+.trendstats strong{color:var(--txt);font-size:15px;margin-top:2px;text-transform:none;letter-spacing:0;}
+.weeklog{font-size:11px;color:var(--t2);background:var(--s2);border-radius:8px;padding:8px 11px;margin-bottom:12px;}
+.weeklog .wlk{font-weight:600;}
+.weeklog .wlmut{color:var(--t3);}
+#trackTable th{position:static;top:auto;}
+@media(max-width:620px){ .day{display:block;padding:11px 12px;} }
+
+/* Today / briefing tab */
+.todayhead{background:#1A1917;color:#fff;border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.th-date{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#9A9890;margin-bottom:8px;}
+.th-plan .dlbl{color:#9A9890;}
+.th-plan-v{font-size:15px;font-weight:700;line-height:1.35;margin-top:2px;}
+.th-phys{margin-top:9px;font-size:11px;color:#F5C24B;}
+.briefcard{background:var(--surf);border:1px solid var(--brd);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.briefcard .dlbl{display:block;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--t3);margin-bottom:8px;}
+.briefcard p{font-size:13px;line-height:1.6;color:var(--txt);margin-bottom:9px;}
+.briefcard p:last-child{margin-bottom:0;}
+.brief-foot{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.brief-btn{font-size:11px;color:var(--blu);background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:4px 11px;cursor:pointer;font-weight:600;}
+.brief-btn:active{background:var(--s2);}
+
+/* full-width week rows */
+.wgrid{grid-template-columns:1fr !important;gap:8px;}
+.wk.wkrow{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:9px;min-width:0;overflow:hidden;}
+.wkrow .wk-c1{flex:0 0 56px;min-width:0;}
+.wkrow .wk-num{font-size:13px;font-weight:700;color:rgba(0,0,0,.72);}
+.wkrow .wk-dt{font-size:10px;color:rgba(0,0,0,.5);margin-top:1px;}
+.wkrow .wk-c2{flex:0 0 160px;min-width:0;overflow:hidden;}
+.wkrow .wk-lbl{font-size:12px;font-weight:600;line-height:1.3;margin-bottom:3px;color:rgba(0,0,0,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wkrow .wk-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.wkrow .wk-phase{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.wkrow .wk-race{font-size:9px;font-weight:700;background:rgba(0,0,0,.07);color:rgba(0,0,0,.65);padding:2px 8px;border-radius:10px;}
+.wkrow .wic{font-size:12px;background:none;padding:0;}
+.wkrow .wk-c3{flex:1 1 auto;min-width:0;text-align:left;overflow:hidden;}
+.wkrow .wk-vol{font-size:11px;font-weight:600;color:rgba(0,0,0,.7);margin-bottom:4px;}
+.wkrow .wkbar{height:3px;background:rgba(0,0,0,.08);border-radius:2px;margin-top:4px;overflow:hidden;}
+.wkrow .wkbar span{display:block;height:3px;border-radius:2px;}
+.wkrow .wcheck{float:none;display:inline-block;margin-top:6px;}
+.wkrow.current{box-shadow:0 0 0 2px #1A1917;}
+.wkrow.current .wk-num::after{content:' ◄ NOW';font-size:8px;color:#1A1917;opacity:.7;}
+@media(max-width:600px){
+ .wk.wkrow{flex-wrap:wrap;gap:8px 12px;}
+ .wkrow .wk-c1{flex:0 0 auto;}
+ .wkrow .wk-c2{flex:1 1 60%;min-width:0;}
+ .wkrow .wk-c3{flex-basis:100%;text-align:left;}
+}
+/* drag-and-drop feedback */
+.draghintbar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:#1A1917;color:#fff;font-size:12px;font-weight:600;padding:9px 16px;border-radius:20px;z-index:60;box-shadow:0 6px 20px rgba(0,0,0,.28);max-width:90%;text-align:center;}
+.ddays.drag-active .day:not(.dragging){opacity:.45;transition:opacity .12s;}
+.day.dragging{opacity:1 !important;box-shadow:0 10px 26px rgba(0,0,0,.22);transform:scale(1.03);position:relative;z-index:5;}
+.day.drop-target{outline:2px dashed var(--blu);outline-offset:2px;background:rgba(24,95,165,.06);}
+.day.just-moved{animation:flashmove .8s ease;}
+@keyframes flashmove{0%{background:rgba(29,158,117,.28);}100%{background:transparent;}}
+.dhandle{padding:4px 7px;margin-left:-4px;border-radius:6px;touch-action:none;}
+.dhandle:hover{background:rgba(0,0,0,.06);}
+/* week completion bars (target vs actual) */
+.wkrow .wk-vol{text-align:left;}
+.wk-prog{margin-top:3px;display:flex;flex-direction:row;gap:4px;flex-wrap:wrap;}
+.wk-prow{display:flex;align-items:center;gap:3px;flex:1 1 120px;min-width:100px;}
+.wk-plabel{font-size:9px;font-weight:700;color:var(--t3);flex:0 0 26px;text-transform:uppercase;letter-spacing:.03em;}
+.wk-pbar{flex:1 1 auto;min-width:20px;height:5px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden;}
+.wk-pbar span{display:block;height:5px;border-radius:3px;}
+.wk-pval{font-size:9px;color:var(--t2);font-weight:600;white-space:nowrap;flex:0 0 auto;}
+@media(min-width:700px){.wk-prog{flex-wrap:nowrap;}.wk-prow{flex:1 1 0;min-width:0;}}
+/* race detail modal */
+.rchip.rclick{cursor:pointer;}
+.rchip.rclick:hover{filter:brightness(1.14);}
+.racemodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow-y:auto;}
+.rm-card{background:var(--surf);border-radius:14px;max-width:560px;width:100%;padding:20px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.rm-close{position:absolute;top:8px;right:14px;border:none;background:none;font-size:24px;line-height:1;cursor:pointer;color:var(--t2);}
+.rm-title{font-size:18px;font-weight:700;padding-right:24px;}
+.rm-sub{font-size:12px;color:var(--t2);margin-top:2px;margin-bottom:14px;}
+.rm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-bottom:10px;}
+.rm-stat{background:var(--s2);border-radius:8px;padding:10px 12px;}
+.rm-sl{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);}
+.rm-sv{font-size:16px;font-weight:700;margin-top:3px;}
+.rm-link{display:inline-block;font-size:12px;color:var(--blu);text-decoration:none;font-weight:600;margin-bottom:6px;}
+.rm-plan{background:var(--s2);border-radius:8px;padding:11px 13px;font-size:12px;line-height:1.55;color:var(--t2);margin-top:8px;}
+.rm-plan .dlbl{display:block;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--t3);margin-bottom:5px;}
+.rm-up{text-align:center;margin:6px 0 14px;}
+.rm-count{font-size:30px;font-weight:800;color:var(--grn);}
+.rm-uplbl{font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;}
+.rm-note{font-size:11px;color:var(--t3);margin-top:8px;}
+.rm-fade{font-size:11px;color:var(--txt);font-weight:600;margin-bottom:8px;}
+.rm-splitwrap{max-height:240px;overflow-y:auto;border:1px solid var(--brd);border-radius:8px;background:var(--surf);}
+.rm-splittable{width:100%;border-collapse:collapse;font-size:11px;}
+.rm-splittable th{position:sticky;top:0;background:var(--surf);font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--t2);text-align:left;padding:6px 10px;border-bottom:1px solid var(--brd);}
+.rm-splittable td{padding:5px 10px;border-bottom:1px solid var(--brdl);}
+.rm-splittable tbody tr:last-child td{border-bottom:none;}
+.rm-chartwrap{position:relative;height:170px;margin-bottom:10px;}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="hdr">
+ <h1>UTCT 100 Miler &#8212; Coaching Hub</h1>
+ <p>Josh Krige &#183; Somerset West &#183; Sir Lowry&#8217;s Pass &#183; live · Tredict-connected</p>
+ <div class="hstats">
+ <div class="hs"><div class="hl">Race date</div><div class="hv">Fri 20 Nov 2026 &#183; 17:00</div></div>
+ <div class="hs"><div class="hl">Distance</div><div class="hv">161.7km &#183; 7,187m D+</div></div>
+ <div class="hs"><div class="hl">Primary goal</div><div class="hv">Strong finish</div></div>
+ <div class="hs"><div class="hl">HB on radar</div><div class="hv">Sub-30h</div></div>
+ </div>
+</div>
+
+<div class="ticker" id="ticker"></div>
+
+<!-- Strava live status bar -->
+<div class="strava-bar">
+ <span class="strava-dot"></span>
+ <strong>Tredict</strong>
+ <span class="strava-status" id="stravaStatus">Connecting…</span>
+ <span class="strava-hint">Auto-syncs when you open this page · use the Reload button to refresh</span>
+</div>
+
+<div class="tabnav">
+ <div class="tn active" onclick="showTab('today',this)">Today</div>
+ <div class="tn" onclick="showTab('plan',this)">Training Plan</div>
+ <div class="tn" onclick="showTab('track',this)">Tracking</div>
+ <div class="tn" onclick="showTab('pace',this)">Pacing Guide</div>
+ <div class="tn" onclick="showTab('str',this)">Strength &amp; Physio</div>
+ <div class="tn" onclick="showTab('nut',this)">Nutrition</div>
+</div>
+
+<div class="cnt">
+
+<!-- TODAY TAB -->
+<div id="t-today">
+ <div id="today-body"><div class="loading-msg">Loading…</div></div>
+ <div id="trend-card"></div>
+</div>
+
+<!-- PLAN TAB -->
+<div id="t-plan" style="display:none;">
+ <div class="flrow">
+ <span class="fl" style="background:#DCFCE7;color:#085041;">Base</span>
+ <span class="fl" style="background:#DBEAFE;color:#1E3A5F;">Build</span>
+ <span class="fl" style="background:#EDE9FE;color:#3730A3;">Peak</span>
+ <span class="fl" style="background:#E5E4DF;color:#4B4A46;">Taper</span>
+ <span class="fl" style="background:#FFE4E6;color:#881337;">Travel / Holiday</span>
+ <span class="fl" style="background:#FFE4E6;color:#881337;">Race week</span>
+ </div>
+ <div class="flrow">
+ <span class="fl ico">&#127769; Night run</span>
+ <span class="fl ico">&#8600;&#65038; Downhill focus</span>
+ <span class="fl ico">&#128205; Course recce</span>
+ <span class="fl ico">&#129441; HB check-in</span>
+ <span class="fl ico">&#128293; Heat / sauna</span>
+ </div>
+ <div id="plan-loading" class="loading-msg" style="display:none;">
+ <div class="loading-spinner"></div><br>Loading from Google Sheet…
+ </div>
+ <div id="plan-error" class="error-box" style="display:none;"></div>
+ <div id="nextup-wrap"></div>
+ <div class="wgrid" id="wgrid"></div>
+ <div class="det" id="det">Click any week to see the full plan.</div>
+</div>
+
+<!-- TRACKING TAB -->
+<div id="t-track" style="display:none;">
+ <div id="track-summary" class="tracksum"></div>
+ <div class="card" style="margin-bottom:12px;"><h3>Cumulative distance — planned vs actual</h3><div style="position:relative;height:240px;"><canvas id="trackChart"></canvas></div></div>
+ <div class="overflow"><table class="ptable" id="trackTable"></table></div>
+</div>
+
+<!-- PACE TAB -->
+<div id="t-pace" style="display:none;">
+ <div id="race-now"></div>
+ <div class="psubtabs">
+ <div class="pst active" onclick="showPace('p30',this)">Sub-30h &#8212; Honey Badger</div>
+ <div class="pst" onclick="showPace('p36',this)">Sub-36h &#8212; Strong Finish</div>
+ <div class="pst" onclick="showPace('p40',this)">Sub-40h &#8212; Solid Finish</div>
+ <div class="pst" onclick="showPace('p45',this)">Beat the Cutoff &#8212; 45h</div>
+ </div>
+ <div id="p30">
+ <div class="dstats" style="margin-bottom:14px;">
+ <div class="dst"><div class="sl2">Target</div><div class="sv">29h30</div></div>
+ <div class="dst"><div class="sl2">Avg speed</div><div class="sv">5.5 km/h</div></div>
+ <div class="dst"><div class="sl2">Finish</div><div class="sv">23:30 Sat</div></div>
+ <div class="dst"><div class="sl2">Max aid stop</div><div class="sv">8 min</div></div>
+ </div>
+ <details class="ptdetails" open>
+ <summary class="ptsummary">Key aid stations &#8212; full table (19 stops)</summary>
+ <div class="ptpreview">
+ <div class="ptp-row"><span class="ptp-tag kr">3</span><span class="ptp-name">Table Mountain top</span><span class="ptp-meta">18km &middot; 21:30 &middot; 4:30</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">6</span><span class="ptp-name">Hout Bay (drop bag)</span><span class="ptp-meta">50km &middot; 03:00 Sat &middot; 10:00</span></div>
+ <div class="ptp-row"><span class="ptp-tag dwr">TP</span><span class="ptp-name">Silvermine (sunrise)</span><span class="ptp-meta">68km &middot; 06:30 Sat &middot; 13:30</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">8</span><span class="ptp-name">Simon's Town</span><span class="ptp-meta">98km &middot; 12:00 Sat &middot; 19:00</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">11</span><span class="ptp-name">Noordhoek</span><span class="ptp-meta">128km &middot; 18:00 Sat &middot; 25:00</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">F</span><span class="ptp-name">Finish &#8212; Gardens Rugby Club</span><span class="ptp-meta">161.7km &middot; 23:30 Sat &middot; 29:30</span></div>
+ </div>
+ <div class="overflow">
+ <table class="ptable">
+ <thead><tr><th>#</th><th>Aid station</th><th>km</th><th>Clock</th><th>Race time</th><th>Zone</th><th>Services</th><th>Note</th></tr></thead>
+ <tbody>
+ <tr class="nr kr"><td>S</td><td>Gardens Rugby Club</td><td>0</td><td>17:00 Fri</td><td>0:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Hold back. Crowd is a trap.</td></tr>
+ <tr class="nr"><td>1</td><td>Signal Hill</td><td>4</td><td>17:50</td><td>0:50</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>HR under 140. Walk steep.</td></tr>
+ <tr class="nr"><td>2</td><td>Kloof Nek</td><td>9</td><td>19:00</td><td>2:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Eating every 40min?</td></tr>
+ <tr class="nr"><td>TP</td><td>Platteklip Gorge</td><td>13</td><td>20:15</td><td>3:15</td><td><span class="zb zn">&#127769; Night</span></td><td>&#8212;</td><td>Walk every step.</td></tr>
+ <tr class="nr kr"><td>3</td><td>Table Mountain top</td><td>18</td><td>21:30</td><td>4:30</td><td><span class="zb zn">&#127769; Night</span></td><td>&#8212;</td><td>4.5h in = on track. Contacts OK?</td></tr>
+ <tr class="nr kr"><td>4</td><td>Llandudno</td><td>33</td><td>23:45</td><td>6:45</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Karbonkelberg next. Eat hard.</td></tr>
+ <tr class="nr"><td>5</td><td>Rocket Road</td><td>43</td><td>01:30 Sat</td><td>8:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Karbonkelberg done. Relief.</td></tr>
+ <tr class="nr kr"><td>6</td><td>Hout Bay</td><td>50</td><td>03:00 Sat</td><td>10:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Pasta</span></td><td>DROP BAG. Max 15 min.</td></tr>
+ <tr class="dwr kr"><td>TP</td><td>Silvermine</td><td>68</td><td>06:30 Sat</td><td>13:30</td><td><span class="zb zw">&#127748; Dawn</span></td><td>&#8212;</td><td>SUNRISE. Massive reset.</td></tr>
+ <tr><td>7</td><td>Kalk Bay</td><td>82</td><td>09:00 Sat</td><td>16:00</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span></td><td>False Bay. Coke begins.</td></tr>
+ <tr><td>TP</td><td>Blackhill</td><td>88</td><td>10:15 Sat</td><td>17:15</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span></td><td>6km to Simon&#8217;s Town.</td></tr>
+ <tr class="kr"><td>8</td><td>Simon&#8217;s Town</td><td>98</td><td>12:00 Sat</td><td>19:00</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Burger</span></td><td>Coke every station from here.</td></tr>
+ <tr><td>9</td><td>Scarborough</td><td>110</td><td>14:30 Sat</td><td>21:30</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span></td><td>Deep south. Jelly babies.</td></tr>
+ <tr><td>10</td><td>Kommetjie</td><td>118</td><td>16:00 Sat</td><td>23:00</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span></td><td>23hrs in. Still moving.</td></tr>
+ <tr class="kr"><td>11</td><td>Noordhoek</td><td>128</td><td>18:00 Sat</td><td>25:00</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Hot food</span></td><td>33km left. Biltong + Coke.</td></tr>
+ <tr class="nr"><td>TP</td><td>Constantia Nek</td><td>140</td><td>20:30 Sat</td><td>27:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Dark again. Final climbs.</td></tr>
+ <tr class="nr kr"><td>12</td><td>Alphen Trail</td><td>147</td><td>21:15 Sat</td><td>28:15</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>14.7km left. Everything.</td></tr>
+ <tr class="nr"><td>TP</td><td>Nursery Ravine</td><td>152</td><td>21:55 Sat</td><td>28:55</td><td><span class="zb zn">&#127769; Night</span></td><td>&#8212;</td><td>9km. Run every flat.</td></tr>
+ <tr class="nr"><td>13</td><td>Newlands</td><td>155</td><td>22:15 Sat</td><td>29:15</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>6km. Move.</td></tr>
+ <tr class="nr kr"><td>F</td><td>Gardens Rugby Club</td><td>161.7</td><td>23:30 Sat</td><td>29:30</td><td><span class="zb zk">&#127937; Finish</span></td><td>&#8212;</td><td>Whatever the time. Done.</td></tr>
+ </tbody>
+ </table>
+ </div>
+ </details>
+ </div>
+ <div id="p36" style="display:none;">
+ <div class="dstats" style="margin-bottom:14px;">
+ <div class="dst"><div class="sl2">Target</div><div class="sv">36:00</div></div>
+ <div class="dst"><div class="sl2">Avg speed</div><div class="sv">4.5 km/h</div></div>
+ <div class="dst"><div class="sl2">Finish</div><div class="sv">Sun</div></div>
+ <div class="dst"><div class="sl2">Max aid stop</div><div class="sv">12 min</div></div>
+ </div>
+ <div class="callout co-blu" style="margin-bottom:12px;">Walk every climb over 10%. Use the extra aid station time to eat proper hot meals. This is your safety plan &#8212; and still results in an extraordinary finish.</div>
+ <details class="ptdetails" open>
+ <summary class="ptsummary">Key aid stations &#8212; full table (17 stops)</summary>
+ <div class="ptpreview">
+ <div class="ptp-row"><span class="ptp-tag kr">3</span><span class="ptp-name">Table Mountain top</span><span class="ptp-meta">18km &middot; 22:30 &middot; 5:30</span></div>
+ <div class="ptp-row"><span class="ptp-tag dwr">6</span><span class="ptp-name">Hout Bay (sunrise, drop bag)</span><span class="ptp-meta">50km &middot; 06:00 Sat &middot; 13:00</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">8</span><span class="ptp-name">Simon's Town</span><span class="ptp-meta">98km &middot; 18:00 Sat &middot; 25:00</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">11</span><span class="ptp-name">Noordhoek</span><span class="ptp-meta">128km &middot; 01:30 Sun &middot; 32:30</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">F</span><span class="ptp-name">Finish &#8212; Gardens Rugby Club</span><span class="ptp-meta">161.7km &middot; Sun &middot; 36:00</span></div>
+ </div>
+ <div class="overflow">
+ <table class="ptable">
+ <thead><tr><th>#</th><th>Aid station</th><th>km</th><th>Clock</th><th>Race time</th><th>Zone</th><th>Services</th><th>Note</th></tr></thead>
+ <tbody>
+ <tr class="nr kr"><td>S</td><td>Gardens Rugby Club</td><td>0</td><td>17:00 Fri</td><td>0:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Very controlled start.</td></tr>
+ <tr class="nr"><td>1</td><td>Signal Hill</td><td>4</td><td>18:10</td><td>1:10</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Walk all uphills.</td></tr>
+ <tr class="nr"><td>2</td><td>Kloof Nek</td><td>9</td><td>19:30</td><td>2:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Eat. Drink. Move.</td></tr>
+ <tr class="nr"><td>TP</td><td>Platteklip Gorge</td><td>13</td><td>21:00</td><td>4:00</td><td><span class="zb zn">&#127769; Night</span></td><td>&#8212;</td><td>Walk every step.</td></tr>
+ <tr class="nr kr"><td>3</td><td>Table Mountain top</td><td>18</td><td>22:30</td><td>5:30</td><td><span class="zb zn">&#127769; Night</span></td><td>&#8212;</td><td>Good time in hand.</td></tr>
+ <tr class="nr kr"><td>4</td><td>Llandudno</td><td>33</td><td>01:30 Sat</td><td>8:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Deep night milestone.</td></tr>
+ <tr class="nr"><td>5</td><td>Rocket Road</td><td>43</td><td>04:00 Sat</td><td>11:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Karbonkelberg done.</td></tr>
+ <tr class="dwr kr"><td>6</td><td>Hout Bay</td><td>50</td><td>06:00 Sat</td><td>13:00</td><td><span class="zb zw">&#127748; Dawn</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Pasta</span></td><td>SUNRISE at Hout Bay. Hot food reboot.</td></tr>
+ <tr><td>TP</td><td>Silvermine</td><td>68</td><td>11:00 Sat</td><td>18:00</td><td><span class="zb zd">&#9728; Day</span></td><td>&#8212;</td><td>Full daylight. Fresh energy.</td></tr>
+ <tr><td>7</td><td>Kalk Bay</td><td>82</td><td>14:30 Sat</td><td>21:30</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span></td><td>Beautiful coastline. Keep moving.</td></tr>
+ <tr class="kr"><td>8</td><td>Simon&#8217;s Town</td><td>98</td><td>18:00 Sat</td><td>25:00</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Burger</span></td><td>More than halfway. Eat real food.</td></tr>
+ <tr><td>9</td><td>Scarborough</td><td>110</td><td>21:00 Sat</td><td>28:00</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span></td><td>Sunset. Headtorch soon.</td></tr>
+ <tr><td>10</td><td>Kommetjie</td><td>118</td><td>23:00 Sat</td><td>30:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>30hrs in. You are finishing this.</td></tr>
+ <tr class="kr"><td>11</td><td>Noordhoek</td><td>128</td><td>01:30 Sun</td><td>32:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Hot food</span></td><td>33km left. Final push.</td></tr>
+ <tr class="nr"><td>TP</td><td>Constantia Nek</td><td>140</td><td>03:30 Sun</td><td>34:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Final climbs. Walk efficiently.</td></tr>
+ <tr class="nr kr"><td>12</td><td>Alphen Trail</td><td>147</td><td>04:00 Sun</td><td>35:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>14.7km. Run everything you can.</td></tr>
+ <tr class="nr"><td>13</td><td>Newlands</td><td>155</td><td>04:40 Sun</td><td>35:40</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>6km. Do not stop.</td></tr>
+ <tr class="nr kr"><td>F</td><td>Gardens Rugby Club</td><td>161.7</td><td>Sun</td><td>36:00</td><td><span class="zb zk">&#127937; Finish</span></td><td>&#8212;</td><td>UTCT finisher. That is everything.</td></tr>
+ </tbody>
+ </table>
+ </div>
+ </details>
+ </div>
+
+ <!-- SUB-40H -->
+ <div id="p40" style="display:none;">
+ <div class="dstats" style="margin-bottom:14px;">
+ <div class="dst"><div class="sl2">Target</div><div class="sv">&#60;40:00</div></div>
+ <div class="dst"><div class="sl2">Avg speed</div><div class="sv">4.0 km/h</div></div>
+ <div class="dst"><div class="sl2">Finish</div><div class="sv">Sun ~09:00</div></div>
+ <div class="dst"><div class="sl2">Max aid stop</div><div class="sv">10 min</div></div>
+ </div>
+ <div class="callout co-grn" style="margin-bottom:12px;">Walk every climb over 12%. Run everything else. This plan finishes 5 hours inside the cutoff &#8212; enough buffer to handle one bad patch without panic. Stay consistent, eat every 40 min, and keep moving.</div>
+ <details class="ptdetails" open>
+ <summary class="ptsummary">Key aid stations &#8212; full table (17 stops)</summary>
+ <div class="ptpreview">
+ <div class="ptp-row"><span class="ptp-tag kr">6</span><span class="ptp-name">Hout Bay (drop bag)</span><span class="ptp-meta">50km &middot; 07:00 Sat &middot; 14:00</span></div>
+ <div class="ptp-row"><span class="ptp-tag">TP</span><span class="ptp-name">Silvermine</span><span class="ptp-meta">68km &middot; 12:00 Sat &middot; 19:00</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">8</span><span class="ptp-name">Simon&#8217;s Town</span><span class="ptp-meta">98km &middot; 19:30 Sat &middot; 26:30</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">11</span><span class="ptp-name">Noordhoek</span><span class="ptp-meta">128km &middot; 02:30 Sun &middot; 33:30</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">F</span><span class="ptp-name">Finish &#8212; Gardens Rugby Club</span><span class="ptp-meta">161.7km &middot; ~09:00 Sun &middot; 40:00</span></div>
+ </div>
+ <div class="overflow">
+ <table class="ptable">
+ <thead><tr><th>#</th><th>Aid station</th><th>km</th><th>Clock</th><th>Race time</th><th>Zone</th><th>Services</th><th>Note</th></tr></thead>
+ <tbody>
+ <tr class="nr kr"><td>S</td><td>Gardens Rugby Club</td><td>0</td><td>17:00 Fri</td><td>0:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Controlled start. First 10km easy.</td></tr>
+ <tr class="nr"><td>1</td><td>Signal Hill</td><td>4</td><td>18:15</td><td>1:15</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Walk the hill. Run the flat.</td></tr>
+ <tr class="nr"><td>2</td><td>Kloof Nek</td><td>9</td><td>19:45</td><td>2:45</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Eat. Drink. Keep moving.</td></tr>
+ <tr class="nr"><td>TP</td><td>Platteklip Gorge</td><td>13</td><td>21:20</td><td>4:20</td><td><span class="zb zn">&#127769; Night</span></td><td>&#8212;</td><td>Walk every step up.</td></tr>
+ <tr class="nr kr"><td>3</td><td>Table Mountain top</td><td>18</td><td>23:00</td><td>6:00</td><td><span class="zb zn">&#127769; Night</span></td><td>&#8212;</td><td>Good pace. Run the descent.</td></tr>
+ <tr class="nr kr"><td>4</td><td>Llandudno</td><td>33</td><td>02:00 Sat</td><td>9:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Deep night. Eat and move.</td></tr>
+ <tr class="nr"><td>5</td><td>Rocket Road</td><td>43</td><td>04:30 Sat</td><td>11:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Karbonkelberg done.</td></tr>
+ <tr class="dwr kr"><td>6</td><td>Hout Bay</td><td>50</td><td>07:00 Sat</td><td>14:00</td><td><span class="zb zw">&#127748; Dawn</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Pasta</span></td><td>DROP BAG. Max 10 min. Sunrise boost.</td></tr>
+ <tr><td>TP</td><td>Silvermine</td><td>68</td><td>12:00 Sat</td><td>19:00</td><td><span class="zb zd">&#9728; Day</span></td><td>&#8212;</td><td>Full day. Stay consistent.</td></tr>
+ <tr><td>7</td><td>Kalk Bay</td><td>82</td><td>15:30 Sat</td><td>22:30</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span></td><td>Coastline. Keep eating.</td></tr>
+ <tr class="kr"><td>8</td><td>Simon&#8217;s Town</td><td>98</td><td>19:30 Sat</td><td>26:30</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Burger</span></td><td>Over halfway. Eat real food. 10 min max.</td></tr>
+ <tr><td>9</td><td>Scarborough</td><td>110</td><td>22:00 Sat</td><td>29:00</td><td><span class="zb zd">&#9728; Day</span></td><td><span class="crew">Crew</span></td><td>Sunset. Headtorch on.</td></tr>
+ <tr><td>10</td><td>Kommetjie</td><td>118</td><td>00:00 Sun</td><td>31:00</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Midnight. Coke and jelly babies.</td></tr>
+ <tr class="kr"><td>11</td><td>Noordhoek</td><td>128</td><td>02:30 Sun</td><td>33:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span><span class="meal">&#127829; Hot food</span></td><td>33km left. Eat fast. Move.</td></tr>
+ <tr class="nr"><td>TP</td><td>Constantia Nek</td><td>140</td><td>04:30 Sun</td><td>35:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>Last major climbs. Walk efficiently.</td></tr>
+ <tr class="nr kr"><td>12</td><td>Alphen Trail</td><td>147</td><td>05:15 Sun</td><td>36:15</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>14.7km. Run everything flat.</td></tr>
+ <tr class="nr"><td>13</td><td>Newlands</td><td>155</td><td>06:30 Sun</td><td>37:30</td><td><span class="zb zn">&#127769; Night</span></td><td><span class="crew">Crew</span></td><td>6km. Do not stop for anything.</td></tr>
+ <tr class="nr kr"><td>F</td><td>Gardens Rugby Club</td><td>161.7</td><td>~09:00 Sun</td><td>40:00</td><td><span class="zb zk">&#127937; Finish</span></td><td>&#8212;</td><td>UTCT finisher. Sub-40 done.</td></tr>
+ </tbody>
+ </table>
+ </div>
+ </details>
+ <details class="ptdetails" style="margin-top:8px;">
+ <summary class="ptsummary">&#128164; Sleep &amp; caffeine strategy</summary>
+ <div class="callout co-blu" style="margin-top:8px;"><strong>No planned sleep stop.</strong> Sub-40h is achievable without sleep if you manage caffeine and energy correctly. Your job is to never let yourself stop moving for more than 10 minutes at any aid station.</div>
+ <div style="padding:10px 0 4px;font-size:12px;line-height:1.7;color:var(--txt);">
+ <strong>Caffeine timing</strong><br>
+ Hours 0&#8211;10 (Fri 17:00&#8211;03:00): no caffeine. Running on natural alertness &#8212; your first night is manageable.<br>
+ Hours 11&#8211;14 (Hout Bay to Silvermine): start Coke and caffeine gels. Begin early, before you feel you need it.<br>
+ Hours 14&#8211;30 (Sat afternoon through Sat night): Coke at <em>every</em> crew stop &#8212; this is the deepest sleep window of the race. Kalk Bay, Simon&#8217;s Town, Scarborough, Kommetjie, Noordhoek &#8212; all Coke.<br>
+ Hours 31&#8211;40 (Sun 00:00&#8211;finish): reduce caffeine. You finish ~09:00 Sun &#8212; too much now wrecks the recovery sleep you need immediately after.
+ </div>
+ <div style="padding:4px 0 4px;font-size:12px;line-height:1.7;color:var(--txt);">
+ <strong>Managing sleepiness on course</strong><br>
+ &#9654; Brief stop (2 min) + cold water on face + solid food usually resets the brain enough to continue.<br>
+ &#9654; If you get micro-sleeps (head nodding while moving): 10 min lying flat at the next crew point + caffeine is faster net time than shuffling at 2 km/h for an hour.<br>
+ &#9654; Brief crew: watch for slurred speech, stumbling on flat ground, glazed stare. These are &#8220;stop and reset&#8221; signals &#8212; override Josh if needed.
+ </div>
+ </details>
+ </div>
+
+ <!-- BEAT THE CUTOFF -->
+ <div id="p45" style="display:none;">
+ <div class="dstats" style="margin-bottom:14px;">
+ <div class="dst"><div class="sl2">Target</div><div class="sv">&#60;45:00</div></div>
+ <div class="dst"><div class="sl2">Avg speed</div><div class="sv">3.6 km/h</div></div>
+ <div class="dst"><div class="sl2">Finish</div><div class="sv">Sun ~14:00</div></div>
+ <div class="dst"><div class="sl2">Cutoff</div><div class="sv">Sun 14:00</div></div>
+ </div>
+ <div class="callout co-rd" style="margin-bottom:12px;"><strong>&#9888; This is the survival plan.</strong> The UTCT cutoff is 45 hours (14:00 Sunday). Every aid station below has a mandatory cutoff time &#8212; arrive after it and you are pulled from the race. Walk every climb. Take extra time at hot-food stops. Move continuously on the flats. The cutoff times below assume you keep moving &#8212; the only DNF is stopping.</div>
+ <details class="ptdetails" open>
+ <summary class="ptsummary">Key checkpoints &#8212; full cutoff table (17 stops)</summary>
+ <div class="ptpreview">
+ <div class="ptp-row"><span class="ptp-tag kr">6</span><span class="ptp-name">Hout Bay (drop bag)</span><span class="ptp-meta">50km &middot; ~09:30 Sat &middot; Cutoff: 11:00 Sat</span></div>
+ <div class="ptp-row"><span class="ptp-tag">TP</span><span class="ptp-name">Silvermine</span><span class="ptp-meta">68km &middot; ~15:30 Sat &middot; Cutoff: 17:00 Sat</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">8</span><span class="ptp-name">Simon's Town</span><span class="ptp-meta">98km &middot; ~23:30 Sat &middot; Cutoff: 01:00 Sun</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">11</span><span class="ptp-name">Noordhoek</span><span class="ptp-meta">128km &middot; ~06:30 Sun &middot; Cutoff: 08:00 Sun</span></div>
+ <div class="ptp-row"><span class="ptp-tag kr">F</span><span class="ptp-name">Finish &#8212; Gardens Rugby Club</span><span class="ptp-meta">161.7km &middot; by 14:00 Sun</span></div>
+ </div>
+ <div class="overflow">
+ <table class="ptable">
+ <thead><tr><th>#</th><th>Aid station</th><th>km</th><th>Clock</th><th>Race time</th><th>Cutoff</th><th>Services</th><th>Note</th></tr></thead>
+ <tbody>
+ <tr class="nr kr"><td>S</td><td>Gardens Rugby Club</td><td>0</td><td>17:00 Fri</td><td>0:00</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>Move now. No spectating.</td></tr>
+ <tr class="nr"><td>1</td><td>Signal Hill</td><td>4</td><td>18:40</td><td>1:40</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>Walk every uphill.</td></tr>
+ <tr class="nr"><td>2</td><td>Kloof Nek</td><td>9</td><td>20:30</td><td>3:30</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>Eat. Drink. Move.</td></tr>
+ <tr class="nr"><td>TP</td><td>Platteklip Gorge</td><td>13</td><td>22:20</td><td>5:20</td><td>&#8212;</td><td>&#8212;</td><td>Walk every step.</td></tr>
+ <tr class="nr kr"><td>3</td><td>Table Mountain top</td><td>18</td><td>00:20 Sat</td><td>7:20</td><td>&#8212;</td><td>&#8212;</td><td>On track if you are here.</td></tr>
+ <tr class="nr kr"><td>4</td><td>Llandudno</td><td>33</td><td>04:00 Sat</td><td>11:00</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>Deep night. Keep eating.</td></tr>
+ <tr class="nr"><td>5</td><td>Rocket Road</td><td>43</td><td>07:00 Sat</td><td>14:00</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>Karbonkelberg done.</td></tr>
+ <tr class="dwr kr"><td>6</td><td>Hout Bay</td><td>50</td><td>09:30 Sat</td><td>16:30</td><td><strong style="color:#C0392B;">11:00 Sat</strong></td><td><span class="crew">Crew</span><span class="meal">&#127829; Pasta</span></td><td>DROP BAG. Max 10 min. Cutoff is 90min away.</td></tr>
+ <tr><td>TP</td><td>Silvermine</td><td>68</td><td>15:30 Sat</td><td>22:30</td><td><strong style="color:#C0392B;">17:00 Sat</strong></td><td>&#8212;</td><td>1.5hr buffer. Keep moving.</td></tr>
+ <tr><td>7</td><td>Kalk Bay</td><td>82</td><td>19:30 Sat</td><td>26:30</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>False Bay. Coke starts.</td></tr>
+ <tr class="kr"><td>8</td><td>Simon&#8217;s Town</td><td>98</td><td>23:30 Sat</td><td>30:30</td><td><strong style="color:#C0392B;">01:00 Sun</strong></td><td><span class="crew">Crew</span><span class="meal">&#127829; Burger</span></td><td>Eat fast. 90min buffer.</td></tr>
+ <tr><td>9</td><td>Scarborough</td><td>110</td><td>02:30 Sun</td><td>33:30</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>Headtorch fully charged.</td></tr>
+ <tr><td>10</td><td>Kommetjie</td><td>118</td><td>04:30 Sun</td><td>35:30</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>Keep Coke going.</td></tr>
+ <tr class="kr"><td>11</td><td>Noordhoek</td><td>128</td><td>06:30 Sun</td><td>37:30</td><td><strong style="color:#C0392B;">08:00 Sun</strong></td><td><span class="crew">Crew</span><span class="meal">&#127829; Hot food</span></td><td>1.5hr buffer. 33km left. Move.</td></tr>
+ <tr class="nr"><td>TP</td><td>Constantia Nek</td><td>140</td><td>09:00 Sun</td><td>40:00</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>Final climbs.</td></tr>
+ <tr class="nr kr"><td>12</td><td>Alphen Trail</td><td>147</td><td>10:00 Sun</td><td>41:00</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>14.7km. Run everything flat.</td></tr>
+ <tr class="nr"><td>13</td><td>Newlands</td><td>155</td><td>11:30 Sun</td><td>42:30</td><td>&#8212;</td><td><span class="crew">Crew</span></td><td>6km. Do not stop for anything.</td></tr>
+ <tr class="nr kr"><td>F</td><td>Gardens Rugby Club</td><td>161.7</td><td>by 14:00 Sun</td><td>45:00</td><td><strong style="color:#C0392B;">14:00 Sun</strong></td><td>&#8212;</td><td>UTCT finisher.</td></tr>
+ </tbody>
+ </table>
+ </div>
+ </details>
+ <details class="ptdetails" style="margin-top:8px;">
+ <summary class="ptsummary">&#128164; Sleep &amp; caffeine strategy</summary>
+ <div class="callout co-amb" style="margin-top:8px;"><strong>&#9888; Two full nights.</strong> The 45h plan runs through Fri night AND Sat night. By Simon&#8217;s Town (~23:30 Sat, hour 30) you will have been awake ~35+ hours. A tactical nap here is not a concession &#8212; it is a strategy.</div>
+ <div style="padding:10px 0 4px;font-size:12px;line-height:1.7;color:var(--txt);">
+ <strong>Why 20&#8211;30 min &#8212; and not more</strong><br>
+ Sleep cycles are ~90 minutes. The danger zone is <strong>45&#8211;60 min</strong>: you enter deep slow-wave sleep but don&#8217;t complete the cycle, and wake feeling significantly worse than before &#8212; disoriented, heavy-legged, and hard to restart. Avoid this window completely.<br>
+ <strong>20&#8211;30 min</strong> takes you into Stage 2 (light restorative sleep) and out again cleanly. Real restoration, minimal grogginess. This is the correct choice regardless of your fitness level &#8212; it&#8217;s sleep cycle science, not elite privilege.<br>
+ A full <strong>90-min cycle</strong> would feel best, but costs too much time on the cutoff plan.
+ </div>
+ <div style="padding:4px 0 4px;font-size:12px;line-height:1.7;color:var(--txt);">
+ <strong>Nap 1 &#8212; Simon&#8217;s Town (hour 30, ~23:30 Sat)</strong><br>
+ If coherent and moving steadily: <strong>press on.</strong> Eat and go.<br>
+ If shuffling, stumbling, or micro-sleeping: <strong>20&#8211;25 min nap now.</strong> Lie flat, crew sets alarm immediately. Eat + Coke before you stand. Net cost ~35 min; shuffling at 2 km/h for 63km costs you hours.<br><br>
+ <strong>Nap 2 &#8212; Scarborough or Kommetjie (hours 33&#8211;35, 02:30&#8211;04:30 Sun)</strong><br>
+ If you slept at Simon&#8217;s Town and still fading: a second 20-min nap here is valid. You are far enough from the finish cutoff that the buffer holds.<br>
+ Do <strong>not</strong> nap at Noordhoek (hour 37, 06:30 Sun) or later &#8212; cutoffs are too tight.
+ </div>
+ <div style="padding:4px 0 4px;font-size:12px;line-height:1.7;color:var(--txt);">
+ <strong>The week before: bank sleep aggressively</strong><br>
+ Sleep debt going <em>into</em> the race compounds badly at hour 25+. Aim for 8&#8211;9 hours Mon&#8211;Thu. Race night (Thu) and pre-race night (Fri) you will sleep badly &#8212; that is normal and manageable <em>if</em> you arrive well-rested. Do not underestimate this.
+ </div>
+ <div style="padding:4px 0 4px;font-size:12px;line-height:1.7;color:var(--txt);">
+ <strong>Caffeine protocol</strong><br>
+ Hours 0&#8211;15: none to minimal &#8212; preserve sensitivity for later.<br>
+ Hours 16&#8211;36 (Hout Bay through Sat night): Coke at every crew stop without exception.<br>
+ Hours 36&#8211;45 (Sun morning to finish): ease off &#8212; you need real sleep immediately after finishing.<br>
+ Caffeine masks fatigue but does not restore motor function. A severely sleep-deprived brain on caffeine will feel more confident while making worse decisions. Nap first, caffeine after.
+ </div>
+ <div style="padding:4px 0 4px;font-size:12px;line-height:1.7;color:var(--txt);">
+ <strong>Crew instructions</strong><br>
+ &#9654; Alarm set <em>before</em> Josh closes his eyes. 20 min. No exceptions.<br>
+ &#9654; On waking: food and Coke in hand before he stands. Do not let him lie there "just one more minute."<br>
+ &#9654; Do not let him lie down on the trail unsupervised. One unalarmed rest can become 90 min.<br>
+ &#9654; Intervene at: slurred speech, stumbling on flat ground, blank stare, answering questions with a delay.
+ </div>
+ </details>
+ </div>
+
+ <details class="ptdetails" style="margin-top:12px;">
+ <summary class="ptsummary">&#128064; Night vision protocol (glasses problem)</summary>
+ <div class="callout co-pur" style="margin-top:8px;"><strong>The glasses problem:</strong> Forehead headtorch shines through lenses &#8212; creates glare and reflection, nearly useless in mist. You run 15+ hours in darkness.<br><br><strong>Best fix:</strong> Daily disposable contact lenses for night sections. Test from Wk 8. Bring glasses as backup.<br><strong>If contacts not possible:</strong> Chest-mounted secondary light eliminates the reflection. Anti-fog cloth in hip pockets and Hout Bay drop bag. Practice in fog and rain now.<br><strong>Winter bonus:</strong> Every dark morning run = free night training. Start your headtorch setup today.</div>
+ <div class="callout co-amb" style="margin-top:8px;"><strong>&#128204; Crew briefing document:</strong> Week 22 coaching email includes a template &#8212; aid station access, timing predictions, what Hout Bay crew needs, kit checklist.</div>
+ </details>
+</div>
+
+<!-- STRENGTH TAB -->
+<div id="t-str" style="display:none;">
+ <div class="card">
+ <h3>Strength circuit &#8212; under 60 min</h3>
+ <p style="font-size:11px;color:var(--t2);margin-bottom:10px;">Warm-up: 5 min dynamic (skips, leg swings, hip circles). Minimal rest between exercises, short rest between rounds.</p>
+ <div id="str-config-inner"></div>
+ </div>
+ <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">&#128095; Shoe mileage</summary>
+ <div id="shoe-body"><div class="loading-msg">Loading&#8230;</div></div>
+ </details>
+ <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">Load &amp; rep progression &#8212; full table</summary>
+ <div class="callout co-blu" style="margin:8px 0 11px;"><strong>Earn the increase.</strong> Progress by feel, not by date. Move up only when you finish every round with ~2 reps left on the final set (RPE 8). Add reps first, then smallest weight step. Hold load after races or travel. Never push through ankle pain.</div>
+ <div class="overflow">
+ <table class="ptable">
+ <thead><tr><th>Exercise</th><th>Base wk 1&#8211;12</th><th>Peak wk 13&#8211;21</th><th>Taper wk 22&#8211;25</th></tr></thead>
+ <tbody>
+ <tr><td><strong>Goblet squat</strong></td><td>16kg &#215;12 &#8594; 20kg ~wk8</td><td>20kg &#215;12</td><td>Bodyweight</td></tr>
+ <tr><td><strong>Weighted lunge</strong></td><td>25kg &#215;7/leg</td><td>25kg &#215;7/leg</td><td>Bodyweight</td></tr>
+ <tr><td><strong>Runner lunge</strong></td><td>&#215;10/leg</td><td>&#8594; Bulgarian split squat &#215;8</td><td>Bodyweight</td></tr>
+ <tr><td><strong>Single-leg deadlift</strong></td><td>BW &#8594; +8kg ~wk6</td><td>12kg &#215;8/leg</td><td>Light / BW</td></tr>
+ <tr><td><strong>Plank</strong></td><td>60s &#8594; 90s ~wk10</td><td>90s</td><td>60s</td></tr>
+ <tr><td><strong>Hip thrust / Step-ups</strong></td><td>&#8212;</td><td>Add &#215;15 / &#215;10/leg</td><td>&#8212;</td></tr>
+ </tbody>
+ </table>
+ </div>
+ <div style="font-size:10px;color:var(--t2);margin-top:8px;"><strong>Phase:</strong> Wks 1&#8211;12: 2&#215;/wk (5 + 4 rounds) &middot; Wks 13&#8211;21: 1&#215;/wk (4 rounds) &middot; Wks 22&#8211;25: BW only, 3 rounds, stop at Wk 25.</div>
+ </details>
+ <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">Physio ankle routine &#8212; 25 min, twice a week</summary>
+ <p style="font-size:12px;color:var(--t2);padding:8px 0;">Not rehabilitation &#8212; UTCT-specific preparation. Proprioceptive training for rocky off-camber terrain at hour 25. Do it twice a week. As exercises become automatic, fold the balance work into your strength warm-up.</p>
+ </details>
+ <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">Cross training options</summary>
+ <div class="xgrid" style="margin-top:8px;">
+ <div class="xcard"><div class="rating">&#11088;&#11088;&#11088; Excellent</div><h4>&#127946; Swimming</h4><p>Zero impact, full aerobic stimulus. 30&#8211;45 min. Great travel-week substitute.</p></div>
+ <div class="xcard"><div class="rating">&#11088;&#11088;&#11088; Excellent</div><h4>&#128690; Cycling</h4><p>Aerobic base + quads, zero impact. 60&#8211;90 min replaces an easy run.</p></div>
+ <div class="xcard"><div class="rating">&#11088;&#11088; Moderate</div><h4>&#127947; CrossFit</h4><p>OK in base phase. Avoid in peak &#8212; injury risk on top of high trail volume.</p></div>
+ <div class="xcard"><div class="rating">&#11088;&#11088;&#11088; Excellent</div><h4>&#127939; Hiking</h4><p>Hikes with the boys = active recovery. Vert counts. Never wasted time.</p></div>
+ </div>
+ </details>
+ <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">Touch rugby &amp; ankle risk</summary>
+ <div class="callout co-rd" style="margin-top:8px;"><strong>&#9918; Ankle concern &#8212; specific to your history.</strong> Lateral cuts = primary ankle sprain mechanism (March 2025).<br>&#9989; <strong>Base (Jun&#8211;Aug):</strong> Fine. Brace always.<br>&#9888; <strong>Build (Aug&#8211;Sep):</strong> Cautious. Brace. Skip heavy weeks.<br>&#10060; <strong>From Wk 17 (14 Sep):</strong> Stop. One bad landing ends November.</div>
+ </details>
+ <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">&#127775; Dark morning run protocol</summary>
+ <div class="card" style="margin-top:8px;padding:10px 12px;">
+ <ul style="font-size:12px;line-height:1.7;padding-left:16px;">
+ <li>Tell Stef your route and ETA before every dark session</li>
+ <li>Stick to known farm trails &#8212; no new routes in the dark</li>
+ <li>Phone charged to 80%+ &middot; No earbuds &middot; Reflective strip near roads</li>
+ <li>Test glasses + headtorch combo from the first dark run, not Week 8</li>
+ <li>Note where glare is worst and whether fog makes lenses useless</li>
+ </ul>
+ </div>
+ </details>
+</div>
+
+<!-- NUTRITION TAB -->
+<div id="t-nut" style="display:none;">
+ <div class="dstats" style="margin-bottom:14px;">
+ <div class="dst"><div class="sl2">Daily calories</div><div class="sv">3,000+</div></div>
+ <div class="dst"><div class="sl2">Protein</div><div class="sv">130&#8211;160g</div></div>
+ <div class="dst"><div class="sl2">Race intake</div><div class="sv">300 cal/hr</div></div>
+ <div class="dst"><div class="sl2">Eat every</div><div class="sv">40 min</div></div>
+ <div class="dst"><div class="sl2">Salt (race)</div><div class="sv">700mg/hr</div></div>
+ </div>
+ <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">Supplement stack</summary>
+ <div class="card">
+ <div class="suprow"><div class="supn">Creatine</div><span class="suppri pk">Keep as-is</span><div class="supd">Stop 5&#8211;7 days before UTCT. Maintains strength through heavy load.</div></div>
+ <div class="suprow"><div class="supn">Tailwind protein recovery</div><span class="suppri pk">Keep as-is</span><div class="supd">After every session &gt;90 min, within 30 min. Non-negotiable.</div></div>
+ <div class="suprow"><div class="supn">Magnesium glycinate 300&#8211;400mg</div><span class="suppri pk">&#10003; Taking</span><div class="supd">Every night before bed. Sleep quality + cramp prevention at hour 25.</div></div>
+ <div class="suprow"><div class="supn">Protein powder</div><span class="suppri p2">Starting soon</span><div class="supd">25&#8211;30g within 30&#8211;60 min of harder sessions. Hit 130&#8211;160g/day.</div></div>
+ <div class="suprow"><div class="supn">Vit D3 + K2 &middot; Omega-3 &middot; Collagen</div><span class="suppri p2">When ready</span><div class="supd">D3 with a meal (winter). Omega-3 with dinner (ankle). Collagen 30&#8211;60 min pre-strength (tendon).</div></div>
+ <div class="suprow"><div class="supn">Ferritin blood panel</div><span class="suppri p1">Before Week 8</span><div class="supd">Ask GP for ferritin, FBC, Vit D. Ferritin &lt;50 silently destroys training quality.</div></div>
+ </div>
+ </details>
+ <details class="ptdetails" style="margin-bottom:12px;">
+ <summary class="ptsummary">Race day fuel</summary>
+ <div class="card">
+ <div class="nutrow"><div class="nuit">Tailwind</div><div class="nud">One bottle every 90 min. Change flavour at Hout Bay and Noordhoek to prevent palate fatigue. Don&#8217;t rely on it alone after km 60.</div></div>
+ <div class="nutrow"><div class="nuit">Dates</div><div class="nud">2&#8211;3 every 40 min for first 10hrs. Keep in hip belt pocket. Always accessible.</div></div>
+ <div class="nutrow"><div class="nuit">&#127829; Hot pasta (Hout Bay)</div><div class="nud">km 50, ~09:30 Sat. Sit if you must. Max 15 min total stop. This meal is your mid-race reboot.</div></div>
+ <div class="nutrow"><div class="nuit">&#127829; Burger (Simon&#8217;s Town)</div><div class="nud">km 98, ~23:30 Sat. Real protein. This meal matters enormously for the back half.</div></div>
+ <div class="nutrow"><div class="nuit">&#127829; Hot food (Noordhoek)</div><div class="nud">km 128, ~06:30 Sun. Whatever is available. 33km left. Your last proper meal opportunity.</div></div>
+ <div class="nutrow"><div class="nuit">PB sandwiches</div><div class="nud">Table Mountain, Hout Bay, Simon&#8217;s Town. ~250 cal each. Add honey. Eat standing still.</div></div>
+ <div class="nutrow"><div class="nuit">Farbars / Jungle bars</div><div class="nud">Hours 1&#8211;15 while gut works well. One bar every 80&#8211;90 min.</div></div>
+ <div class="nutrow"><div class="nuit">Jelly babies</div><div class="nud">From km 80. 6&#8211;8 at a time. Simple sugars. Your lifeline for the last 8 hours.</div></div>
+ <div class="nutrow"><div class="nuit">Coke</div><div class="nud">Start at Simon&#8217;s Town (km 98). Not earlier. One cup per station to the finish.</div></div>
+ <div class="nutrow"><div class="nuit">Biltong</div><div class="nud">20&#8211;30g at each major station from km 50. Use soft biltong &#8212; hard to chew when exhausted.</div></div>
+ <div class="nutrow"><div class="nuit">Water</div><div class="nud">500&#8211;750ml/hr. Always alternate with Tailwind. Clear to pale-yellow urine = correct hydration.</div></div>
+ </div>
+ </details>
+ <details class="ptdetails" style="margin-top:4px;">
+ <summary class="ptsummary">Race phase strategy</summary>
+ <div style="margin-top:8px;">
+ <div class="pblk" style="border-color:var(--pur);margin-bottom:5px;"><strong>Hrs 0&#8211;10 (&#8594; Hout Bay):</strong> Tailwind + dates + Farbars every 40 min. Gut works &#8212; bank calories now.</div>
+ <div class="pblk" style="border-color:var(--blu);margin-bottom:5px;"><strong>Hrs 10&#8211;19 (&#8594; Simon&#8217;s Town):</strong> Hot meals at major stops. Biltong every station. Appetite drops &#8212; eat anyway.</div>
+ <div class="pblk" style="border-color:var(--amb);margin-bottom:5px;"><strong>Hrs 19&#8211;25 (&#8594; Noordhoek):</strong> Coke every station. Jelly babies dominant. Small, frequent. No new food.</div>
+ <div class="pblk" style="border-color:var(--rd);"><strong>Hrs 25&#8211;36 (&#8594; Finish):</strong> Whatever you can stomach. Coke + jelly babies + water. Something in your mouth at all times. Take broth if offered.</div>
+ </div>
+ </details>
+</div>
+
+</div><!-- end cnt -->
+
+<script>
+// ─── STATIC DATA (fallback if no sheet connected) ────────────────────────────
+var Q='\u2019',M='\u2014';
+var DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+var PC={base:'#1D9E75',b1:'#185FA5',peak:'#534AB7',taper:'#6B6A66',race:'#993C1D',travel:'#C0392B',holiday:'#D97706'};
+var PBG={base:'#DCFCE7',b1:'#DBEAFE',peak:'#EDE9FE',taper:'#E5E4DF',race:'#FFE4E6',travel:'#FFE4E6',holiday:'#FEF3C7'};
+var PTC={base:'#14532D',b1:'#1E3A5F',peak:'#3730A3',taper:'#4B4A46',race:'#881337',travel:'#881337',holiday:'#713F12'};
+var PN={base:'Base',b1:'Build',peak:'Peak',taper:'Taper',race:'Race week',travel:'Travel / disrupted',holiday:'Holiday'};
+var PHSTR={
+ base:{s:['Consistent aerobic base building week on week','Strong on the home farm climbs','Good weekly training rhythm and habit'],w:['Keep easy days genuinely easy — HR in check','Groove the ~40-min fuelling habit on every long run','Build long-run distance gradually, no big jumps']},
+ b1:{s:['Back-to-back running capacity developing well','Getting comfortable on technical Peninsula terrain','Night-running adaptation underway'],w:['Sort night vision / contact lenses before peak','Fuel every ~40 min without needing a prompt','Practise descending fast but under control']},
+ peak:{s:['Absorbing the biggest training weeks well','Race-sim efforts building real confidence','Course knowledge growing from the recces'],w:['Heat acclimatisation — add the sauna sessions','Mental resilience on long, solo, dark efforts','Aid-station efficiency — eat standing, keep moving']},
+ taper:{s:['The hard work is in the bank','Race terrain well known from recces','Nutrition and kit already tested in races'],w:['Resist adding training — trust the taper','Protect sleep — it is the priority now','Final kit check: contacts, headtorch, shoes, pack']},
+ race:{s:['A real test of your race-day systems','A hard effort on UTCT-style terrain','Confidence that comes from racing'],w:['Treat it as a dress rehearsal — exact race nutrition and kit','Start controlled, do not chase the ego early','Recover properly in the days afterwards']},
+ travel:{s:['Enforced easy weeks bank absorbed fitness','Staying consistent despite the disruption','Likely to come back fresher than usual'],w:['Get the run done early before the day fills up','Otherwise stay off the feet — this is recovery','Eat and sleep well so the body repairs']},
+ holiday:{s:['Family time doubles as genuine active recovery','Trail hikes add to your vert base','Mental reset before the hard block'],w:['Keep a short daily run going','Hold the long-run habit even if shorter','Protect the right ankle on unknown terrain']},
+ racefinal:{s:['26 weeks of preparation banked','You have run these exact sections in recces and races','You know your body can keep moving for 30+ hours'],w:['Start controlled — the first 18km must feel easy','Contacts in before the 17:00 start','Commit to the fuelling and walk-the-climbs plan']}
+};
+var FI={nt:'\u{1F319}',dn:'\u2198\uFE0E',rc:'\u{1F4CD}',hb:'\u{1F9A1}',ht:'\u{1F525}'};
+var FN={nt:'Night run',dn:'Downhill focus',rc:'Course recce',hb:'HB check-in',ht:'Heat / sauna'};
+var FC={nt:['#EDE9FE','#4C1D95'],dn:['#DBEAFE','#1E40AF'],rc:['#DCFCE7','#14532D'],hb:['#FEF3C7','#713F12'],ht:['#FFE4E6','#9F1239']};
+var COC={nt:'co-pur',dn:'co-blu',rc:'co-grn',hb:'co-amb',ht:'co-rd'};
+var COT={nt:'Night running week. Every dark morning farm run is free practice. Test headtorch and glasses. Try contacts if not done yet.',dn:'Downhill focus week. Run the descents faster than feels comfortable. Controlled aggression. This is a trainable skill that takes repetition.',rc:'UTCT course recce. Study every technical section and note where you can make time. This terrain knowledge is irreplaceable in November.',hb:'Honey Badger check-in week. Your Saturday email will include an honest assessment of where sub-30h sits based on current form and trajectory.',ht:'Heat acclimatization week. Add midday outdoor exposure and 2 post-run sauna sessions (15\u201320 min). UTCT runs in late-November spring conditions.'};
+var DC={key:'d-key',long:'d-key',b2b:'d-key',race:'d-key',train:'d-train',hills:'d-key',str:'d-train',run:'d-train',night:'d-night',rest:'d-rest',travel:'d-travel'};
+
+// ─── WEEK DATA ────────────────────────────────────────────────────────────────
+// (same W array as original — this is the fallback when no sheet is connected)
+var W=[
+{n:1,dt:'14 Sep',p:'base',lb:'Restart — stronger from day one',km:60,v:2000,fl:[],dis:null,rn:null,
+ rt:'Farm hills + Helderberg trails',rl:'Farm / Helderberg Nature Reserve',rk:'10–22 km',rv:'700–900m D+',
+ rd:'First proper week back. Hills on Monday from the start — 6 easy reps. Friday long run at 22km: find a route with real climbing — target 600–700m vert — this is your first proper vert session back. Saturday B2B 10km easy. Every session aerobic only.',
+ note:'Helderberg Nature Reserve and the farm hills give you concentrated vert in short distances. Even a single big loop on your long run starts building the climbing legs UTCT demands.\n\nDon\'t chase old reps on Monday. The ankle needs to remember what hills feel like. Consistency is the only goal this week.',
+ dy:[
+  {t:'hills',s:'Hill reps x6',d:'First hills back. Easy effort on the ups — not chasing old reps. Full walk recovery on the downs. 300–400m total vert.',am:true,ph:false},
+  {t:'str',s:'Strength x4 + easy 8km',d:'4 rounds — back to basics, easy weights. Easy run in the afternoon. Good double day.',am:false,ph:true},
+  {t:'run',s:'Easy 10km',d:'Aerobic base. HR under 140.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Legs up.',am:false,ph:false},
+  {t:'long',s:'Long run 22km',d:'Find a route with real climbing — aim for 600–700m total vert. Extend to 22km total. This is your first real vert session. Time on feet, not pace.',am:false,ph:false},
+  {t:'run',s:'B2B 10km',d:'Easy flat run on tired legs. Note how the body responds after the vert.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Family.',am:false,ph:false}
+ ]},
+{n:2,dt:'21 Sep',p:'base',lb:'Boggoms Bay — 60km Boggoms to Mossel Bay',km:105,v:800,fl:[],dis:null,rn:null,
+ rt:'Boggoms Bay → Mossel Bay coastal route',rl:'Boggoms Bay / Still Bay / Mossel Bay',rk:'60km out-and-back + easy days',rv:'Flat (beach and coastal road)',
+ rd:'The big session this week is Friday: 60km out-and-back from Boggoms Bay to Mossel Bay and back along the coastal route. This is ~30km each way, mostly flat beach and gravel road. Monday and Tuesday at home (hills and strength). Wednesday arrival run easy 12km to settle in. Thursday rest or short shakeout before the big effort. Friday is the main event — this is an ultra-distance effort on flat terrain. Saturday full rest — you cannot B2B after 60km. Pack support or carry everything you need for the full 60km.',
+ note:'The 60km Boggoms→Mossel Bay run is the most technically demanding session in the first half of the plan. Half beach (30km), half sharp coastal rock (30km) — this is an 80km+ equivalent effort. Budget 8-9 hours and pace accordingly. The rocky coastal terrain is slow and relentless: it batters your feet, ankles and concentration in a way that is very specific to UTCT\'s own technical sections.\n\nGear: trail shoes with maximum rock protection. Carry poles if you have them — useful on the rocks. Nutrition for 9 hours minimum. Emergency contact aware of your route and expected finish time. The rocky sections require walking pace — no exceptions. Do not try to run them.',
+ dy:[
+  {t:'hills',s:'Hill reps x8',d:'At home — get the hills done before you leave for Boggoms. Zone 4 on the ups. Eight reps.',am:true,ph:false},
+  {t:'str',s:'Strength x4 + easy 10km',d:'Strength first, then easy run. Last session at home before Boggoms Bay.',am:false,ph:true},
+  {t:'run',s:'Easy beach 12km',d:'Arrival run in Boggoms Bay. Find the beach at low tide. Easy effort — settle in, scout the coastal route towards Mossel Bay.',am:false,ph:false},
+  {t:'run',s:'Easy shakeout 5km + prep',d:'Short easy run only. Prep gear, food, and water for tomorrow\'s 60km. Early to bed.',am:false,ph:false},
+  {t:'long',s:'60km — Boggoms Bay → Mossel Bay and back',d:'Start at dawn (05:00-06:00). The route is half beach (30km) and half sharp technical coastal rock (30km) — treat this like an 80km+ trail effort. Budget 8-9 hours. On beach: find hard-packed wet sand at low tide, walk if HR exceeds 140. On coastal rock: slow down completely — pick every foot placement, no rushing. The rocky sections will wreck your feet and ankles if you push pace. Wear your best trail shoes with rock protection. Eat every 25 min from km 1. Poles optional but useful on the rock. This is the hardest session in the first half of the plan.',am:false,ph:false},
+  {t:'rest',s:'Full rest',d:'Do not run today. 60km requires a full recovery day. Eat well, legs up, walk on the beach if you want.',am:false,ph:false},
+  {t:'run',s:'Easy recovery 8km',d:'Gentle final run at Boggoms before travelling home. How do the legs feel after 60km? Note it.',am:false,ph:false}
+ ]},
+{n:3,dt:'28 Sep',p:'b1',lb:'Back to the mountains — vert begins',km:85,v:3500,fl:[],dis:null,rn:null,
+ rt:'Helderberg big loop',rl:'Helderberg / local trails',rk:'32km long run',rv:'1,800–2,000m D+',
+ rd:'Back from Boggoms Bay and straight into the vert. If still traveling Monday, swap hills to Tuesday. Friday long run at 32km: your best local big-vert route — target 1,800–2,000m of vert. This is the first real UTCT-specific session of the plan.',
+ note:'Note: if still travelling on Monday, substitute the hill reps with an easy run and do the hills on Tuesday instead. Don\'t miss the hills — just shift them.\n\nFind the most technical, exposed, vert-heavy route you can access from the farm or Helderberg. Friday is the day to seek out those routes.',
+ dy:[
+  {t:'hills',s:'Hill reps x10',d:'Ten solid reps. Zone 4-5 on the ups. If traveling back from Boggoms today, do easy 12km instead and shift hills to Tuesday.',am:true,ph:false},
+  {t:'str',s:'Strength x5 + easy 8km',d:'Five rounds — add one exercise. Easy run in the afternoon.',am:false,ph:true},
+  {t:'run',s:'Easy 12km with terrain',d:'Include some real undulation. HR under 145.',am:false,ph:false},
+  {t:'run',s:'Easy 5km',d:'Short shakeout.',am:false,ph:false},
+  {t:'long',s:'Long run 32km — big vert route',d:'Target 1,800–2,000m of vert. Options: a route combining multiple climbs — farm loop, Helderberg traverse, or any local route that stacks 1,800–2,000m of vert over 32km. Walk every climb. This is where UTCT prep actually starts.',am:false,ph:false},
+  {t:'run',s:'B2B 16km',d:'Run on tired legs. Include some terrain. Note how the legs feel after the vert.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
+ ]},
+{n:4,dt:'5 Oct',p:'b1',lb:'Night run + massive vert week',km:105,v:5000,fl:[],dis:null,rn:null,
+ rt:'Helderberg / mountain trail',rl:'Helderberg / mountain trail',rk:'36km long run + night run 18km',rv:'2,200m D+',
+ rd:'The week you start seriously preparing for UTCT. Thursday night: 18km run starting at 21:00 — this is your darkness prep session. Friday long run at 36km targeting 2,200m of vert. Saturday B2B 18km. Monday hills hit 12 reps. This is the biggest week so far.',
+ note:'The night run on Thursday is non-negotiable. UTCT starts at 17:00 Friday — you will be running through the whole night and into Saturday morning. You need to know how your body handles darkness: headtorch, nutrition, pace judgement, and the psychological weight of 03:00.\n\nFor the Thursday night run: start at 21:00 on familiar terrain (Farm / Helderberg Nature Reserve or local). Easy pace. The point is darkness adaptation, not fitness.',
+ dy:[
+  {t:'hills',s:'Hill reps x12',d:'Twelve reps. Zone 4-5. The big hill session of the block. Big vert day — aim for 1,000m+ just from the hill session.',am:true,ph:false},
+  {t:'str',s:'Strength x5 + easy 8km',d:'Five rounds, progressive weights. Easy run after.',am:false,ph:true},
+  {t:'night',s:'Night run 18km — 21:00 start',d:'Start at 21:00 on familiar terrain. Headtorch on. Easy pace throughout. This is your first darkness session — the most specific UTCT prep you can do outside of racing. Eat and drink as if it were the race.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Full rest after the night run. Sleep in. Legs up before the big weekend.',am:false,ph:false},
+  {t:'long',s:'Long run 36km',d:'Target 2,000–2,200m of vert. a big mountain circuit stacking 2,000–2,200m of vert over 36km. Helderberg traverse loops or farm + reserve combination. Walk every climb. Eat from km 1.',am:false,ph:false},
+  {t:'run',s:'B2B 18km',d:'Run on tired legs. This is the most UTCT-specific day of the plan so far. Easy pace. Don\'t skip it.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Full rest. Eat well.',am:false,ph:false}
+ ]},
+{n:5,dt:'12 Oct',p:'peak',lb:'Peak week — 40km long + 20km B2B',km:110,v:6000,fl:[],dis:null,rn:null,
+ rt:'Peak long run — max vert route',rl:'Helderberg / local trails',rk:'40km + 20km B2B',rv:'2,500m D+',
+ rd:'This is the week that decides your UTCT. Friday 40km with 2,500m of vert — find the biggest, most technical vert route you can access. Saturday 20km B2B on dead legs. This combination is more valuable than any race you could have entered. Hills Monday stay at 12 reps.',
+ note:'This is peak week 1. It will feel very hard. That is the point.\n\nFor the 40km route: consider the Helderberg traverse or any big-vert farm/reserve loop — look for routes with repeated steep climbs that mirror UTCT terrain.\n\nSaturday 20km on dead legs: easy pace, no ego. If you survive Friday and Saturday this week, you will finish UTCT.',
+ dy:[
+  {t:'hills',s:'Hill reps x12',d:'Peak hill session. Zone 4-5. 1,000m+ vert from the hill session alone.',am:true,ph:false},
+  {t:'str',s:'Strength x4 + easy 8km',d:'Shorter session — saving legs for the weekend. Easy run after.',am:false,ph:false},
+  {t:'run',s:'Easy 18km',d:'Moderate terrain. Aerobic base under the weekend.',am:false,ph:false},
+  {t:'run',s:'Easy 6km',d:'Shakeout. Rest the legs for Friday.',am:false,ph:false},
+  {t:'long',s:'Long run 40km — max vert route',d:'Your most important training day. Target 2,500m of vert. Find the biggest route you can access — stack the climbs. Walk every climb. Eat from km 1. Time on feet, not pace. This is UTCT prep at its most specific.',am:false,ph:false},
+  {t:'run',s:'B2B 20km',d:'Twenty kilometres on destroyed legs. This is the adaptation. Easy pace — no ego. If you can do this, you can run 100 miles.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Full rest. Eat everything.',am:false,ph:false}
+ ]},
+{n:6,dt:'19 Oct',p:'peak',lb:'Peak week 2 — last big push before BYU',km:90,v:4500,fl:[],dis:null,rn:null,
+ rt:'Strong long run — final BYU prep',rl:'Helderberg / farm big loop',rk:'35km + 15km B2B',rv:'2,200m D+',
+ rd:'Last big training week before the Backyard Ultra. Hills taper to 10 reps. Long run Friday at 35km with 2,200m of vert. Saturday B2B 15km. BYU is 10 days away. Arrive with the training banked, not broken.',
+ note:'By end of this week the body should be well-conditioned and tired. That\'s correct — BYU is your next big stimulus.\n\nLast full strength session this week. After this, strength drops to maintenance only. Arrive at BYU healthy and hungry.',
+ dy:[
+  {t:'hills',s:'Hill reps x10',d:'Pulling back from last week. Quality reps — zone 4-5 on the ups.',am:true,ph:false},
+  {t:'str',s:'Strength x4 + easy 8km',d:'Last full strength session of the block. Easy run after.',am:false,ph:true},
+  {t:'run',s:'Easy 14km',d:'Steady easy effort with terrain.',am:false,ph:false},
+  {t:'run',s:'Easy 5km',d:'Pre-long-run shakeout.',am:false,ph:false},
+  {t:'long',s:'Long run 35km — Helderberg or farm trails',d:'Target 2,000–2,200m vert. Helderberg big loop or farm mountain route. Final quality long run before BYU.',am:false,ph:false},
+  {t:'run',s:'B2B 15km',d:'Easy flat. Last full back-to-back. How do the legs feel after 6 weeks?',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
+ ]},
+{n:7,dt:'26 Oct',p:'race',lb:'BYU taper + Backyard Ultra 31 Oct',km:95,v:2500,fl:[],dis:null,rn:'Backyard Ultra — 31 Oct',
+ rt:'Backyard Ultra',rl:'TBC',rk:'6.7km loops',rv:'Flat or rolling',
+ rd:'Backyard Ultra on Saturday 31 Oct. Target 10–12 hours (10–12 laps \xd7 6.7km = 67–80km). This is a training stimulus for UTCT, not a race to win. Run conservatively every lap. Eat and drink every loop. Stop at 10–12 laps.',
+ note:'BYU strategy: run the first lap as if you plan to do 20. Eat real food from lap 1. Walk to the start during transition. Assess at lap 8 — if you feel good, continue to 12. If you feel destroyed, stop at 10.\n\nMonday is still a light hill session — keeps the legs moving before the taper.',
+ dy:[
+  {t:'hills',s:'Hill reps x4 — taper',d:'Light hill session. Four easy reps only. Keep the legs moving without accumulating fatigue.',am:true,ph:false},
+  {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false},
+  {t:'run',s:'Easy 8km',d:'Easy. Save the legs for Saturday.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Rest. Good sleep. Eat well.',am:false,ph:false},
+  {t:'run',s:'Easy 5km + strides',d:'Light shakeout. 4 \xd7 100m strides. Gear prep for BYU.',am:false,ph:false},
+  {t:'race',s:'BACKYARD ULTRA — 31 Oct',d:'Target 10–12 laps \xd7 6.7km. Conservative early. Eat from lap 1. Stop between 10–12 laps. Last big UTCT stimulus.',am:false,ph:false},
+  {t:'run',s:'Recovery walk / 5km jog',d:'Gentle. See how the body responds.',am:false,ph:false}
+ ]},
+{n:8,dt:'2 Nov',p:'taper',lb:'BYU recovery — mandatory easy week',km:35,v:500,fl:[],dis:null,rn:null,
+ rt:'Local flat trails',rl:'Farm / Helderberg Nature Reserve',rk:'5–12 km runs',rv:'Flat',
+ rd:'Full recovery from BYU. Easy runs only. No hills, no intensity. Sleep as much as possible. The fitness is banked — now absorb it. Friday easy long 12km is the peak of this week.',
+ note:'You will feel surprisingly OK on Monday and Tuesday after BYU. Don\'t be fooled. Deep fatigue usually arrives Wednesday–Thursday. Stick to easy running all week.\n\nUTCT is 18 days away. The hay is in the barn.',
+ dy:[
+  {t:'rest',s:'Rest',d:'Full rest. BYU takes more from you than it feels on the day.',am:false,ph:false},
+  {t:'str',s:'Strength x3 + easy 5km',d:'Light maintenance strength only. Easy run after.',am:false,ph:true},
+  {t:'run',s:'Easy 6km',d:'Light movement only. HR under 130.',am:false,ph:false},
+  {t:'run',s:'Easy 7km',d:'Starting to move again. Easy pace.',am:false,ph:false},
+  {t:'long',s:'Easy long 12km',d:'Longest run of recovery week. Gentle terrain. Easy pace only.',am:false,ph:false},
+  {t:'run',s:'Easy 5km',d:'Short shakeout.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Family.',am:false,ph:false}
+ ]},
+{n:9,dt:'9 Nov',p:'taper',lb:'Final sharpener — last quality week',km:55,v:1200,fl:[],dis:null,rn:null,
+ rt:'Final long run',rl:'Helderberg Nature Reserve',rk:'22km long run',rv:'~800m D+',
+ rd:'Last meaningful training week. Monday: final hill session (5 reps, short and sharp). Friday: final long run of 22km with 800m of vert. After this run you are in taper. Every session should finish feeling like you could have done more.',
+ note:'This is the last week you can add fitness. After Friday\'s long run, the goal is to arrive at UTCT feeling fresh, sharp, and excited.\n\nFinal gear check this week. Headtorch. Contacts. Shoes. Pack. Poles. Drop bag contents confirmed.',
+ dy:[
+  {t:'hills',s:'Hill reps x5 — final',d:'Short and sharp. Five quality reps. The final hill session of the block.',am:true,ph:false},
+  {t:'str',s:'Strength x3 + easy 6km',d:'Final strength session. Maintenance only. No new stress.',am:false,ph:false},
+  {t:'run',s:'Easy 10km',d:'Recovery run.',am:false,ph:false},
+  {t:'run',s:'Easy 5km',d:'Pre-long shakeout.',am:false,ph:false},
+  {t:'long',s:'Final long run — 22km',d:'Last one. Include 700–800m of vert. Finish feeling strong. Say goodbye to big training.',am:false,ph:false},
+  {t:'run',s:'Easy 7km',d:'Shake out. Write your race plan this afternoon.',am:false,ph:false},
+  {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
+ ]},
+{n:10,dt:'16 Nov',p:'race',lb:'Race week — UTCT 100 Miler',km:162,v:7187,fl:[],dis:'race',rn:'UTCT 100 Miler',
+ rt:'UTCT 100 Miler',rl:'Cape Town, South Africa',rk:'161.7km',rv:'7,187m D+',
+ rd:'Table Mountain. Twelve Apostles. Hout Bay. Karbonkelberg. Silvermine. False Bay. Simon\'s Town. Scarborough. Noordhoek. Constantia. Gardens Rugby Club. The build has been compressed but the key sessions are there. Start controlled. Your race begins at km 80.',
+ note:'Mon–Thu: eat, sleep, hydrate, walk. Arrive Cape Town by Tuesday at the latest. Crew at Hout Bay confirmed. Contacts sorted for night sections. Start line: Friday 20 Nov at 17:00. Cutoff: 45 hours.\n\nGoal structure — be honest with yourself on the day:\nPrimary goal: FINISH within 45h. Completing UTCT at your first attempt is a genuine achievement that most runners never manage.\nStretch goal: sub-36h. If training and BYU have gone well, this is a real mid-pack target. Requires consistent movement and no major blowups.\nDream goal: THE HONEY BADGER — sub-30h. Only 43 people have ever earned it. Only chase this if you reach Karbonkelberg ahead of schedule and feeling strong. Do not pace for this from the start — it has broken many people who tried.\n\nRace strategy: start at the back of your wave — slower than feels right. Walk every climb from km 1. Eat before you are hungry, drink before you are thirsty. The first 40km will feel easy — that is the trap. Your race starts at Karbonkelberg (~km 80). If you arrive there intact and moving well, you can decide. If you arrive cooked, you are in survival mode for 80km.',
+ dy:[
+  {t:'rest',s:'Rest',d:'Eat. Sleep. Hydrate. Relax.',am:false,ph:false},
+  {t:'run',s:'Easy 8km + 4 strides',d:'Wake the legs up. 4 \xd7 100m at race pace. Nothing more.',am:false,ph:false},
+  {t:'rest',s:'Rest / easy walk',d:'Final gear check. Drop bags packed. Sleep.',am:false,ph:false},
+  {t:'rest',s:'Rest + briefing',d:'Athlete briefing if required. Eat carbs all day. Sleep early.',am:false,ph:false},
+  {t:'race',s:'UTCT 100 MILER — 17:00 START',d:'Race start: Gardens Rugby Club, 17:00. Start controlled. Eat from km 1. Walk every climb. This is what everything has been for.',am:false,ph:false},
+  {t:'race',s:'On course',d:'Still moving. You\'ve got this.',am:false,ph:false},
+  {t:'race',s:'Finish line',d:'Whatever time it is. You finished a 100-miler.',am:false,ph:false}
+ ]}
+];
+// ─── STATE ────────────────────────────────────────────────────────────────────
+var sel = 0;
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function phk(w) {
+ if (w.dis === 'travel') return 'travel';
+ if (w.dis === 'holiday') return 'holiday';
+ if (w.dis === 'race') return 'race';
+ return w.p;
+}
+
+function weekProgHtml(i){
+  var w=W[i], m=MATCH[i]; if(!m) return '';
+  if(i>currentWeekIdx()) return '';
+  var sT=(w.dy||[]).filter(function(d){return d.t==='str';}).length;
+  var sA=(m.allActs||[]).filter(function(a){return actKind(a)==='strength';}).length;
+  var pT=(w.dy||[]).filter(function(d){return d.ph;}).length;
+  var pA=0; for(var k in PHYSIO){ if(PHYSIO.hasOwnProperty(k) && k.indexOf(i+':')===0) pA++; }
+  function row(lbl,a,t,unit,col){
+    var pct=t>0?Math.min(100,Math.round(a/t*100)):(a>0?100:0);
+    return '<div class="wk-prow"><span class="wk-plabel">'+lbl+'</span><div class="wk-pbar"><span style="width:'+pct+'%;background:'+col+';"></span></div><span class="wk-pval">'+a+'/'+t+(unit?unit:'')+'</span></div>';
+  }
+  return '<div class="wk-prog">'
+    + row('Dist', m.actKm.toFixed(0), w.km, 'km', '#1D9E75')
+    + row('Elev', Math.round(m.actVert), w.v, 'm', '#1D9E75')
+    + row('Str', sA, sT, '', '#185FA5')
+    + row('Phys', pA, pT, '', '#534AB7')
+    + '</div>';
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function renderGrid() {
+ var g = document.getElementById('wgrid');
+ g.innerHTML = '';
+ W.forEach(function(w, i) {
+ var pk = phk(w), col = PC[pk] || PC.base;
+ var kmax = 162, vmax = 7200;
+ var kmpct = Math.round(Math.min(w.km, kmax) / kmax * 100);
+ var vpct = Math.round(Math.min(w.v, vmax) / vmax * 100);
+ var fh = (w.fl || []).map(function(f){ return '<span class="wic">' + FI[f] + '</span>'; }).join('');
+ var div = document.createElement('div');
+ div.className = 'wk wkrow p-' + pk + (i === sel ? ' sel' : '');
+ div.style.borderLeft = '4px solid ' + col;
+ div.innerHTML =
+   '<div class="wk-c1"><div class="wk-num">Wk ' + w.n + '</div><div class="wk-dt">' + w.dt + '</div></div>'
+ + '<div class="wk-c2"><div class="wk-lbl">' + w.lb + '</div><div class="wk-meta"><span class="wk-phase" style="background:' + PBG[pk] + ';color:' + PTC[pk] + ';">' + PN[pk] + '</span>' + (w.rn ? '<span class="wk-race">' + w.rn + '</span>' : '') + fh + '</div></div>'
+ + '<div class="wk-c3"><div class="wk-vol">' + w.km + ' km · ' + (w.v >= 1000 ? (w.v / 1000).toFixed(1) + 'k' : w.v) + ' m</div>' + weekProgHtml(i) + weekCheckBadge(w) + '</div>';
+ div.onclick = (function(idx){ return function(){ sel = idx; renderGrid(); renderDetail(); document.getElementById('det').scrollIntoView({ behavior:'smooth', block:'nearest' }); }; })(i);
+ g.appendChild(div);
+ });
+}
+
+function renderDetail() {
+ var w = W[sel], det = document.getElementById('det');
+ var pk = phk(w); var psKey = (w.rn && /UTCT/.test(w.rn)) ? 'racefinal' : pk; var ps = PHSTR[psKey] || PHSTR.base;
+ var strH = '<div class="strgrid"><div class="strcard str-s"><h4>\u2713 Your strengths</h4><ul>' + ps.s.map(function(s) { return '<li>' + s + '</li>'; }).join('') + '</ul></div><div class="strcard str-w"><h4>\u25b8 Top 3 to work on</h4><ul>' + ps.w.map(function(s) { return '<li>' + s + '</li>'; }).join('') + '</ul></div></div>';
+ var dayKey = '<div class="daykey"><div class="dki"><div class="dksq" style="background:#FEF3C7;"></div>Key session (long runs, races, B2B)</div><div class="dki"><div class="dksq" style="background:#DBEAFE;"></div>Training (hills, strength, easy runs)</div><div class="dki"><div class="dksq" style="background:#EDE9FE;"></div>Night run</div><div class="dki"><div class="dksq" style="background:#F2F0EB;border:1px solid #E4E1DA;"></div>Rest</div><div class="dki"><div class="dksq" style="background:#FFE4E6;"></div>Travel</div></div>';
+ var days = w.dy || [], ord = dayOrder(sel);
+ var dH = ord.map(function(origIdx, pos) {
+ var d = days[origIdx];
+ var cls = DC[d.t] || 'd-rest';
+ var dObj = dateForPos(sel, pos), dateLbl = dObj.getDate() + ' ' + SHORTMON[dObj.getMonth()];
+ var ovv = doneOverride(sel, origIdx);
+ var done = effectiveDone(sel, pos), temp = dayTemporal(sel, pos);
+ var statusIcon = '';
+ if(done === true) statusIcon = '<span class="dcheck">✓</span>';
+ else if(d.t !== 'rest'){ statusIcon = temp>0 ? '<span class="dup">○</span>' : (temp===0 ? '<span class="dtoday">today</span>' : '<span class="dmiss">missed</span>'); }
+ if(ovv!==undefined) statusIcon += '<span class="manmark" title="manually set">✎</span>';
+ var logHtml;
+ if(d.t === 'rest'){ logHtml = '<span class="dlmuted">Rest day</span>'; }
+ else if(done === 'future'){ logHtml = '<span class="dlmuted">Upcoming</span>'; }
+ else {
+ var acts = actsOn(ymd(dObj));
+ if(acts.length){ logHtml = acts.map(function(a){ var km=(a.distance||0)/1000; var inner=String(a.name||actKind(a))+(km>=0.1?' · '+km.toFixed(1)+'km':'')+(a.total_elevation_gain?' · '+Math.round(a.total_elevation_gain)+'m':''); if(a.id) inner='<a href="https://www.strava.com/activities/'+a.id+'" target="_blank" rel="noopener">'+inner+'</a>'; return '<span class="logact">'+inner+'</span>'; }).join(''); }
+ else { logHtml = temp===0 ? '<span class="dlmuted">Not yet logged</span>' : '<span class="dlmiss">Nothing logged</span>'; }
+ }
+ var physio = d.ph ? ('<button class="phys ' + (physioDone(sel,origIdx)?'on':'') + '" onclick="togglePhysio(' + sel + ',' + origIdx + ')">' + (physioDone(sel,origIdx)?'☑':'☐') + ' Physio</button>') : '';
+ var doneCtrl = '';
+ if(d.t !== 'rest'){ var isDone = done === true; doneCtrl = '<div class="donerow"><button class="donebtn' + (isDone?' on':'') + '" onclick="setDone(' + sel + ',' + origIdx + ',' + (isDone?0:1) + ')">' + (isDone?'✓ Done':'Mark done') + '</button>' + (ovv!==undefined ? '<button class="autobtn" onclick="clearDone(' + sel + ',' + origIdx + ')" title="Use Tredict auto-detection">use auto</button>' : '') + '</div>'; }
+ return '<div class="day ' + cls + '" data-orig="' + origIdx + '">'
+ + '<div class="dname"><span class="dhandle">⋮⋮</span>' + (DAYS[pos] || '') + ' <span class="ddate">' + dateLbl + '</span>' + statusIcon + '</div>'
+ + '<div class="dseg dplan"><span class="dlbl">PLAN</span><div class="dtype">' + d.s + '</div><div class="ddetail">' + d.d + '</div>' + physio + '</div>'
+ + '<div class="dseg dlog"><span class="dlbl">LOGGED</span>' + logHtml + '</div>'
+ + doneCtrl
+ + '</div>';
+ }).join('');
+ var flH = (w.fl || []).map(function(f) { return '<div class="callout ' + COC[f] + '" style="margin-bottom:8px;"><strong>' + FI[f] + ' ' + FN[f] + ':</strong> ' + COT[f] + '</div>'; }).join('');
+ var disH = '';
+ if (w.dis && w.dis !== 'race') {
+ disH = '<div class="callout co-rd" style="margin-bottom:8px;"><strong>' + (w.dis === 'travel' ? '\u2708 Travel week' : '\u26fa Holiday week') + ':</strong> ' + (w.dis === 'travel' ? '' : 'Family first. Get the run done early before the day fills up. Hikes with the boys count as active recovery.') + '</div>';
+ }
+ var noteH = String(w.note || '').split('\n').map(function(l) { return l ? ('<p>' + l + '</p>') : ''; }).join('');
+ var prev = sel > 0 ? ('<button class="btn" onclick="sel=' + (sel - 1) + ';renderGrid();renderDetail();">\u2190 Wk ' + W[sel - 1].n + '</button>') : '';
+ var next = sel < W.length - 1 ? ('<button class="btn" onclick="sel=' + (sel + 1) + ';renderGrid();renderDetail();">Wk ' + W[sel + 1].n + ' \u2192</button>') : '';
+ det.innerHTML = '<div class="dh"><h2>Week ' + w.n + ' <span style="font-weight:400;color:var(--t2);font-size:13px;">' + w.dt + '</span> \u2014 ' + w.lb + '</h2><span class="dpill" style="background:' + PBG[pk] + ';color:' + PTC[pk] + ';">' + PN[pk] + '</span></div>'
+ + '<div class="dstats"><div class="dst"><div class="sl2">Target</div><div class="sv">' + w.km + 'km</div></div><div class="dst"><div class="sl2">Elevation</div><div class="sv">' + (w.v >= 1000 ? (w.v / 1000).toFixed(1) + 'k' : w.v) + 'm D+</div></div>' + (w.rn ? '<div class="dst"><div class="sl2">Race</div><div class="sv" style="font-size:12px;">' + w.rn + '</div></div>' : '') + '</div>'
+ + strH + disH + flH + weekActBox(w) + dayKey
+ + (isReordered(sel)?'<button class="order-reset" onclick="resetOrder('+sel+')">\u21a9 Reset day order</button>':'') + '<div class="draghint">Drag the \u22ee\u22ee handle to move a session to another day.</div>' + '<div class="ddays" id="daywrap">' + dH + '</div>'
+ + '<div class="rbox"><div class="rbox-title">\u{1F4CD} ' + (w.rt || '') + '</div><div class="rbox-stats"><span class="rs"><strong>Location:</strong> ' + (w.rl || '') + '</span><span class="rs"><strong>Dist:</strong> ' + (w.rk || '') + '</span><span class="rs"><strong>Vert:</strong> ' + (w.rv || '') + '</span></div><p>' + (w.rd || '') + '</p></div>'
+ + '<div class="note">' + noteH + '</div>'
+ + '<div class="dnav">' + prev + next + '</div>';
+ bindDayDrag();
+}
+
+// ─── TAB / PACE NAV ──────────────────────────────────────────────────────────
+// ── STRENGTH CONFIG ──────────────────────────────────────────────────────────
+var STR_EX=[
+ {id:'goblet', letter:'a', name:'Goblet squat',         wArr:[12,16,20,24], defWi:1, rArr:[8,10,12,15], defRi:2, unit:'kg'},
+ {id:'wlunge', letter:'b', name:'Weighted lunge',        wArr:[16,20,25,30], defWi:1, rArr:[5,7,8,10],  defRi:1, unit:'kg', perleg:true},
+ {id:'rlunge', letter:'c', name:'Runner lunge',          wArr:null,          defWi:0, rArr:[8,10,12,15], defRi:1, unit:'BW', perleg:true},
+ {id:'sldl',   letter:'d', name:'Single-leg deadlift',   wArr:[0,4,8,12,16], defWi:0, rArr:[6,8,10],    defRi:1, unit:'kg', perleg:true},
+ {id:'plank',  letter:'e', name:'Plank',                 wArr:null,          defWi:0, rArr:[30,45,60,90,120], defRi:2, unit:'sec'},
+ {id:'hip',    letter:'f', name:'Hip thrust / Step-up',  wArr:[0,16,20,25],  defWi:0, rArr:[10,12,15],  defRi:0, unit:'kg', phase2:true},
+];
+function strLoadCfg(){ try{ return JSON.parse(localStorage.getItem('utct_str')||'null'); }catch(e){ return null; } }
+function strSaveCfg(c){ try{ localStorage.setItem('utct_str',JSON.stringify(c)); }catch(e){} }
+function strGetCfg(){
+ var saved=strLoadCfg(), cfg={rounds:4, ex:{}};
+ STR_EX.forEach(function(e){ cfg.ex[e.id]={wi:e.defWi||0, ri:e.defRi||1}; });
+ if(saved){
+  if(saved.rounds) cfg.rounds=saved.rounds;
+  if(saved.ex) STR_EX.forEach(function(e){ if(saved.ex[e.id]!==undefined){ cfg.ex[e.id].wi=saved.ex[e.id].wi||0; cfg.ex[e.id].ri=saved.ex[e.id].ri||0; } });
+ }
+ return cfg;
+}
+function strWLabel(e, wi){ return e.wArr ? (e.wArr[wi]===0?'BW':e.wArr[wi]+'kg') : ''; }
+function strRLabel(e, ri){ return e.unit==='sec' ? e.rArr[ri]+'s' : '\xd7'+e.rArr[ri]+(e.perleg?'/leg':''); }
+function strSummary(e, ec){ var w=strWLabel(e,ec.wi); var r=strRLabel(e,ec.ri); return (w?w+' ':'')+r; }
+function renderStrengthConfig(){
+ var host=document.getElementById('str-config-inner'); if(!host) return;
+ var cfg=strGetCfg();
+ var rndHtml=[3,4,5,6].map(function(r){
+  return '<button class="rnd-btn'+(cfg.rounds===r?' active':'')+'" onclick="strSetRounds('+r+')">'+r+'</button>';
+ }).join('');
+ var exHtml=STR_EX.map(function(e){
+  var ec=cfg.ex[e.id];
+  var wRow='';
+  if(e.wArr){
+   wRow='<div class="str-slider-row"><span class="str-ctrl-lbl">Weight</span>'
+    +'<input type="range" class="str-range" min="0" max="'+(e.wArr.length-1)+'" value="'+ec.wi+'" oninput="strUpdate(\''+e.id+'\',\'wi\',+this.value)">'
+    +'<span class="str-val" id="sv-w-'+e.id+'">'+strWLabel(e,ec.wi)+'</span></div>';
+  }
+  var rRow='<div class="str-slider-row"><span class="str-ctrl-lbl">'+(e.unit==='sec'?'Time':'Reps')+'</span>'
+   +'<input type="range" class="str-range" min="0" max="'+(e.rArr.length-1)+'" value="'+ec.ri+'" oninput="strUpdate(\''+e.id+'\',\'ri\',+this.value)">'
+   +'<span class="str-val" id="sv-r-'+e.id+'">'+strRLabel(e,ec.ri)+'</span></div>';
+  return '<div class="str-ex-card'+(e.phase2?' str-p2':'')+'">'
+   +'<div class="str-ex-head"><span class="str-letter">'+e.letter+'</span><span class="str-name">'+e.name+'</span>'
+   +'<span class="str-summary" id="sv-sum-'+e.id+'">'+strSummary(e,ec)+'</span></div>'
+   +wRow+rRow+'</div>';
+ }).join('');
+ host.innerHTML='<div class="str-rounds-row"><span style="font-size:11px;font-weight:600;color:var(--t2)">Rounds today</span><div class="str-rnd-grp">'+rndHtml+'</div></div>'
+  +exHtml
+  +'<p class="str-note">Drag sliders to set today\'s loads. Progress when you finish with ~2 reps in reserve.</p>'
+  +'<div class="str-log-bar"><button class="str-log-btn" onclick="strLogSession()">&#10003; Log session</button><span class="str-last">'+strLastNote()+'</span></div>'
+  +'<details class="ptdetails" style="margin-top:8px;"><summary class="ptsummary">Session history</summary><div style="padding:4px 0;">'+strHistHtml()+'</div></details>';
+}
+function strUpdate(id, key, val){
+ var cfg=strGetCfg(); cfg.ex[id][key]=val; strSaveCfg(cfg);
+ var e=STR_EX.filter(function(x){return x.id===id;})[0]; if(!e) return;
+ var ec=cfg.ex[id];
+ if(key==='wi'){ var el=document.getElementById('sv-w-'+id); if(el) el.textContent=strWLabel(e,val); }
+ if(key==='ri'){ var el=document.getElementById('sv-r-'+id); if(el) el.textContent=strRLabel(e,val); }
+ var sum=document.getElementById('sv-sum-'+id); if(sum) sum.textContent=strSummary(e,ec);
+}
+function strSetRounds(r){ var cfg=strGetCfg(); cfg.rounds=r; strSaveCfg(cfg); renderStrengthConfig(); }
+function strGetLog(){ try{ return JSON.parse(localStorage.getItem('utct_str_log')||'[]'); }catch(e){ return []; } }
+function strSaveLog(log){ try{ localStorage.setItem('utct_str_log',JSON.stringify(log)); }catch(e){} }
+function strLogSession(){
+  var cfg=strGetCfg();
+  var entry={ date: new Date().toISOString().slice(0,10), rounds: cfg.rounds, ex:{} };
+  STR_EX.forEach(function(e){ entry.ex[e.id]={wi:cfg.ex[e.id].wi, ri:cfg.ex[e.id].ri}; });
+  var log=strGetLog();
+  // Remove any entry from today (one per day)
+  log=log.filter(function(l){ return l.date!==entry.date; });
+  log.unshift(entry);
+  if(log.length>20) log=log.slice(0,20);
+  strSaveLog(log);
+  renderStrengthConfig();
+}
+function strDeleteLog(idx){
+  var log=strGetLog(); log.splice(idx,1); strSaveLog(log); renderStrengthConfig();
+}
+function strDaysSince(isoDate){
+  var diff=Date.now()-new Date(isoDate).getTime();
+  return Math.floor(diff/86400000);
+}
+function strHistHtml(){
+  var log=strGetLog(); if(!log.length) return '<p style="font-size:11px;color:var(--t2);padding:6px 0;">No sessions logged yet.</p>';
+  return log.slice(0,8).map(function(l,i){
+    var gob=l.ex.goblet, wl=l.ex.wlunge;
+    var ex=(gob?('Goblet '+strWLabel({wArr:[12,16,20,24]},gob.wi)+' \xd7'+[8,10,12,15][gob.ri]):'')+
+           (wl?' · Lunge '+strWLabel({wArr:[16,20,25,30]},wl.wi):'' );
+    return '<div class="str-hist-row">'
+      +'<span class="str-hist-date">'+l.date+'</span>'
+      +'<span class="str-hist-rnd">'+l.rounds+' rounds</span>'
+      +'<span class="str-hist-ex">'+ex+'</span>'
+      +'<span class="str-hist-del" onclick="strDeleteLog('+i+')" title="Remove">&#10005;</span>'
+      +'</div>';
+  }).join('');
+}
+function strLastNote(){
+  var log=strGetLog(); if(!log.length) return 'No sessions logged yet.';
+  var d=strDaysSince(log[0].date);
+  return 'Last session: '+(d===0?'today':(d===1?'yesterday':d+' days ago'))+' · '+log[0].rounds+' rounds';
+}
+// ─────────────────────────────────────────────────────────────────────────────
+function showTab(id, btn) {
+ ['today','plan','track','pace','str','nut'].forEach(function(t){
+ var el=document.getElementById('t-'+t); if(el) el.style.display=(t===id)?'block':'none';
+ });
+ document.querySelectorAll('.tn').forEach(function(b){ b.classList.remove('active'); });
+ btn.classList.add('active');
+ if(id==='track') renderTracking();
+ if(id==='today'){ renderToday(); renderTrend(); }
+ if(id==='str'){ renderStrengthConfig(); renderShoes(); }
+}
+function showPace(id, btn) {
+ document.getElementById('p30').style.display = id === 'p30' ? 'block' : 'none';
+ document.getElementById('p36').style.display = id === 'p36' ? 'block' : 'none';
+ document.getElementById('p40').style.display = id === 'p40' ? 'block' : 'none';
+ document.getElementById('p45').style.display = id === 'p45' ? 'block' : 'none';
+ document.querySelectorAll('.pst').forEach(function(b) { b.classList.remove('active'); });
+ btn.classList.add('active');
+ renderRaceNow(id);
+}
+
+// ─── RACE DAY: WHERE AM I NOW ──────────────────────────────────────────────────
+var RACE_START = new Date(2026, 10, 20, 17, 0, 0); // Fri 20 Nov 2026, 17:00
+// Aid station tables: [tag, name, km, raceTimeMin (minutes from start)]
+var AID_P30 = [
+ ['S','Gardens Rugby Club',0,0],['1','Signal Hill',4,50],['2','Kloof Nek',9,120],['TP','Platteklip Gorge',13,195],
+ ['3','Table Mountain top',18,270],['4','Llandudno',33,405],['5','Rocket Road',43,510],['6','Hout Bay',50,600],
+ ['TP','Silvermine',68,810],['7','Kalk Bay',82,960],['TP','Blackhill',88,1035],['8',"Simon's Town",98,1140],
+ ['9','Scarborough',110,1290],['10','Kommetjie',118,1380],['11','Noordhoek',128,1500],['TP','Constantia Nek',140,1650],
+ ['12','Alphen Trail',147,1695],['TP','Nursery Ravine',152,1735],['13','Newlands',155,1755],['F','Gardens Rugby Club',161.7,1770]
+];
+var AID_P36 = [
+ ['S','Gardens Rugby Club',0,0],['1','Signal Hill',4,70],['2','Kloof Nek',9,150],['TP','Platteklip Gorge',13,240],
+ ['3','Table Mountain top',18,330],['4','Llandudno',33,510],['5','Rocket Road',43,660],['6','Hout Bay',50,780],
+ ['TP','Silvermine',68,1080],['7','Kalk Bay',82,1290],['8',"Simon's Town",98,1500],['9','Scarborough',110,1680],
+ ['10','Kommetjie',118,1800],['11','Noordhoek',128,1950],['TP','Constantia Nek',140,2130],['12','Alphen Trail',147,2160],
+ ['13','Newlands',155,2200],['F','Gardens Rugby Club',161.7,2160+'!'] // placeholder fixed below
+];
+AID_P36[AID_P36.length-1] = ['F','Gardens Rugby Club',161.7,2160];
+var AID_P40 = [
+ ['S','Gardens Rugby Club',0,0],['1','Signal Hill',4,75],['2','Kloof Nek',9,165],['TP','Platteklip Gorge',13,260],
+ ['3','Table Mountain top',18,360],['4','Llandudno',33,540],['5','Rocket Road',43,690],['6','Hout Bay',50,840],
+ ['TP','Silvermine',68,1140],['7','Kalk Bay',82,1350],['8',"Simon's Town",98,1590],
+ ['9','Scarborough',110,1740],['10','Kommetjie',118,1860],['11','Noordhoek',128,2010],['TP','Constantia Nek',140,2130],
+ ['12','Alphen Trail',147,2175],['13','Newlands',155,2250],['F','Gardens Rugby Club',161.7,2400]
+];
+var AID_P45 = [
+ ['S','Gardens Rugby Club',0,0],['1','Signal Hill',4,100],['2','Kloof Nek',9,210],['TP','Platteklip Gorge',13,320],
+ ['3','Table Mountain top',18,440],['4','Llandudno',33,660],['5','Rocket Road',43,840],['6','Hout Bay',50,990],
+ ['TP','Silvermine',68,1350],['7','Kalk Bay',82,1590],['8',"Simon's Town",98,1830],['9','Scarborough',110,2010],
+ ['10','Kommetjie',118,2130],['11','Noordhoek',128,2250],['TP','Constantia Nek',140,2400],['12','Alphen Trail',147,2460],
+ ['13','Newlands',155,2550],['F','Gardens Rugby Club',161.7,2700]
+];
+function fmtClock(d){ var h=d.getHours(), m=d.getMinutes(); return ('0'+(h%12||12)).slice(-2)+':'+('0'+m).slice(-2)+(h<12?'am':'pm'); }
+function fmtElapsed(min){ var h=Math.floor(min/60), m=Math.round(min%60); return h+'h'+('0'+m).slice(-2); }
+function renderRaceNow(planId){
+ var host=document.getElementById('race-now'); if(!host) return;
+ var now=new Date();
+ var elapsedMin=(now-RACE_START)/60000;
+ var totalMin=planId==='p45'?2700:(planId==='p40'?2400:(planId==='p36'?2160:1770));
+ // Only show during the race window (start to finish + 2h buffer either side).
+ if(elapsedMin < -120 || elapsedMin > totalMin+120){ host.innerHTML=''; return; }
+ var aid=planId==='p45'?AID_P45:(planId==='p40'?AID_P40:(planId==='p36'?AID_P36:AID_P30));
+ var html;
+ if(elapsedMin<0){
+  html='<div class="callout co-blu" style="margin-bottom:12px;"><strong>🏁 Race starts '+fmtClock(RACE_START)+'</strong> &#8212; '+fmtElapsed(-elapsedMin)+' to go.</div>';
+ } else if(elapsedMin>totalMin){
+  html='<div class="callout co-grn" style="margin-bottom:12px;"><strong>🏁 Finished!</strong> Target time '+fmtElapsed(totalMin)+' has passed &#8212; well done.</div>';
+ } else {
+  var next=null, prev=null;
+  for(var i=0;i<aid.length;i++){ if(aid[i][3]>elapsedMin){ next=aid[i]; prev=aid[i-1]||aid[0]; break; } }
+  var rows='';
+  if(prev) rows+='<div class="rn-row rn-past"><span class="rn-tag">'+prev[0]+'</span><span class="rn-name">'+prev[1]+'</span><span class="rn-km">'+prev[2]+'km</span><span class="rn-clock">'+fmtClock(new Date(RACE_START.getTime()+prev[3]*60000))+'</span></div>';
+  if(next){
+   var eta=new Date(RACE_START.getTime()+next[3]*60000);
+   var remain=next[3]-elapsedMin;
+   rows+='<div class="rn-row rn-next"><span class="rn-tag">'+next[0]+'</span><span class="rn-name">'+next[1]+'</span><span class="rn-km">'+next[2]+'km</span><span class="rn-clock">ETA '+fmtClock(eta)+' &middot; ~'+fmtElapsed(remain)+'</span></div>';
+   var after=aid[aid.indexOf(next)+1];
+   if(after){ var eta2=new Date(RACE_START.getTime()+after[3]*60000);
+    rows+='<div class="rn-row"><span class="rn-tag">'+after[0]+'</span><span class="rn-name">'+after[1]+'</span><span class="rn-km">'+after[2]+'km</span><span class="rn-clock">ETA '+fmtClock(eta2)+'</span></div>'; }
+  }
+  html='<div class="rn-card"><div class="rn-head">🏃 Race in progress &middot; '+fmtElapsed(elapsedMin)+' elapsed</div>'+rows+'</div>';
+ }
+ host.innerHTML=html;
+}
+
+// ─── GOOGLE SHEET SYNC ───────────────────────────────────────────────────────
+var SHEET_URL_KEY = 'utct_sheet_url';
+
+function loadSavedUrl() {
+ try {
+ var saved = localStorage.getItem(SHEET_URL_KEY);
+ if (saved) document.getElementById('sheetUrl').value = saved;
+ } catch(e) {}
+}
+
+function syncFromSheet() {
+ var url = document.getElementById('sheetUrl').value.trim();
+ if (!url) { setStatus('Paste your Apps Script URL first.', 'err'); return; }
+
+ try { localStorage.setItem(SHEET_URL_KEY, url); } catch(e) {}
+
+ var btn = document.getElementById('syncBtn');
+ btn.disabled = true;
+ btn.textContent = 'Syncing…';
+ setStatus('Fetching from Google Sheet…', '');
+ document.getElementById('plan-loading').style.display = 'block';
+ document.getElementById('plan-error').style.display = 'none';
+
+ // Use JSONP — sidesteps CORS completely (Apps Script redirects break fetch)
+ var cbName = '__utctCb_' + Date.now();
+ var script = document.createElement('script');
+ var timer = setTimeout(function() {
+ cleanup();
+ showSyncError('Timed out after 15s. Check the URL and that the Web App is deployed.');
+ }, 15000);
+
+ function cleanup() {
+ delete window[cbName];
+ if (script.parentNode) script.parentNode.removeChild(script);
+ clearTimeout(timer);
+ btn.disabled = false;
+ btn.textContent = '⟳ Sync';
+ document.getElementById('plan-loading').style.display = 'none';
+ }
+
+ window[cbName] = function(data) {
+ cleanup();
+ if (data && data.error) { showSyncError(data.error); return; }
+ if (!Array.isArray(data) || data.length === 0) { showSyncError('No week data returned. Check your Weeks tab has data.'); return; }
+ W = data;
+ sel = 0;
+ renderGrid();
+ renderDetail();
+ setStatus('✓ Synced ' + data.length + ' weeks — ' + new Date().toLocaleTimeString(), 'ok');
+ };
+
+ var sep = url.indexOf('?') > -1 ? '&' : '?';
+ script.src = url + sep + 'callback=' + cbName + '&t=' + Date.now();
+ script.onerror = function() { cleanup(); showSyncError('Script load failed. Make sure the Web App is deployed with "Anyone" access.'); };
+ document.head.appendChild(script);
+}
+
+function showSyncError(msg) {
+ var errEl = document.getElementById('plan-error');
+ errEl.style.display = 'block';
+ errEl.innerHTML = '<strong>Could not load from Google Sheet</strong><br>' + msg
+ + '<br><br><strong>3 things to check:</strong><br>'
+ + '1. In Apps Script: Deploy → Manage deployments → confirm "Who has access" = <strong>Anyone</strong><br>'
+ + '2. After any script change, do <strong>Deploy → New deployment</strong> (not redeploy same version)<br>'
+ + '3. Sheet tabs must be named exactly <strong>Weeks</strong> and <strong>Days</strong> (capital W and D)';
+ setStatus('Sync failed — see details above.', 'err');
+}
+
+function setStatus(msg, cls) {
+ var el = document.getElementById('syncStatus');
+ el.textContent = msg;
+ el.className = 'sync-status' + (cls ? ' ' + cls : '');
+}
+
+// ─── CURRENT WEEK MARKER ─────────────────────────────────────────────────────
+function markCurrentWeek() {
+  var today = new Date();
+  var months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  var cards = document.querySelectorAll('.wk');
+  var currentIdx = 0;
+  W.forEach(function(w, i) {
+    var parts = w.dt.split(' ');
+    var wkStart = new Date(today.getFullYear(), months[parts[1]], parseInt(parts[0]));
+    var wkEnd = new Date(today.getFullYear(), months[parts[1]], parseInt(parts[0]) + 7);
+    if (today >= wkStart && today < wkEnd) { currentIdx = i; }
+  });
+  sel = currentIdx;
+  if (cards[currentIdx]) {
+    cards[currentIdx].classList.add('current');
+    cards[currentIdx].classList.add('sel');
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+// ─── STRAVA LIVE INTEGRATION ──────────────────────────────────────────────────
+var ACT = [];
+var MATCH = {};
+var STRAVA_TOOL = 'mcp__a3bfc159-2746-42d4-9f76-57da38a9308b__list_activities';
+var COROS_ID = 'mcp__92930870-ff80-4a54-86b8-eb9b4dad2de8';
+var STRAVA_ID = 'mcp__a3bfc159-2746-42d4-9f76-57da38a9308b';
+var PLAN_YEAR = 2026;
+var SMON = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+
+function weekStartDate(w){ var p = String(w.dt).split(' '); return new Date(PLAN_YEAR, SMON[p[1]], parseInt(p[0],10)); }
+
+function setStravaStatus(msg, cls){ var el = document.getElementById('stravaStatus'); if(!el) return; el.textContent = msg; el.className = 'strava-status' + (cls ? (' '+cls) : ''); }
+
+function extractActivities(res){
+  var text = '';
+  if(res && res.content && Array.isArray(res.content)){ text = res.content.map(function(c){ return (c && c.text)||''; }).join(''); }
+  else if(typeof res === 'string'){ text = res; }
+  // Tredict returns CSV after ---- separator
+  var sep = text.indexOf('----');
+  if(sep > -1){
+    var csv = text.slice(sep+4).trim();
+    var rows = csv.split('\n').filter(function(r){ return r.trim(); });
+    if(rows.length < 2) return [];
+    var headers = rows[0].split(',');
+    var acts = [];
+    for(var ri=1; ri<rows.length; ri++){
+      var cols = rows[ri].split(',');
+      var obj = {};
+      headers.forEach(function(h,j){ obj[h.trim()] = (cols[j]||'').trim(); });
+      acts.push(obj);
+    }
+    return acts.map(normalizeTredict);
+  }
+  // Parse: prefer structuredContent, else parse raw text content as JSON
+  var data;
+  if(res && res.structuredContent != null){ data = res.structuredContent; }
+  else {
+    var b2=text.indexOf('['), bo2=text.indexOf('{');
+    if(bo2>-1 && (b2===-1||bo2<b2)) b2=bo2;
+    if(b2>-1){ try{ data=JSON.parse(text.slice(b2)); }catch(e){} }
+    if(!data) data=res;
+  }
+  if(typeof data==='string'){
+    var b3=data.indexOf('['), bo3=data.indexOf('{');
+    if(bo3>-1 && (b3===-1||bo3<b3)) b3=bo3;
+    if(b3>0) data=data.slice(b3);
+    try{ data=JSON.parse(data); }catch(e){ data=[]; }
+  }
+  if(data && Array.isArray(data.activities)) data = data.activities;
+  if(!Array.isArray(data)) data = [];
+  return data.map(normalizeActivity);
+}
+function normalizeTredict(row){
+  var sType = row['sportType']||'', subType = row['subSportType']||'';
+  var sportStr = sType;
+  if(subType==='strength_training') sportStr='strength_training';
+  else if(subType==='trail') sportStr='trail_running';
+  else if(subType==='hiking'||subType==='hiking_running') sportStr='hiking';
+  var dist=parseFloat(row['summary.distance'])||0, vert=parseFloat(row['summary.altitude.ascent'])||0;
+  var dur=parseFloat(row['summary.duration'])||0, spd=parseFloat(row['summary.speed'])||0;
+  var hr=parseFloat(row['summary.heartrate'])||0, hrMax=parseFloat(row['summary.heartrateMax'])||0;
+  var cad=parseFloat(row['summary.cadence'])||0, cal=parseFloat(row['summary.calories'])||0;
+  return {
+    id: row['id']||'', name: row['title']||(sType+(subType?' / '+subType:'')),
+    sport_type: sportStr, type: sportStr,
+    start_date_local: row['date']||'', start_date: row['date']||'',
+    distance: dist, moving_time: dur, elapsed_time: dur,
+    total_elevation_gain: vert, average_speed: spd,
+    average_heartrate: hr>0?hr:null, max_heartrate: hrMax>0?hrMax:null,
+    average_cadence: cad>0?cad:null, kilojoules: cal*4.184, _tredict:true
+  };
+}
+
+function normalizeActivity(a){
+  if(!a || typeof a!=='object') return a;
+  var s = a.summary || {};
+  var out = {
+    id: (a.id!=null) ? (isNaN(a.id)?a.id:Number(a.id)) : a.id,
+    name: a.name,
+    description: a.description,
+    sport_type: a.sport_type || a.type,
+    type: a.sport_type || a.type,
+    start_date_local: a.start_local || a.start_date_local || a.start_date,
+    gear_id: a.gear_id,
+    distance: s.distance!=null ? s.distance : a.distance,
+    moving_time: s.moving_time!=null ? s.moving_time : a.moving_time,
+    elapsed_time: s.elapsed_time!=null ? s.elapsed_time : a.elapsed_time,
+    total_elevation_gain: s.elevation_gain!=null ? s.elevation_gain : a.total_elevation_gain,
+    average_speed: s.avg_speed!=null ? s.avg_speed : a.average_speed,
+    max_speed: s.max_speed!=null ? s.max_speed : a.max_speed,
+    average_cadence: s.avg_cadence!=null ? s.avg_cadence : a.average_cadence,
+    kilojoules: s.total_calories!=null ? s.total_calories*4.184 : a.kilojoules,
+    suffer_score: s.relative_effort!=null ? s.relative_effort : a.suffer_score,
+    average_heartrate: a.average_heartrate,
+    max_heartrate: a.max_heartrate
+  };
+  return out;
+}
+
+function actKind(a){
+  var t = String(a.sport_type || a.type || '').toLowerCase();
+  if(t.indexOf('strength')>-1 || t.indexOf('weight')>-1 || t.indexOf('workout')>-1 || t==='crossfit') return 'strength';
+  if(t.indexOf('run')>-1 || t.indexOf('trail')>-1) return 'run';
+  if(t.indexOf('hike')>-1) return 'hike';
+  if(t.indexOf('walk')>-1) return 'walk';
+  if(t.indexOf('ride')>-1 || t.indexOf('cycl')>-1 || t.indexOf('bike')>-1) return 'ride';
+  if(t.indexOf('swim')>-1) return 'swim';
+  return 'other';
+}
+function localHour(a){ var s = String(a.start_date_local || a.start_date || ''); var h = parseInt(s.slice(11,13),10); return isNaN(h)?12:h; }
+function localDate(a){ return String(a.start_date_local || a.start_date || '').slice(0,10); }
+
+var ACTBYDATE = {};
+var SHORTMON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var PHYSIO_KEY='utct_physio_v4';
+var PHYSIO=(function(){ try{return JSON.parse(localStorage.getItem(PHYSIO_KEY))||{};}catch(e){return {};} })();
+function savePhysio(){ try{localStorage.setItem(PHYSIO_KEY, JSON.stringify(PHYSIO));}catch(e){} }
+function physioDone(wi,origIdx){ return !!PHYSIO[wi+':'+origIdx]; }
+function togglePhysio(wi,origIdx){ var k=wi+':'+origIdx; if(PHYSIO[k]) delete PHYSIO[k]; else PHYSIO[k]=1; savePhysio(); renderDetail(); renderNextUp(); }
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dateForPos(wi,pos){ var s=weekStartDate(W[wi]); return new Date(s.getTime()+pos*86400000); }
+function isStrengthAct(a){ return actKind(a)==='strength'; }
+function isRunAct(a){ var k=actKind(a); return k==='run'||k==='hike'; }
+function actsOn(dateStr){ return ACTBYDATE[dateStr]||[]; }
+function dayTemporal(wi,pos){ var t=new Date(); t.setHours(0,0,0,0); var d=dateForPos(wi,pos); d.setHours(0,0,0,0); return d<t?-1:(d>t?1:0); }
+function computeMatches(){
+  MATCH = {}; ACTBYDATE = {};
+  ACT.forEach(function(a){ var ld=localDate(a); if(!ld) return; (ACTBYDATE[ld]=ACTBYDATE[ld]||[]).push(a); });
+  W.forEach(function(w, i){
+    var wkStart = weekStartDate(w);
+    var start = wkStart;
+    var end = new Date(wkStart.getTime()+7*86400000);
+    var runs=[], allActs=[];
+    ACT.forEach(function(a){ var ld=localDate(a); if(!ld) return; var d=new Date(ld+'T00:00:00');
+      if(d>=start && d<end){ allActs.push(a); if(isRunAct(a)) runs.push(a); } });
+    var actKm=0, actVert=0;
+    runs.forEach(function(a){ actKm+=(a.distance||0)/1000; actVert+=(a.total_elevation_gain||0); });
+    MATCH[i] = { runs:runs, allActs:allActs, actKm:actKm, actVert:actVert };
+  });
+}
+
+function dayDone(wi, pos){
+  var w=W[wi]; if(!w) return null;
+  var ord=dayOrder(wi), d=(w.dy||[])[ord[pos]];
+  if(!d || d.t==='rest') return null;
+  if(dayTemporal(wi,pos)>0) return 'future';
+  var acts=actsOn(ymd(dateForPos(wi,pos)));
+  if(d.t==='str') return acts.some(isStrengthAct);
+  return acts.some(isRunAct);
+}
+
+// ─── MANUAL DONE OVERRIDE (takes precedence over Strava auto-match) ────────────
+var DONE_KEY='utct_done_v1';
+var DONEOV=(function(){ try{return JSON.parse(localStorage.getItem(DONE_KEY))||{};}catch(e){return {};} })();
+function saveDone(){ try{ localStorage.setItem(DONE_KEY, JSON.stringify(DONEOV)); }catch(e){} }
+function doneOverride(wi,origIdx){ var v=DONEOV[wi+':'+origIdx]; return (v===0||v===1)?v:undefined; }
+function setDone(wi,origIdx,val){ DONEOV[wi+':'+origIdx]=val; saveDone(); renderDetail(); renderNextUp(); renderTracking(); }
+function clearDone(wi,origIdx){ delete DONEOV[wi+':'+origIdx]; saveDone(); renderDetail(); renderNextUp(); renderTracking(); }
+function effectiveDone(wi,pos){
+  var w=W[wi]; if(!w) return null;
+  var ord=dayOrder(wi), origIdx=ord[pos], d=(w.dy||[])[origIdx];
+  if(!d || d.t==='rest') return null;
+  var ov=doneOverride(wi,origIdx);
+  if(ov===1) return true;
+  if(ov===0) return false;
+  return dayDone(wi,pos);
+}
+
+function weekKeyStats(wi){
+  var w=W[wi], done=0, total=0, n=(w.dy||[]).length;
+  for(var pos=0;pos<n;pos++){ var r=effectiveDone(wi,pos); if(r===null) continue; total++; if(r===true) done++; }
+  return { done:done, total:total };
+}
+
+function weekCheckBadge(w){
+  var wi = W.indexOf(w), m = MATCH[wi]; if(!m) return '';
+  var ks = weekKeyStats(wi); if(ks.total === 0) return '';
+  if(ks.done >= ks.total) return '<span class="wcheck done">✓ done</span>';
+  if(ks.done > 0) return '<span class="wcheck part">' + ks.done + '/' + ks.total + '</span>';
+  return '';
+}
+function dayCheckMark(w, d){ var wi = W.indexOf(w); return dayDone(wi, d) === true ? '<span class="dcheck">✓</span>' : ''; }
+
+function weekActBox(w){
+  var wi=W.indexOf(w), m=MATCH[wi]; if(!m) return '';
+  var kmPct = w.km?Math.round(m.actKm/w.km*100):0;
+  return '<div class="weeklog"><span class="wlk">\u{1F4F1} Logged this week</span> <strong>'+m.actKm.toFixed(1)+' km · '+Math.round(m.actVert)+' m</strong> <span class="wlmut">('+kmPct+'% of '+w.km+' km plan)</span></div>';
+}
+
+// ─── LOAD CHECK ──────────────────────────────────────────────────────────────
+// Compares actual vs planned km for the current week (pro-rated to today) and flags
+// meaningful over/under-load with a concrete suggestion.
+function loadCheckHtml(){
+  var wi=currentWeekIdx(), w=W[wi], m=MATCH[wi]; if(!w || !m || !w.km) return '';
+  var start=weekStartDate(w), today=new Date(); today.setHours(0,0,0,0);
+  var daysElapsed=Math.min(7, Math.max(1, Math.round((today-start)/86400000)+1));
+  var expectedKm=w.km*(daysElapsed/7);
+  var actKm=m.actKm, diff=actKm-expectedKm, pct=expectedKm>0?Math.round((actKm/expectedKm)*100):100;
+  // Only flag once meaningfully into the week, and only for a real gap (>20%, >4km).
+  if(daysElapsed<2 || Math.abs(diff)<4 || Math.abs(pct-100)<20) return '';
+  var remainKm=Math.max(0, w.km-actKm), remainDays=7-daysElapsed;
+  if(diff<0){
+    var perDay=remainDays>0?(remainKm/remainDays).toFixed(1):remainKm.toFixed(1);
+    return '<div class="callout co-amb" style="margin-bottom:10px;"><strong>⚠ Behind plan:</strong> '+actKm.toFixed(1)+' km logged vs ~'+expectedKm.toFixed(1)+' km expected by now ('+pct+'%). '
+      +(remainDays>0
+        ? ('To hit '+w.km+' km this week, remaining sessions average ~'+perDay+' km/day &#8212; or extend the next long run and let a smaller session slide.')
+        : ('Week is closing '+remainKm.toFixed(1)+' km short. Not worth chasing now &#8212; note it and move on; consistency over the block matters more than one week.'))
+      +'</div>';
+  } else {
+    return '<div class="callout co-blu" style="margin-bottom:10px;"><strong>ℹ Ahead of plan:</strong> '+actKm.toFixed(1)+' km logged vs ~'+expectedKm.toFixed(1)+' km expected ('+pct+'%). '
+      +(remainDays>0
+        ? 'Good buffer &#8212; no need to add extra volume. If legs feel heavy, treat an upcoming session as easy/optional recovery.'
+        : 'Strong week. Make sure tomorrow starts the next week fresh rather than carrying fatigue in.')
+      +'</div>';
+  }
+}
+
+function currentWeekIdx(){
+  var today = new Date(), idx = 0;
+  W.forEach(function(w, i){ var st = weekStartDate(w); var en = new Date(st.getTime()+7*86400000); if(today >= st && today < en) idx = i; });
+  return idx;
+}
+
+function renderNextUp(){
+  var wrap = document.getElementById('nextup-wrap'); if(!wrap) return;
+  var wi = currentWeekIdx(), w = W[wi], m = MATCH[wi] || { actKm:0, actVert:0 };
+  var today = new Date(), dow = (today.getDay()+6) % 7;
+  var nextTxt = 'All tracked sessions for this week are done — recover well.', nextSub = '';
+  var days = w.dy || [], ord = dayOrder(wi);
+  for(var oi=0;oi<ord.length;oi++){
+    var d = days[ord[oi]], r = effectiveDone(wi, oi);
+    if(r === null || r === true) continue;
+    if(dayTemporal(wi, oi) < 0) continue;
+    nextTxt = (DAYS[oi]||'') + ': ' + d.s; nextSub = d.d; break;
+  }
+  var ks = weekKeyStats(wi);
+  var kmPct = Math.min(100, w.km ? Math.round(m.actKm/w.km*100) : 0);
+  var vPct = Math.min(100, w.v ? Math.round(m.actVert/w.v*100) : 0);
+  wrap.innerHTML = '<div class="nextup">'
+    + '<div class="nl">Next up — Week ' + w.n + ' · ' + w.dt + '</div>'
+    + '<div class="nv">' + nextTxt + '</div>'
+    + (nextSub ? ('<div class="nd">' + nextSub + '</div>') : '')
+    + '<div class="weekprog">'
+    +   '<div class="wp">Sessions<span class="wpv">' + ks.done + ' / ' + ks.total + '</span></div>'
+    +   '<div class="wp">Distance<span class="wpv">' + m.actKm.toFixed(1) + ' / ' + w.km + ' km</span><div class="wpb"><div class="wpf" style="width:' + kmPct + '%"></div></div></div>'
+    +   '<div class="wp">Elevation<span class="wpv">' + Math.round(m.actVert) + ' / ' + w.v + ' m</span><div class="wpb"><div class="wpf" style="width:' + vPct + '%"></div></div></div>'
+    + '</div></div>';
+}
+
+function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache');}}catch(_e){}
+renderTicker(); renderToday(); renderTrend(); var _rp=document.getElementById('p45')&&document.getElementById('p45').style.display==='block'?'p45':(document.getElementById('p40')&&document.getElementById('p40').style.display==='block'?'p40':(document.getElementById('p36')&&document.getElementById('p36').style.display==='block'?'p36':'p30')); renderRaceNow(_rp); }
+
+function loadStrava(){
+  if(!(window.cowork && window.cowork.callMcpTool)){
+    setStravaStatus('Open in Cowork to sync Strava', 'err'); rerenderAll(); return;
+  }
+  setStravaStatus('Syncing…');
+  window.cowork.callMcpTool(STRAVA_TOOL, { first: 100 }).then(function(res){
+    ACT = extractActivities(res); rerenderAll();
+    setStravaStatus('Synced ' + ACT.length + ' activities · ' + new Date().toLocaleTimeString(), 'ok');
+  }).catch(function(e){
+    setStravaStatus('Could not reach Strava: ' + (e && e.message ? e.message : e), 'err'); rerenderAll();
+  });
+  loadHrZones();
+}
+
+// ─── HR ZONES ────────────────────────────────────────────────────────────────
+var HR_ZONES=null;
+function loadHrZones(){
+  var key='utct_hrzones';
+  try{ var c=localStorage.getItem(key); if(c) HR_ZONES=JSON.parse(c); }catch(e){}
+  if(!(window.cowork && window.cowork.callMcpTool)) return;
+  window.cowork.callMcpTool(STRAVA_ID+'__get_athlete_zones', {}).then(function(res){
+    var d=hbUnwrap(res);
+    var zones=(d && d.heart_rate && Array.isArray(d.heart_rate.zones)) ? d.heart_rate.zones : (d && Array.isArray(d.heart_rate_zones) ? d.heart_rate_zones : null);
+    if(zones){
+      HR_ZONES=zones;
+      try{ localStorage.setItem(key, JSON.stringify(HR_ZONES)); }catch(e){}
+      renderDetail();
+    }
+  }).catch(function(){});
+}
+// Returns "Zone N" label for a given HR value, or '' if zones unavailable.
+function hrZoneLabel(hr){
+  if(!HR_ZONES || !hr) return '';
+  for(var i=0;i<HR_ZONES.length;i++){
+    var z=HR_ZONES[i];
+    if(hr>=z.min && (z.max==null || hr<=z.max)) return 'Zone '+(i+1);
+  }
+  return '';
+}
+function hrZoneIndex(hr){
+  if(!HR_ZONES || !hr) return -1;
+  for(var i=0;i<HR_ZONES.length;i++){
+    var z=HR_ZONES[i];
+    if(hr>=z.min && (z.max==null || hr<=z.max)) return i;
+  }
+  return -1;
+}
+// Checks yesterday's planned-easy ("run"/"train") session against actual avg HR.
+// Returns a short note if it ran significantly hotter than intended, else ''.
+function zoneCheck(){
+  if(!HR_ZONES) return '';
+  var y=new Date(); y.setDate(y.getDate()-1);
+  var wi=currentWeekIdx(), w=W[wi]; if(!w) return '';
+  var ord=dayOrder(wi);
+  for(var p=0;p<ord.length;p++){
+    if(ymd(dateForPos(wi,p))!==ymd(y)) continue;
+    var d=(w.dy||[])[ord[p]];
+    if(!d || d.t!=='run') return ''; // only flag easy/training runs
+    var acts=actsOn(ymd(y)).filter(isRunAct);
+    if(!acts.length) return '';
+    var a=acts[0]; if(!a.average_heartrate) return '';
+    var zi=hrZoneIndex(Math.round(a.average_heartrate));
+    if(zi>=2){ // Zone 3+
+      return 'Yesterday\'s "'+d.s+'" averaged '+Math.round(a.average_heartrate)+' bpm (Zone '+(zi+1)+') — hotter than an easy session should be. If today is also a training day, consider keeping it deliberately easy.';
+    }
+    return '';
+  }
+  return '';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+// ─── RACE COUNTDOWN TICKER ────────────────────────────────────────────────────
+var RACES=[
+ {n:'Backyard Ultra', d:'2026-10-31', tag:'B', wk:7},
+ {n:'UTCT 100M', d:'2026-11-20', tag:'A', wk:10}
+];
+function daysUntil(ds){ var t=new Date(); t.setHours(0,0,0,0); var r=new Date(ds+'T00:00:00'); return Math.round((r-t)/86400000); }
+function fmtCountdown(n){ if(n===0) return 'TODAY'; if(n===1) return 'tomorrow'; if(n<=21) return n+' days'; return Math.round(n/7)+' weeks'; }
+function renderTicker(){
+  var el=document.getElementById('ticker'); if(!el) return;
+  var up=RACES.filter(function(r){return daysUntil(r.d)>=0;});
+  var nextName=up.length?up.reduce(function(a,b){return daysUntil(a.d)<=daysUntil(b.d)?a:b;}).n:null;
+  el.innerHTML=RACES.map(function(r,ri){
+    var n=daysUntil(r.d), done=n<0;
+    var cls='rchip rclick'+(r.tag==='A'?' arace':'')+(r.n===nextName?' next':'')+(done?' rdone':'');
+    var big=done?'✓ done':fmtCountdown(n);
+    return '<div class="'+cls+'" onclick="openRaceDetail('+ri+')" title="Tap for race details"><div class="rd">'+big+'</div><div class="rn">'+r.n+(r.cond?' *':'')+'</div></div>';
+  }).join('')+'<div class="rchip rnote">* ballot /<br>conditional</div>';
+}
+
+function findRaceActivity(race){
+  var rd=new Date(race.d+'T00:00:00'), best=null, bestKm=0;
+  (ACT||[]).forEach(function(a){
+    var k=actKind(a); if(k!=='run'&&k!=='hike') return;
+    var ld=localDate(a); if(!ld) return;
+    var diff=Math.abs((new Date(ld+'T00:00:00')-rd)/86400000);
+    if(diff<=3){ var km=(a.distance||0)/1000; if(km>bestKm){ bestKm=km; best=a; } }
+  });
+  return best;
+}
+function rmStat(label,val){ return '<div class="rm-stat"><div class="rm-sl">'+label+'</div><div class="rm-sv">'+val+'</div></div>'; }
+function raceStatsHtml(a){
+  var km=(a.distance||0)/1000, mt=a.moving_time||0;
+  var h=Math.floor(mt/3600), mn=Math.round((mt%3600)/60);
+  var paceSec=km>0?mt/km:0, pm=Math.floor(paceSec/60), ps=Math.round(paceSec%60);
+  var cells=[ rmStat('Distance', km.toFixed(1)+' km'), rmStat('Moving time', h+'h '+('0'+mn).slice(-2)+'m'),
+    rmStat('Elevation', Math.round(a.total_elevation_gain||0)+' m'), rmStat('Avg pace', pm+':'+('0'+ps).slice(-2)+' /km') ];
+  if(a.average_heartrate){ var hz=hrZoneLabel(Math.round(a.average_heartrate)); cells.push(rmStat('Avg HR', Math.round(a.average_heartrate)+' bpm'+(hz?' ('+hz+')':''))); }
+  if(a.max_heartrate) cells.push(rmStat('Max HR', Math.round(a.max_heartrate)+' bpm'));
+  if(a.average_cadence) cells.push(rmStat('Cadence', Math.round(a.average_cadence*2)+' spm'));
+  if(a.suffer_score) cells.push(rmStat('Effort', a.suffer_score));
+  if(a.kilojoules) cells.push(rmStat('Work', Math.round(a.kilojoules)+' kJ'));
+  var link=a.id?'<a class="rm-link" href="https://www.strava.com/activities/'+a.id+'" target="_blank" rel="noopener">View on Strava ↗</a>':'';
+  return '<div class="rm-stats">'+cells.join('')+'</div>'+link;
+}
+function raceTargetHtml(w){ return '<div class="rm-stats">'+rmStat('Distance', w.rk||(w.km+' km'))+rmStat('Elevation', w.rv||(w.v+' m'))+'</div>'; }
+function loadRaceInsight(a, w){
+  var out=document.getElementById('rm-insight'); if(!out) return;
+  var km=(a.distance||0)/1000, mt=a.moving_time||0, paceSec=km>0?Math.round(mt/km):null;
+  function rule(){ var pm=paceSec?(Math.floor(paceSec/60)+':'+('0'+(paceSec%60)).slice(-2)):'?';
+    return 'You covered '+km.toFixed(1)+' km with '+Math.round(a.total_elevation_gain||0)+' m of climbing in '+Math.floor(mt/3600)+'h'+('0'+Math.round((mt%3600)/60)).slice(-2)+', averaging '+pm+'/km'+(a.average_heartrate?(' at '+Math.round(a.average_heartrate)+' bpm'):'')+'. '+((a.average_heartrate&&a.average_heartrate<150)?'Heart rate stayed controlled — strong aerobic discipline on this terrain.':'A committed, hard effort.'); }
+  function show(t){ out.innerHTML='<div class="rm-plan"><span class="dlbl">INSIGHTS</span>'+t+'</div>'; }
+  var key='utct_raceins_'+a.id, cached=null; try{ cached=localStorage.getItem(key); }catch(e){}
+  if(cached && !looksLikeAiError(cached)){ show(cached); return; }            // cached once per race — no repeat Claude call
+  if(cached){ try{ localStorage.removeItem(key); }catch(e){} }                // drop stale error/limit message so we retry
+  if(aiOn() && window.cowork && window.cowork.askClaude){
+    var data={ distanceKm:+km.toFixed(1), movingTimeMin:Math.round(mt/60), elevationM:Math.round(a.total_elevation_gain||0), avgHr:a.average_heartrate, maxHr:a.max_heartrate, avgPaceSecPerKm:paceSec, sufferScore:a.suffer_score, plannedKm:w&&w.km, plannedVert:w&&w.v };
+    window.cowork.askClaude('You are a trail-ultra coach. From this race activity JSON write 60-90 words of plain-text insight for Josh about pacing, climbing, heart-rate control and what it suggests for his UTCT 100 Miler. Use only the numbers given; no markdown headings.', [data])
+      .then(function(r){
+        var t=(typeof r==='string')?r:(r&&r.text?r.text:rule());
+        if(looksLikeAiError(t)){ show(rule()); return; }   // don't cache (or show) error/limit text
+        try{ localStorage.setItem(key, t); }catch(e){} show(t);
+      })
+      .catch(function(){ show(rule()); });
+  } else { show(rule()); }
+}
+// Detects responses that are actually error/limit messages rather than real insight text,
+// so they never get permanently cached and re-shown as if they were the AI output.
+function looksLikeAiError(t){
+  if(!t || typeof t!=='string') return true;
+  var s=t.toLowerCase();
+  return /session limit|rate limit|usage limit|too many requests|quota|try again later|temporarily unavailable|error occurred|something went wrong/.test(s);
+}
+function closeRaceDetail(){ var m=document.getElementById('raceModal'); if(m) m.style.display='none'; }
+function openRaceDetail(i){
+  var race=RACES[i]; if(!race) return;
+  var modal=document.getElementById('raceModal');
+  if(!modal){ modal=document.createElement('div'); modal.id='raceModal'; modal.className='racemodal'; modal.addEventListener('click', function(e){ if(e.target===modal) closeRaceDetail(); }); document.body.appendChild(modal); }
+  var n=daysUntil(race.d), done=n<0, w=W[(race.wk||1)-1]||{};
+  var html='<div class="rm-card"><button class="rm-close" onclick="closeRaceDetail()">&times;</button>'
+    +'<div class="rm-title">'+race.n+'</div>'
+    +'<div class="rm-sub">'+new Date(race.d+'T00:00:00').toDateString()+' · '+(done?'Completed':(n===0?'Race day!':'in '+fmtCountdown(n)))+'</div>';
+  if(done){
+    var a=findRaceActivity(race);
+    if(a){ html+='<div id="rm-stats">'+raceStatsHtml(a)+'</div><div id="rm-insight"><div class="loading-msg"><div class="loading-spinner"></div><br>Generating insights…</div></div><div id="rm-splits"></div>'; }
+    else { html+='<div class="callout co-amb" style="margin:6px 0;">No activity found within a few days of this race yet. Once it syncs from Tredict, full stats will show here.</div>'; }
+  } else {
+    html+='<div class="rm-up"><div class="rm-count">'+(n===0?'TODAY':fmtCountdown(n))+'</div><div class="rm-uplbl">until race day</div></div>';
+    if(w.km) html+=raceTargetHtml(w);
+  }
+  if(w.rd) html+='<div class="rm-plan"><span class="dlbl">RACE PLAN</span>'+w.rd+'</div>';
+  html+='</div>';
+  modal.innerHTML=html; modal.style.display='flex';
+  if(done){ var act=findRaceActivity(race); if(act){ loadRacePerformance(act, w); loadRaceSplits(act.id); } }
+}
+// Fetch HR/cadence/effort detail (not present in list_activities) and merge before rendering stats + insight.
+var PERF_CACHE={};
+function loadRacePerformance(act, w){
+  var key='utct_perf_'+act.id, cached=PERF_CACHE[act.id];
+  if(!cached){ try{ var cv=localStorage.getItem(key); if(cv) cached=JSON.parse(cv); }catch(e){} }
+  function apply(perf){
+    if(perf){
+      if(perf.average_heartrate!=null) act.average_heartrate=perf.average_heartrate;
+      if(perf.max_heartrate!=null) act.max_heartrate=perf.max_heartrate;
+      if(perf.average_cadence!=null) act.average_cadence=perf.average_cadence;
+      if(perf.calories!=null && !act.kilojoules) act.kilojoules=perf.calories*4.184;
+      var lap=(perf.laps&&perf.laps[0])||null;
+      if(lap && lap.avg_hr!=null && act.average_heartrate==null) act.average_heartrate=lap.avg_hr;
+    }
+    var statsEl=document.getElementById('rm-stats'); if(statsEl) statsEl.innerHTML=raceStatsHtml(act);
+    loadRaceInsight(act, w);
+  }
+  if(cached){ apply(cached); return; }
+  if(!(window.cowork && window.cowork.callMcpTool)){ apply(null); return; }
+  apply(null); // HR/cadence already present from Tredict extended summary
+}
+function fmtPace(secPerKm){ var m=Math.floor(secPerKm/60), s=Math.round(secPerKm%60); return m+':'+('0'+s).slice(-2); }
+function loadRaceSplits(id){
+  var out=document.getElementById('rm-splits'); if(!out) return;
+  if(!(window.cowork && window.cowork.callMcpTool)){ out.innerHTML='<div class="rm-note">Open the hub on desktop (Cowork) to see per-km splits.</div>'; return; }
+  var skey='utct_splits_'+id, csp=null; try{ var cv=localStorage.getItem(skey); if(cv) csp=JSON.parse(cv); }catch(e){}
+  if(csp && csp.length){ out.innerHTML=splitsTableHtml(csp); setTimeout(function(){ renderSplitChart(csp); }, 0); return; }
+  out.innerHTML='<div class="rm-plan"><span class="dlbl">PER-KM SPLITS</span><div class="loading-msg" style="padding:14px;"><div class="loading-spinner"></div></div></div>';
+  out.innerHTML=''; // Per-km splits require Tredict full access
+}
+// Builds per-km splits (in the same shape as Strava's splits_metric) from raw time/distance/altitude/heart_rate streams.
+function streamsToSplits(d){
+  if(!d) return [];
+  var dist=d.distance, time=d.time, alt=d.altitude, hr=d.heart_rate;
+  if(!dist || !dist.length || !time || !time.length) return [];
+  var splits=[], n=dist.length, splitIdx=1, startI=0, nextThresh=1000;
+  for(var i=0;i<n;i++){
+    if(dist[i] >= nextThresh || i===n-1){
+      var dDist=dist[i]-dist[startI];
+      var dTime=time[i]-time[startI];
+      var dElev = alt ? (alt[i]-alt[startI]) : 0;
+      var hrSum=0, hrCnt=0;
+      if(hr){ for(var j=startI;j<=i;j++){ if(hr[j]!=null){ hrSum+=hr[j]; hrCnt++; } } }
+      splits.push({
+        split: splitIdx,
+        distance: dDist,
+        moving_time: dTime,
+        elapsed_time: dTime,
+        elevation_difference: dElev,
+        average_heartrate: hrCnt?(hrSum/hrCnt):null,
+        average_speed: dTime>0?(dDist/dTime):0
+      });
+      splitIdx++; startI=i+1; nextThresh=dist[i]+1000;
+      if(startI>=n) break;
+    }
+  }
+  return splits;
+}
+function renderSplitChart(sp){
+  var cv=document.getElementById('rm-splitchart'); if(!cv || typeof Chart==='undefined') return;
+  var labels=[], elev=[], pace=[], cum=0;
+  sp.forEach(function(x){ cum+=(x.elevation_difference||0); labels.push(x.split); elev.push(Math.round(cum)); var km=(x.distance||1000)/1000; pace.push(km>0?Math.round((x.moving_time||x.elapsed_time)/km):null); });
+  if(window._splitChart){ try{ window._splitChart.destroy(); }catch(e){} }
+  window._splitChart=new Chart(cv.getContext('2d'),{ data:{ labels:labels, datasets:[
+    { type:'line', label:'Elevation (m)', data:elev, yAxisID:'yE', borderColor:'#B6B3AA', backgroundColor:'rgba(154,152,144,.20)', fill:true, pointRadius:0, tension:.3, borderWidth:1, order:2 },
+    { type:'line', label:'Pace /km', data:pace, yAxisID:'yP', borderColor:'#1D9E75', pointRadius:0, tension:.3, borderWidth:2, order:1 }
+  ]}, options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+    plugins:{ legend:{labels:{font:{size:10},boxWidth:12}}, tooltip:{callbacks:{label:function(c){ if(c.dataset.yAxisID==='yP'){ var s=c.parsed.y; return s==null?'':('Pace '+Math.floor(s/60)+':'+('0'+(s%60)).slice(-2)+'/km'); } return 'Elev '+c.parsed.y+' m'; }}} },
+    scales:{ yP:{position:'left', reverse:true, ticks:{font:{size:9}, callback:function(v){return Math.floor(v/60)+':'+('0'+(v%60)).slice(-2);}}}, yE:{position:'right', ticks:{font:{size:9}}, grid:{drawOnChartArea:false}}, x:{ticks:{font:{size:8}, maxTicksLimit:12}} } } });
+}
+function splitsTableHtml(sp){
+  var half=Math.floor(sp.length/2), f=0,fc=0,s2=0,sc=0;
+  sp.forEach(function(x,idx){ var g=x.average_grade_adjusted_speed||x.average_speed||0, gp=g>0?1000/g:0; if(idx<half){f+=gp;fc++;}else{s2+=gp;sc++;} });
+  var fade='';
+  if(fc&&sc){ var diff=Math.round(s2/sc - f/fc);
+    fade='<div class="rm-fade">'+(diff>8?('Faded late — second half ~'+diff+'s/km slower, grade-adjusted.'):(diff<-8?('Strong finish — second half ~'+Math.abs(diff)+'s/km faster, grade-adjusted.'):'Even effort front to back (grade-adjusted) — well controlled.'))+'</div>'; }
+  var rows=sp.map(function(x){ var km=(x.distance||1000)/1000, pace=km>0?(x.moving_time||x.elapsed_time)/km:0, ed=Math.round(x.elevation_difference||0), hr=x.average_heartrate?Math.round(x.average_heartrate):'';
+    return '<tr><td>'+x.split+'</td><td>'+fmtPace(pace)+'</td><td>'+(ed>0?'+':'')+ed+' m</td><td>'+(hr||'—')+'</td></tr>'; }).join('');
+  return '<div class="rm-plan"><span class="dlbl">PER-KM SPLITS</span>'+fade+'<div class="rm-chartwrap"><canvas id="rm-splitchart"></canvas></div><div class="rm-splitwrap"><table class="rm-splittable"><thead><tr><th>Km</th><th>Pace /km</th><th>Elev</th><th>HR</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+// ─── DAY ORDER + DRAG-AND-DROP ────────────────────────────────────────────────
+var ORDER_KEY='utct_dayorder_v3';
+var ORDER=(function(){ try{return JSON.parse(localStorage.getItem(ORDER_KEY))||{};}catch(e){return {};} })();
+function saveOrder(){ try{localStorage.setItem(ORDER_KEY, JSON.stringify(ORDER));}catch(e){} }
+function defaultOrder(n){ var a=[]; for(var i=0;i<n;i++)a.push(i); return a; }
+function dayOrder(wi){
+  var w=W[wi], n=(w.dy||[]).length, o=ORDER[wi];
+  if(o && o.length===n){ var ok=o.slice().sort(function(a,b){return a-b;}).every(function(v,i){return v===i;}); if(ok) return o; }
+  return defaultOrder(n);
+}
+function isReordered(wi){ var o=ORDER[wi]; if(!o) return false; return !o.every(function(v,i){return v===i;}); }
+function resetOrder(wi){ delete ORDER[wi]; saveOrder(); renderDetail(); renderNextUp(); }
+
+var drag=null;
+function dragHint(show, text){
+  var el=document.getElementById('dragHint');
+  if(show){
+    if(!el){ el=document.createElement('div'); el.id='dragHint'; el.className='draghintbar'; document.body.appendChild(el); }
+    el.textContent=text; el.style.display='block';
+  } else if(el){ el.style.display='none'; }
+}
+function clearDropTargets(wrap){ Array.prototype.forEach.call(wrap.querySelectorAll('.drop-target'), function(c){ c.classList.remove('drop-target'); }); }
+function bindDayDrag(){
+  var wrap=document.getElementById('daywrap'); if(!wrap) return;
+  Array.prototype.forEach.call(wrap.querySelectorAll('.dhandle'), function(h){ h.addEventListener('pointerdown', startDrag); });
+}
+function startDrag(e){
+  var cell=e.target.closest('.day'); if(!cell) return;
+  e.preventDefault();
+  drag={cell:cell, wrap:cell.parentNode, moved:false};
+  cell.classList.add('dragging');
+  drag.wrap.classList.add('drag-active');
+  var nm=cell.querySelector('.dtype'); nm=nm?nm.textContent:'session';
+  dragHint(true, '↕ Moving: ' + nm + ' — drop on a day to place it');
+  try{ cell.setPointerCapture(e.pointerId); }catch(_){}
+  document.addEventListener('pointermove', moveDrag);
+  document.addEventListener('pointerup', endDrag);
+  document.addEventListener('pointercancel', endDrag);
+}
+function moveDrag(e){
+  if(!drag) return;
+  var el=document.elementFromPoint(e.clientX, e.clientY);
+  var over=(el && el.closest)?el.closest('.day'):null;
+  clearDropTargets(drag.wrap);
+  if(!over || over===drag.cell || over.parentNode!==drag.wrap) return;
+  drag.moved=true;
+  over.classList.add('drop-target');
+  var rect=over.getBoundingClientRect();
+  var horizontal=window.matchMedia('(min-width:621px)').matches;
+  var before=horizontal?(e.clientX<rect.left+rect.width/2):(e.clientY<rect.top+rect.height/2);
+  drag.wrap.insertBefore(drag.cell, before?over:over.nextSibling);
+}
+function endDrag(e){
+  if(!drag) return;
+  var movedCell=drag.cell, wrap=drag.wrap, moved=drag.moved, oidx=movedCell.getAttribute('data-orig');
+  movedCell.classList.remove('dragging');
+  wrap.classList.remove('drag-active');
+  clearDropTargets(wrap);
+  dragHint(false);
+  document.removeEventListener('pointermove', moveDrag);
+  document.removeEventListener('pointerup', endDrag);
+  document.removeEventListener('pointercancel', endDrag);
+  if(moved){
+    var ord=[]; Array.prototype.forEach.call(wrap.querySelectorAll('.day'), function(c){ ord.push(parseInt(c.getAttribute('data-orig'),10)); });
+    ORDER[sel]=ord; saveOrder(); renderDetail(); renderNextUp();
+    setTimeout(function(){ var nw=document.querySelector('#daywrap .day[data-orig="'+oidx+'"]'); if(nw){ nw.classList.add('just-moved'); setTimeout(function(){ nw.classList.remove('just-moved'); }, 800); } }, 30);
+  }
+  drag=null;
+}
+
+// ─── TRACKING TAB ─────────────────────────────────────────────────────────────
+var trackChartObj=null;
+function renderTracking(){
+  var tbl=document.getElementById('trackTable'); if(!tbl) return;
+  var cw=currentWeekIdx();
+  var rows='<thead><tr><th>Wk</th><th>Dates</th><th>Phase</th><th>Plan km</th><th>Act km</th><th>Act Vert</th><th>Plan Vert</th><th>Sess</th><th></th></tr></thead><tbody>';
+  W.forEach(function(w,i){
+    var m=MATCH[i]||{actKm:0,actVert:0}, ks=weekKeyStats(i), future=i>cw, pk=phk(w);
+    var status=future?'·':(ks.total>0&&ks.done>=ks.total?'✓':(ks.done>0?'◐':'—'));
+    var aK=future?'—':m.actKm.toFixed(0), aV=future?'—':Math.round(m.actVert), sess=future?'—':(ks.done+'/'+ks.total);
+    var rowStyle=i===cw?' style="background:rgba(29,158,117,.10);"':(future?' style="opacity:.5;"':'');
+    rows+='<tr'+rowStyle+'><td><strong>'+w.n+'</strong></td><td>'+w.dt+'</td>'
+      +'<td><span class="dpill" style="background:'+PBG[pk]+';color:'+PTC[pk]+';font-size:9px;padding:2px 7px;">'+PN[pk]+'</span></td>'
+      +'<td>'+w.km+'</td><td>'+aK+'</td>'
+      +'<td>'+(future?'—':aV)+'</td><td>'+(w.v>=1000?(w.v/1000).toFixed(1)+'k':w.v)+'</td>'
+      +'<td>'+sess+'</td><td style="font-size:14px;text-align:center;">'+status+'</td></tr>';
+  });
+  tbl.innerHTML=rows+'</tbody>';
+  var sum=document.getElementById('track-summary');
+  if(sum){
+    var pK=0,aK=0,pV=0,aV=0,dS=0,tS=0;
+    for(var i=0;i<=cw;i++){ var w=W[i],m=MATCH[i]||{actKm:0,actVert:0},ks=weekKeyStats(i); pK+=w.km; aK+=m.actKm; pV+=w.v; aV+=m.actVert; dS+=ks.done; tS+=ks.total; }
+    function pct(a,b){ return b>0?Math.round(a/b*100):0; }
+    function card(label,val,p){ return '<div class="tsum"><div class="tsl">'+label+'</div><div class="tsv">'+val+'</div><div class="tsb"><div class="tsf" style="width:'+Math.min(100,p)+'%"></div></div><div class="tsp">'+p+'% of plan to date</div></div>'; }
+    sum.innerHTML=card('Distance to date', aK.toFixed(0)+' / '+pK+' km', pct(aK,pK))
+      +card('Elevation to date', Math.round(aV)+' / '+pV+' m', pct(aV,pV))
+      +card('Sessions to date', dS+' / '+tS, pct(dS,tS));
+  }
+  buildTrackChart();
+}
+function buildTrackChart(){
+  var cv=document.getElementById('trackChart'); if(!cv || typeof Chart==='undefined') return;
+  if(cv.offsetParent===null){ setTimeout(buildTrackChart,300); return; }
+  var cw=currentWeekIdx(), labels=[],plan=[],act=[],cp=0,ca=0;
+  W.forEach(function(w,i){ cp+=w.km; labels.push('W'+w.n); plan.push(cp); if(i<=cw){ ca+=(MATCH[i]?MATCH[i].actKm:0); act.push(Math.round(ca)); } else { act.push(null); } });
+  if(trackChartObj) trackChartObj.destroy();
+  trackChartObj=new Chart(cv.getContext('2d'),{type:'line',
+    data:{labels:labels,datasets:[
+      {label:'Planned (cum. km)',data:plan,borderColor:'#9A9890',borderDash:[5,4],pointRadius:0,tension:.2,borderWidth:2},
+      {label:'Actual (cum. km)',data:act,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.10)',fill:true,pointRadius:0,tension:.2,borderWidth:2,spanGaps:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{labels:{font:{size:11},boxWidth:14}}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:true,autoSkipPadding:8}}}}
+  });
+}
+
+// ─── INIT (v3) ───
+
+// ─── TODAY / MORNING BRIEFING TAB ─────────────────────────────────────────────
+var UTCT_RACE = new Date('2026-11-20T00:00:00');
+var BRIEF_PROMPT = "You are Josh's coach writing a short, context-appropriate morning briefing for his UTCT 100 Miler build. You get ONE JSON object with today's planned session and its type, days-to-race, recent Strava activities, HealthBridge data (sleep, resting heart rate ~48-52 baseline, HRV, recent workouts), and an optional zoneNote flagging if yesterday's easy run was run in a higher heart-rate zone than intended. Decide what actually matters TODAY and lead with that: it might be recovery (after a hard day, poor sleep, or a zoneNote), execution cues for a key/long/race session, logistics on a travel or recce week, fuelling, or simply a green light on an easy day. Do not force a recovery angle when it is not the story. Write 80-140 words of plain text, no markdown headings: open with the date, days-to-race and today's session; give one or two sentences of the single most relevant insight (use only numbers present in the data, never invent values); then a clear, decisive recommendation for today. If zoneNote is present, weigh it into today's recommendation. If physioDue is true, add a one-line reminder. Warm, direct, specific. Training guidance, not medical advice.";
+
+function raceCountdown(){ var t=new Date(); t.setHours(0,0,0,0); return Math.max(0, Math.round((UTCT_RACE - t)/86400000)); }
+
+function todayInfo(){
+  var wi=currentWeekIdx(), w=W[wi], ord=dayOrder(wi);
+  var today=new Date(), pos=0, found=false;
+  for(var p=0;p<ord.length;p++){ if(ymd(dateForPos(wi,p))===ymd(today)){ pos=p; found=true; break; } }
+  if(!found){ pos=Math.min((today.getDay()+6)%7, ord.length-1); }
+  return { wi:wi, w:w, pos:pos, d:w.dy[ord[pos]] };
+}
+
+function hbUnwrap(res){
+  if(res && res.structuredContent) return res.structuredContent;
+  var d=res;
+  if(d && d.content && d.content.length){ d=d.content.map(function(c){return (c&&c.text)||'';}).join(''); }
+  if(typeof d==='string'){
+    try{ return JSON.parse(d); }catch(e){}
+    var a=d.indexOf('{'), b=d.lastIndexOf('}');
+    if(a>-1 && b>a){ try{ return JSON.parse(d.slice(a,b+1)); }catch(e2){} }
+    var a2=d.indexOf('['), b2=d.lastIndexOf(']');
+    if(a2>-1 && b2>a2){ try{ return JSON.parse(d.slice(a2,b2+1)); }catch(e3){} }
+    return {};
+  }
+  return d || {};
+}
+
+function metricVal(hb, name){ if(!hb||!hb.metrics) return null; for(var i=0;i<hb.metrics.length;i++){ if(hb.metrics[i].metric===name) return hb.metrics[i]; } return null; }
+
+function ruleBrief(data){
+  var hb=data.recovery||{}, L=[];
+  L.push(data.date + ' — ' + data.daysToRace + ' days to UTCT. Today: ' + data.plannedToday + '.');
+  if(hb.sleep && hb.sleep.avgAsleepMinutes){ var m=Math.round(hb.sleep.avgAsleepMinutes); L.push('Sleep (recent avg): ' + Math.floor(m/60) + 'h' + ('0'+(m%60)).slice(-2) + ' at ' + Math.round(hb.sleep.avgEfficiencyPct||0) + '% efficiency.'); }
+  var rhr=metricVal(hb,'Resting Heart Rate'), hrv=metricVal(hb,'Heart Rate Variability (SDNN)');
+  var recovered=true;
+  if(rhr&&rhr.avg){ var hi=rhr.avg>54; if(hi) recovered=false; L.push('Resting HR ~'+Math.round(rhr.avg)+' bpm'+(hi?' (a touch high — possible fatigue).':' (steady).')); }
+  if(hrv&&hrv.avg){ L.push('HRV ~'+Math.round(hrv.avg)+' ms.'); }
+  var last=(data.recentActivities||[])[0];
+  if(last){ L.push('Last logged: '+last.name+(last.km?(' '+last.km+'km'):'')+(last.vert?(' / '+Math.round(last.vert)+'m'):'')+(last.avgHr?(' @ '+Math.round(last.avgHr)+'bpm avg'):'')+'.'); }
+  if(data.zoneNote){ L.push(data.zoneNote); recovered=false; }
+  var planTag=(todayInfo().d||{}).t;
+  if(planTag==='rest'){ L.push('Recommendation: rest day — keep it easy and sleep well.'); }
+  else if(recovered){ L.push('Recommendation: green light — do today\'s session as planned.'); }
+  else { L.push('Recommendation: ease off — keep it Z1-2 or swap for easy, and prioritise sleep tonight.'); }
+  if(data.physioDue) L.push('Physio: ankle routine due today — tick it in the Plan tab when done.');
+  var strLog=strGetLog();
+  if(strLog.length){ var sd=strDaysSince(strLog[0].date); if(sd>=4) L.push('Strength: last session '+sd+' days ago — due soon if phase calls for it.'); }
+  else { L.push('Strength: no sessions logged yet — log after your next circuit.'); }
+  return L.join('\n');
+}
+
+function briefHtml(t){
+  var safe=String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  var html=safe.split(/\n{2,}/).map(function(p){ return '<p>'+p.replace(/\n/g,'<br>')+'</p>'; }).join('');
+  return '<div class="briefcard"><div class="dlbl">TODAY\'S BRIEFING</div>'+html+'</div>';
+}
+
+// ─── COROS TEXT PARSERS ───────────────────────────────────────────────────────
+function corosUnwrapText(res){
+  if(!res) return '';
+  if(typeof res==='string') return res;
+  if(res.content && Array.isArray(res.content)) return res.content.map(function(c){return (c&&c.text)||'';}).join('');
+  if(res.structuredContent && typeof res.structuredContent==='string') return res.structuredContent;
+  return '';
+}
+// Parse COROS RHR text: "YYYY-MM-DD: NN bpm" lines → [{qty,recordedAt}]
+function parseCOROS_RHR(text){
+  var samples=[];
+  if(!text) return samples;
+  text.split('\n').forEach(function(line){
+    var m=line.match(/(\d{4}-\d{2}-\d{2}).*?:\s*(\d+)\s*bpm/i);
+    if(m) samples.push({qty:parseInt(m[2]),recordedAt:m[1]});
+  });
+  return samples;
+}
+// Parse COROS training load text → [{qty:stl,recordedAt}]
+function parseCOROS_TrainingLoad(text){
+  var samples=[], curDate=null;
+  if(!text) return samples;
+  text.split('\n').forEach(function(line){
+    var dm=line.match(/^(\d{4}-\d{2}-\d{2})\s*$/);
+    if(dm){ curDate=dm[1]; return; }
+    if(!curDate) return;
+    var m=line.match(/Short-Term Load:\s*(\d+)/);
+    if(m) samples.push({qty:parseInt(m[1]),recordedAt:curDate});
+  });
+  return samples;
+}
+
+// ─── RECOVERY TREND (last 8 weeks: resting HR, training load) ─────────────────
+function trendMondayOf(d){ var x=new Date(d); if(isNaN(x)) return null; x.setHours(0,0,0,0); var day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); return x; }
+function trendParseSamples(res){ var d=hbUnwrap(res); return Array.isArray(d)?d:[]; }
+function trendWeekly(samples){
+  var b={}; samples.forEach(function(s){ var v=(s.qty!=null?s.qty:s.value); var t=s.recordedAt||s.date; if(v==null||!t) return; var mo=trendMondayOf(t); if(!mo) return; var k=ymd(mo); (b[k]=b[k]||[]).push(+v); });
+  return Object.keys(b).sort().map(function(k){ var a=b[k]; return {wk:k, avg:a.reduce(function(x,y){return x+y;},0)/a.length, n:a.length}; });
+}
+function trendWeeklySleep(res){
+  var d=hbUnwrap(res), nights=(d&&d.nights)?d.nights:[]; var b={};
+  nights.forEach(function(n){ if(!n.date||(n.asleepMinutes||0)<180) return; var mo=trendMondayOf(n.date); if(!mo) return; var k=ymd(mo); (b[k]=b[k]||[]).push(n.asleepMinutes); });
+  return Object.keys(b).sort().map(function(k){ var a=b[k]; return {wk:k, avg:a.reduce(function(x,y){return x+y;},0)/a.length, n:a.length}; });
+}
+function trendBaseLast(arr){ if(arr.length<2) return null; var prev=arr.slice(0,-1); return { base:prev.reduce(function(s,x){return s+x.avg;},0)/prev.length, last:arr[arr.length-1].avg }; }
+function trendFlag(data){
+  var msgs=[], level=0;
+  var r=trendBaseLast(data.rhr); if(r){ var dr=r.last-r.base; if(dr>=3){ level=Math.max(level, dr>=5?2:1); msgs.push('Resting HR is about '+Math.round(dr)+' bpm above your recent baseline — a classic early sign of fatigue or a cold coming on.'); } else if(r.base-r.last>=2){ msgs.push('Resting HR is drifting down (good adaptation).'); } }
+  var s=trendBaseLast(data.sleep); if(s){ var ds=s.base-s.last; if(ds>=30){ level=Math.max(level,1); msgs.push('Sleep is down about '+(Math.round(ds/6)/10)+'h/night vs baseline — protect it this week.'); } }
+  if(data.hrv.length>=3){ var hv=trendBaseLast(data.hrv); if(hv && hv.base && (hv.base-hv.last)/hv.base>=0.1){ level=Math.max(level,1); msgs.push('HRV is trending down — another fatigue signal.'); } }
+  if(!msgs.length) msgs.push('Resting HR, HRV and sleep are stable — recovery is on track.');
+  return {level:level, text:msgs.join(' ')};
+}
+function trendHtml(data){
+  var f=trendFlag(data), co=f.level>=2?'co-rd':(f.level===1?'co-amb':'co-grn');
+  var rhrL=data.rhr.length?Math.round(data.rhr[data.rhr.length-1].avg)+' bpm':'—';
+  var loadL=(data.load&&data.load.length)?Math.round(data.load[data.load.length-1].avg)+' STL':'—';
+  var slpL=data.sleep.length?(Math.round(data.sleep[data.sleep.length-1].avg/6)/10)+'h':'—';
+  var hrvL=data.hrv.length?Math.round(data.hrv[data.hrv.length-1].avg)+' ms':'—';
+  return '<div class="card"><h3>Recovery trend <span style="font-weight:400;color:var(--t2);font-size:11px;">· last 8 weeks · COROS + Apple Health</span></h3>'
+    +'<div class="callout '+co+'" style="margin-bottom:11px;">'+f.text+'</div>'
+    +'<div class="trendstats"><span>Resting HR<strong>'+rhrL+'</strong></span><span>Sleep<strong>'+slpL+'</strong></span><span>HRV<strong>'+hrvL+'</strong></span><span>STL<strong>'+loadL+'</strong></span></div>'
+    +'<div style="position:relative;height:180px;margin-top:10px;"><canvas id="trendChart"></canvas></div>'
+    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Weekly averages. RHR &amp; training load from COROS; HRV &amp; sleep from Apple Health. Rising resting HR, falling sleep/HRV, or a rapidly climbing load ratio are early fatigue signals.</p></div>';
+}
+function drawTrendChart(data){
+  var cv=document.getElementById('trendChart'); if(!cv || typeof Chart==='undefined') return;
+  var wk={}; data.rhr.forEach(function(p){wk[p.wk]=1;}); data.sleep.forEach(function(p){wk[p.wk]=1;}); (data.load||[]).forEach(function(p){wk[p.wk]=1;});
+  var keys=Object.keys(wk).sort();
+  function look(arr,k){ for(var i=0;i<arr.length;i++) if(arr[i].wk===k) return arr[i].avg; return null; }
+  var labels=keys.map(function(k){ var d=new Date(k+'T00:00:00'); return d.getDate()+'/'+(d.getMonth()+1); });
+  var rhr=keys.map(function(k){ var v=look(data.rhr,k); return v==null?null:Math.round(v*10)/10; });
+  var slp=keys.map(function(k){ var v=look(data.sleep,k); return v==null?null:Math.round(v/6)/10; });
+  var load=keys.map(function(k){ var v=look(data.load||[],k); return v==null?null:Math.round(v); });
+  if(window._trendChart){ try{window._trendChart.destroy();}catch(e){} }
+  window._trendChart=new Chart(cv.getContext('2d'),{ data:{labels:labels, datasets:[
+    {type:'line', label:'Resting HR (bpm)', data:rhr, yAxisID:'yH', borderColor:'#C0392B', backgroundColor:'rgba(192,57,43,.07)', fill:true, pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
+    {type:'line', label:'Sleep (h/night)', data:slp, yAxisID:'yS', borderColor:'#185FA5', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
+    {type:'line', label:'STL (COROS)', data:load, yAxisID:'yL', borderColor:'#1D9E75', pointRadius:2, tension:.3, borderWidth:1.5, borderDash:[4,2], spanGaps:true}
+  ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},scales:{yH:{position:'left',ticks:{font:{size:9}}},yS:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}},yL:{display:false},x:{ticks:{font:{size:9}}}}} });
+}
+function renderTrend(){
+  var host=document.getElementById('trend-card'); if(!host) return;
+  if(!(window.cowork && window.cowork.callMcpTool)){ host.innerHTML=''; return; }
+  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache')); }catch(e){}
+  if(c && c.date===ymd(new Date()) && c.html){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
+  host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="loading-msg"><div class="loading-spinner"></div></div></div>';
+  var from56=ymd(new Date(Date.now()-56*86400000));
+  Promise.all([
+    window.cowork.callMcpTool(COROS_ID+'__queryRestingHeartRate',{days:56}).catch(function(){return null;}),
+    window.cowork.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:56}).catch(function(){return null;}),
+    window.cowork.callMcpTool('mcp__healthbridge__get_samples',{metric:'Heart Rate Variability (SDNN)',from:from56}).catch(function(){return null;}),
+    window.cowork.callMcpTool('mcp__healthbridge__summarize_sleep',{from:from56}).catch(function(){return null;})
+  ]).then(function(res){
+    var rhrSamples=parseCOROS_RHR(corosUnwrapText(res[0]));
+    var loadSamples=parseCOROS_TrainingLoad(corosUnwrapText(res[1]));
+    var hrvSamples=trendParseSamples(res[2]);
+    var sleepData=res[3];
+    var data={ rhr:trendWeekly(rhrSamples), hrv:trendWeekly(hrvSamples), sleep:trendWeeklySleep(sleepData), load:trendWeekly(loadSamples) };
+    var html=trendHtml(data); host.innerHTML=html;
+    if(data.rhr.length||data.load.length||data.sleep.length){ try{ localStorage.setItem('utct_trend_cache', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
+    setTimeout(function(){ drawTrendChart(data); },0);
+  }).catch(function(e){ host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="callout co-rd">Couldn\'t load trend: '+(e&&e.message?e.message:e)+'</div></div>'; });
+}
+
+// ─── SHOE MILEAGE ─────────────────────────────────────────────────────────────
+function shoeStatus(km){ if(km>=700) return {cls:'red',label:'Replace'}; if(km>=500) return {cls:'amb',label:'Rotate / replace soon'}; return {cls:'grn',label:'Good'}; }
+function renderShoes(){
+  var host=document.getElementById('shoe-body'); if(!host) return;
+  if(!(window.cowork && window.cowork.callMcpTool)){ host.innerHTML='<div class="actnone">Shoe mileage needs the desktop Cowork app (live Strava).</div>'; return; }
+  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_shoes_cache')); }catch(e){}
+  if(c && c.date===ymd(new Date()) && c.html){ host.innerHTML=c.html; return; }
+  host.innerHTML='<div class="loading-msg"><div class="loading-spinner"></div></div>';
+  // Collect unique gear_ids from loaded activities
+  var gearIds={}; (ACT||[]).forEach(function(a){ if(a.gear_id) gearIds[a.gear_id]=true; });
+  var ids=Object.keys(gearIds);
+  if(!ids.length){ host.innerHTML='<div class="actnone">No gear IDs found in recent activities. Assign shoes to activities in Strava to see mileage here.</div>'; return; }
+  Promise.all(ids.map(function(id){ return window.cowork.callMcpTool(STRAVA_ID+'__get_gear',{id:id}).catch(function(){return null;}); })).then(function(results){
+    var shoes=[];
+    results.forEach(function(res){ if(!res) return; var g=hbUnwrap(res); if(!g||typeof g!=='object') return; if((g.resource_state||0)>=1) shoes.push(g); });
+    // Compute km from activities per gear_id
+    var gearKm={};
+    (ACT||[]).forEach(function(a){ if(!a.gear_id) return; gearKm[a.gear_id]=(gearKm[a.gear_id]||0)+(a.distance||0); });
+    shoes.sort(function(a,b){ return (gearKm[b.id]||b.converted_distance||0)-(gearKm[a.id]||a.converted_distance||0); });
+    if(!shoes.length){ host.innerHTML='<div class="actnone">No gear details retrieved from Strava.</div>'; return; }
+    var cap=700;
+    var rows=shoes.map(function(s){
+      var km=Math.round((gearKm[s.id]||(s.converted_distance||0))/1000)||Math.round((s.distance||0)/1000);
+      var st=shoeStatus(km), pct=Math.min(100,Math.round(km/cap*100));
+      var nm=s.name||([s.brand_name,s.model_name].filter(Boolean).join(' '))||'Unnamed shoe';
+      return '<div class="shoe"><div class="shoe-top"><span class="shoe-name">'+nm+'</span><span class="shoe-km">'+km+' km</span></div>'
+        +'<div class="shoe-bar"><span class="shoe-fill '+st.cls+'" style="width:'+pct+'%"></span></div>'
+        +'<div class="shoe-st '+st.cls+'">'+st.label+'</div></div>';
+    }).join('');
+    var over=shoes.filter(function(s){ var km=Math.round((gearKm[s.id]||(s.converted_distance||0))/1000)||Math.round((s.distance||0)/1000); return km>=700; }).length;
+    var head=over?('<div class="callout co-rd" style="margin-bottom:11px;">'+over+' shoe'+(over>1?'s are':' is')+' past ~700 km — retire '+(over>1?'them':'it')+' before peak mileage. Worn midsoles are a real injury risk given your right-ankle history.</div>'):'';
+    var html=head+'<div class="shoes">'+rows+'</div><p style="font-size:11px;color:var(--t2);margin-top:9px;">Mileage from your recent Strava activities. Rough guide: trail shoes lose midsole protection around 500–700 km — rotate before, replace after.</p>';
+    host.innerHTML=html;
+    try{ localStorage.setItem('utct_shoes_cache', JSON.stringify({date:ymd(new Date()), html:html})); }catch(e){}
+  }).catch(function(e){ host.innerHTML='<div class="callout co-rd">Could not load gear from Strava: '+(e&&e.message?e.message:e)+'</div>'; });
+}
+function aiOn(){ try{ return localStorage.getItem('utct_ai')!=='0'; }catch(e){ return true; } }
+function toggleAI(){ try{ localStorage.setItem('utct_ai', aiOn()?'0':'1'); }catch(e){} try{ localStorage.removeItem('utct_brief_cache'); }catch(e){} renderToday(); }
+function refreshBriefing(){ try{ localStorage.removeItem('utct_brief_cache'); }catch(e){} renderToday(); }
+function briefFooter(){ return '<div class="brief-foot"><button class="brief-btn" onclick="refreshBriefing()">↻ Regenerate</button><button class="brief-btn" onclick="toggleAI()">AI insights: '+(aiOn()?'On':'Off')+'</button></div>'; }
+function renderToday(){
+  var host=document.getElementById('today-body'); if(!host) return;
+  var ti=todayInfo();
+  var planLine = ti.d ? (ti.d.s + (ti.d.d?(' — '+ti.d.d):'')) : 'Rest day';
+  var physio = !!(ti.d && ti.d.ph);
+  var head='<div class="todayhead"><div class="th-date">'+new Date().toDateString()+' &middot; '+raceCountdown()+' days to UTCT &middot; Week '+ti.w.n+' ('+PN[phk(ti.w)]+')</div>'
+    +'<div class="th-plan"><span class="dlbl">TODAY\'S PLAN</span><div class="th-plan-v">'+planLine+'</div></div>'
+    +(physio?'<div class="th-phys">＋ Ankle physio due today — tick it in the Plan tab when done.</div>':'')+'</div>'
+    +loadCheckHtml();
+  if(!(window.cowork && window.cowork.callMcpTool)){
+    host.innerHTML=head+'<div class="callout co-amb">The recovery briefing runs in the desktop Cowork app (COROS data isn\'t available without the Cowork connection). Your plan, Strava tracking and tracking tab all still work here.</div>';
+    return;
+  }
+  // Serve today's cached briefing — avoids a fresh Claude/HealthBridge call on every open.
+  var cached=null; try{ cached=JSON.parse(localStorage.getItem('utct_brief_cache')); }catch(e){}
+  if(cached && cached.date===ymd(new Date()) && cached.html){
+    host.innerHTML=head+'<div id="brief-out">'+cached.html+briefFooter()+'</div>'; return;
+  }
+  // Wait for Strava to load before generating (so it only runs once, with real data).
+  if(!(ACT && ACT.length)){
+    setTimeout(function(){ if(!(ACT&&ACT.length)) refreshBriefing(); },8000);
+    host.innerHTML=head+'<div id="brief-out"><div class="loading-msg" style="padding:18px;">Your briefing will appear once activities finish syncing…</div>'+briefFooter()+'</div>'; return;
+  }
+  host.innerHTML=head+'<div id="brief-out"><div class="loading-msg"><div class="loading-spinner"></div><br>Preparing your briefing…</div></div>';
+  var out=document.getElementById('brief-out');
+  Promise.all([
+    window.cowork.callMcpTool(COROS_ID+'__queryRecoveryStatus',{}).catch(function(){return null;}),
+    window.cowork.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:7}).catch(function(){return null;}),
+    window.cowork.callMcpTool('mcp__healthbridge__get_context',{focus:'recovery'}).catch(function(){return null;})
+  ]).then(function(corosRes){
+    var recoveryText=corosUnwrapText(corosRes[0])||'Recovery data unavailable';
+    var loadText=corosUnwrapText(corosRes[1])||'Training load data unavailable';
+    var hbContext=hbUnwrap(corosRes[2]);
+    var coros={ recovery:recoveryText, trainingLoad:loadText, healthbridge:hbContext };
+    var data={ date:new Date().toDateString(), daysToRace:raceCountdown(), week:ti.w.n, phase:PN[phk(ti.w)], plannedToday:planLine, physioDue:physio,
+      recovery:coros, zoneNote:zoneCheck(),
+      recentActivities:(ACT||[]).slice(0,6).map(function(a){ return { name:a.name, date:(a.start_date_local||'').slice(0,10), km:Math.round((a.distance||0)/100)/10, vert:a.total_elevation_gain, avgHr:a.average_heartrate, type:a.sport_type }; }) };
+    function finish(t){ var html=briefHtml(t); try{ localStorage.setItem('utct_brief_cache', JSON.stringify({date:ymd(new Date()), html:html})); }catch(e){} out.innerHTML=html+briefFooter(); }
+    if(aiOn() && window.cowork.askClaude){
+      window.cowork.askClaude(BRIEF_PROMPT, [data]).then(function(r){ var t=(typeof r==='string')?r:(r&&r.text?r.text:(r&&r.content?r.content:JSON.stringify(r))); finish(t); }).catch(function(){ finish(ruleBrief(data)); });
+    } else { finish(ruleBrief(data)); }
+  }).catch(function(e){ out.innerHTML='<div class="callout co-rd">Could not read COROS data: '+(e&&e.message?e.message:e)+'</div>'; });
+}
+
+renderTicker();
+renderGrid();
+markCurrentWeek();
+renderDetail();
+renderNextUp();
+renderToday();
+renderTrend();
+renderStrengthConfig();
+loadStrava();
+</script>
+</body>
+</html>
