@@ -1,37 +1,12 @@
-<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
-{
-  "name": "Utct Coaching Hub",
-  "schemaVersion": 1,
-  "description": "UTCT 100 Miler coaching hub — 26-week training plan, pacing guide, strength/physio and nutrition tabs. Pulls recent Strava activities on open, auto-ticks completed sessions, shows actual-vs-planned km/elevation per week and a 'what's next' banner. Data sources: Strava MCP (activities), COROS MCP (recovery/training load), HealthBridge (HRV/sleep/Apple Health).",
-  "mcpTools": [
-    "mcp__a3bfc159-2746-42d4-9f76-57da38a9308b__list_activities",
-    "mcp__a3bfc159-2746-42d4-9f76-57da38a9308b__get_athlete_zones",
-    "mcp__a3bfc159-2746-42d4-9f76-57da38a9308b__get_gear",
-    "mcp__92930870-ff80-4a54-86b8-eb9b4dad2de8__queryRecoveryStatus",
-    "mcp__92930870-ff80-4a54-86b8-eb9b4dad2de8__queryTrainingLoadAssessment",
-    "mcp__92930870-ff80-4a54-86b8-eb9b4dad2de8__queryRestingHeartRate",
-    "mcp__healthbridge__get_context",
-    "mcp__healthbridge__get_samples",
-    "mcp__healthbridge__summarize_sleep"
-  ],
-  "mcpServerNames": [
-    "strava",
-    "strava",
-    "strava",
-    "coros",
-    "coros",
-    "coros",
-    "healthbridge",
-    "healthbridge",
-    "healthbridge"
-  ]
-}
-</script>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UTCT Coaching Hub — Josh Krige</title>
+<title>UTCT 100 Miler — Training Hub</title>
+<script>
+window.__cowork_stub__ = {callMcpTool: function(){return Promise.resolve({content:[{type:'text',text:'[]'}],structuredContent:null,isError:false});}};
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#F7F6F3;--surf:#FFF;--s2:#F2F0EB;--brd:#E4E1DA;--brdl:#EDEAE4;--txt:#1A1917;--t2:#68665F;--t3:#9A9890;--grn:#1D9E75;--blu:#185FA5;--pur:#534AB7;--amb:#BA7517;--rd:#993C1D;}
@@ -450,16 +425,9 @@ body{-webkit-font-smoothing:antialiased;}
 <div class="ticker" id="ticker"></div>
 
 <!-- Strava live status bar -->
-<div class="strava-bar">
- <span class="strava-dot"></span>
- <strong>Tredict</strong>
- <span class="strava-status" id="stravaStatus">Connecting…</span>
- <span class="strava-hint">Auto-syncs when you open this page · use the Reload button to refresh</span>
-</div>
 
 <div class="tabnav">
- <div class="tn active" onclick="showTab('today',this)">Today</div>
- <div class="tn" onclick="showTab('plan',this)">Training Plan</div>
+  <div class="tn active" onclick="showTab('plan',this)">Training Plan</div>
  <div class="tn" onclick="showTab('track',this)">Tracking</div>
  <div class="tn" onclick="showTab('pace',this)">Pacing Guide</div>
  <div class="tn" onclick="showTab('str',this)">Strength &amp; Physio</div>
@@ -469,13 +437,13 @@ body{-webkit-font-smoothing:antialiased;}
 <div class="cnt">
 
 <!-- TODAY TAB -->
-<div id="t-today">
+<div id="t-today" style="display:none;">
  <div id="today-body"><div class="loading-msg">Loading…</div></div>
  <div id="trend-card"></div>
 </div>
 
 <!-- PLAN TAB -->
-<div id="t-plan" style="display:none;">
+<div id="t-plan">
  <div class="flrow">
  <span class="fl" style="background:#DCFCE7;color:#085041;">Base</span>
  <span class="fl" style="background:#DBEAFE;color:#1E3A5F;">Build</span>
@@ -1666,11 +1634,11 @@ function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); rende
 renderTicker(); renderToday(); renderTrend(); var _rp=document.getElementById('p45')&&document.getElementById('p45').style.display==='block'?'p45':(document.getElementById('p40')&&document.getElementById('p40').style.display==='block'?'p40':(document.getElementById('p36')&&document.getElementById('p36').style.display==='block'?'p36':'p30')); renderRaceNow(_rp); }
 
 function loadStrava(){
-  if(!(window.cowork && window.cowork.callMcpTool)){
+  if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){
     setStravaStatus('Open in Cowork to sync Strava', 'err'); rerenderAll(); return;
   }
   setStravaStatus('Syncing…');
-  window.cowork.callMcpTool(STRAVA_TOOL, { first: 100 }).then(function(res){
+  window.__cowork_stub__.callMcpTool(STRAVA_TOOL, { first: 100 }).then(function(res){
     ACT = extractActivities(res); rerenderAll();
     setStravaStatus('Synced ' + ACT.length + ' activities · ' + new Date().toLocaleTimeString(), 'ok');
   }).catch(function(e){
@@ -1684,8 +1652,8 @@ var HR_ZONES=null;
 function loadHrZones(){
   var key='utct_hrzones';
   try{ var c=localStorage.getItem(key); if(c) HR_ZONES=JSON.parse(c); }catch(e){}
-  if(!(window.cowork && window.cowork.callMcpTool)) return;
-  window.cowork.callMcpTool(STRAVA_ID+'__get_athlete_zones', {}).then(function(res){
+  if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)) return;
+  window.__cowork_stub__.callMcpTool(STRAVA_ID+'__get_athlete_zones', {}).then(function(res){
     var d=hbUnwrap(res);
     var zones=(d && d.heart_rate && Array.isArray(d.heart_rate.zones)) ? d.heart_rate.zones : (d && Array.isArray(d.heart_rate_zones) ? d.heart_rate_zones : null);
     if(zones){
@@ -1791,9 +1759,9 @@ function loadRaceInsight(a, w){
   var key='utct_raceins_'+a.id, cached=null; try{ cached=localStorage.getItem(key); }catch(e){}
   if(cached && !looksLikeAiError(cached)){ show(cached); return; }            // cached once per race — no repeat Claude call
   if(cached){ try{ localStorage.removeItem(key); }catch(e){} }                // drop stale error/limit message so we retry
-  if(aiOn() && window.cowork && window.cowork.askClaude){
+  if(aiOn() && window.__cowork_stub__ && window.__cowork_stub__.askClaude){
     var data={ distanceKm:+km.toFixed(1), movingTimeMin:Math.round(mt/60), elevationM:Math.round(a.total_elevation_gain||0), avgHr:a.average_heartrate, maxHr:a.max_heartrate, avgPaceSecPerKm:paceSec, sufferScore:a.suffer_score, plannedKm:w&&w.km, plannedVert:w&&w.v };
-    window.cowork.askClaude('You are a trail-ultra coach. From this race activity JSON write 60-90 words of plain-text insight for Josh about pacing, climbing, heart-rate control and what it suggests for his UTCT 100 Miler. Use only the numbers given; no markdown headings.', [data])
+    window.__cowork_stub__.askClaude('You are a trail-ultra coach. From this race activity JSON write 60-90 words of plain-text insight for Josh about pacing, climbing, heart-rate control and what it suggests for his UTCT 100 Miler. Use only the numbers given; no markdown headings.', [data])
       .then(function(r){
         var t=(typeof r==='string')?r:(r&&r.text?r.text:rule());
         if(looksLikeAiError(t)){ show(rule()); return; }   // don't cache (or show) error/limit text
@@ -1849,13 +1817,13 @@ function loadRacePerformance(act, w){
     loadRaceInsight(act, w);
   }
   if(cached){ apply(cached); return; }
-  if(!(window.cowork && window.cowork.callMcpTool)){ apply(null); return; }
+  if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ apply(null); return; }
   apply(null); // HR/cadence already present from Tredict extended summary
 }
 function fmtPace(secPerKm){ var m=Math.floor(secPerKm/60), s=Math.round(secPerKm%60); return m+':'+('0'+s).slice(-2); }
 function loadRaceSplits(id){
   var out=document.getElementById('rm-splits'); if(!out) return;
-  if(!(window.cowork && window.cowork.callMcpTool)){ out.innerHTML='<div class="rm-note">Open the hub on desktop (Cowork) to see per-km splits.</div>'; return; }
+  if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ out.innerHTML='<div class="rm-note">Open the hub on desktop (Cowork) to see per-km splits.</div>'; return; }
   var skey='utct_splits_'+id, csp=null; try{ var cv=localStorage.getItem(skey); if(cv) csp=JSON.parse(cv); }catch(e){}
   if(csp && csp.length){ out.innerHTML=splitsTableHtml(csp); setTimeout(function(){ renderSplitChart(csp); }, 0); return; }
   out.innerHTML='<div class="rm-plan"><span class="dlbl">PER-KM SPLITS</span><div class="loading-msg" style="padding:14px;"><div class="loading-spinner"></div></div></div>';
@@ -2171,16 +2139,16 @@ function drawTrendChart(data){
 }
 function renderTrend(){
   var host=document.getElementById('trend-card'); if(!host) return;
-  if(!(window.cowork && window.cowork.callMcpTool)){ host.innerHTML=''; return; }
+  if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ host.innerHTML=''; return; }
   var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache')); }catch(e){}
   if(c && c.date===ymd(new Date()) && c.html){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
   host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="loading-msg"><div class="loading-spinner"></div></div></div>';
   var from56=ymd(new Date(Date.now()-56*86400000));
   Promise.all([
-    window.cowork.callMcpTool(COROS_ID+'__queryRestingHeartRate',{days:56}).catch(function(){return null;}),
-    window.cowork.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:56}).catch(function(){return null;}),
-    window.cowork.callMcpTool('mcp__healthbridge__get_samples',{metric:'Heart Rate Variability (SDNN)',from:from56}).catch(function(){return null;}),
-    window.cowork.callMcpTool('mcp__healthbridge__summarize_sleep',{from:from56}).catch(function(){return null;})
+    window.__cowork_stub__.callMcpTool(COROS_ID+'__queryRestingHeartRate',{days:56}).catch(function(){return null;}),
+    window.__cowork_stub__.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:56}).catch(function(){return null;}),
+    window.__cowork_stub__.callMcpTool('mcp__healthbridge__get_samples',{metric:'Heart Rate Variability (SDNN)',from:from56}).catch(function(){return null;}),
+    window.__cowork_stub__.callMcpTool('mcp__healthbridge__summarize_sleep',{from:from56}).catch(function(){return null;})
   ]).then(function(res){
     var rhrSamples=parseCOROS_RHR(corosUnwrapText(res[0]));
     var loadSamples=parseCOROS_TrainingLoad(corosUnwrapText(res[1]));
@@ -2197,7 +2165,7 @@ function renderTrend(){
 function shoeStatus(km){ if(km>=700) return {cls:'red',label:'Replace'}; if(km>=500) return {cls:'amb',label:'Rotate / replace soon'}; return {cls:'grn',label:'Good'}; }
 function renderShoes(){
   var host=document.getElementById('shoe-body'); if(!host) return;
-  if(!(window.cowork && window.cowork.callMcpTool)){ host.innerHTML='<div class="actnone">Shoe mileage needs the desktop Cowork app (live Strava).</div>'; return; }
+  if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ host.innerHTML='<div class="actnone">Shoe mileage needs the desktop Cowork app (live Strava).</div>'; return; }
   var c=null; try{ c=JSON.parse(localStorage.getItem('utct_shoes_cache')); }catch(e){}
   if(c && c.date===ymd(new Date()) && c.html){ host.innerHTML=c.html; return; }
   host.innerHTML='<div class="loading-msg"><div class="loading-spinner"></div></div>';
@@ -2205,7 +2173,7 @@ function renderShoes(){
   var gearIds={}; (ACT||[]).forEach(function(a){ if(a.gear_id) gearIds[a.gear_id]=true; });
   var ids=Object.keys(gearIds);
   if(!ids.length){ host.innerHTML='<div class="actnone">No gear IDs found in recent activities. Assign shoes to activities in Strava to see mileage here.</div>'; return; }
-  Promise.all(ids.map(function(id){ return window.cowork.callMcpTool(STRAVA_ID+'__get_gear',{id:id}).catch(function(){return null;}); })).then(function(results){
+  Promise.all(ids.map(function(id){ return window.__cowork_stub__.callMcpTool(STRAVA_ID+'__get_gear',{id:id}).catch(function(){return null;}); })).then(function(results){
     var shoes=[];
     results.forEach(function(res){ if(!res) return; var g=hbUnwrap(res); if(!g||typeof g!=='object') return; if((g.resource_state||0)>=1) shoes.push(g); });
     // Compute km from activities per gear_id
@@ -2242,7 +2210,7 @@ function renderToday(){
     +'<div class="th-plan"><span class="dlbl">TODAY\'S PLAN</span><div class="th-plan-v">'+planLine+'</div></div>'
     +(physio?'<div class="th-phys">＋ Ankle physio due today — tick it in the Plan tab when done.</div>':'')+'</div>'
     +loadCheckHtml();
-  if(!(window.cowork && window.cowork.callMcpTool)){
+  if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){
     host.innerHTML=head+'<div class="callout co-amb">The recovery briefing runs in the desktop Cowork app (COROS data isn\'t available without the Cowork connection). Your plan, Strava tracking and tracking tab all still work here.</div>';
     return;
   }
@@ -2259,9 +2227,9 @@ function renderToday(){
   host.innerHTML=head+'<div id="brief-out"><div class="loading-msg"><div class="loading-spinner"></div><br>Preparing your briefing…</div></div>';
   var out=document.getElementById('brief-out');
   Promise.all([
-    window.cowork.callMcpTool(COROS_ID+'__queryRecoveryStatus',{}).catch(function(){return null;}),
-    window.cowork.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:7}).catch(function(){return null;}),
-    window.cowork.callMcpTool('mcp__healthbridge__get_context',{focus:'recovery'}).catch(function(){return null;})
+    window.__cowork_stub__.callMcpTool(COROS_ID+'__queryRecoveryStatus',{}).catch(function(){return null;}),
+    window.__cowork_stub__.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:7}).catch(function(){return null;}),
+    window.__cowork_stub__.callMcpTool('mcp__healthbridge__get_context',{focus:'recovery'}).catch(function(){return null;})
   ]).then(function(corosRes){
     var recoveryText=corosUnwrapText(corosRes[0])||'Recovery data unavailable';
     var loadText=corosUnwrapText(corosRes[1])||'Training load data unavailable';
@@ -2271,8 +2239,8 @@ function renderToday(){
       recovery:coros, zoneNote:zoneCheck(),
       recentActivities:(ACT||[]).slice(0,6).map(function(a){ return { name:a.name, date:(a.start_date_local||'').slice(0,10), km:Math.round((a.distance||0)/100)/10, vert:a.total_elevation_gain, avgHr:a.average_heartrate, type:a.sport_type }; }) };
     function finish(t){ var html=briefHtml(t); try{ localStorage.setItem('utct_brief_cache', JSON.stringify({date:ymd(new Date()), html:html})); }catch(e){} out.innerHTML=html+briefFooter(); }
-    if(aiOn() && window.cowork.askClaude){
-      window.cowork.askClaude(BRIEF_PROMPT, [data]).then(function(r){ var t=(typeof r==='string')?r:(r&&r.text?r.text:(r&&r.content?r.content:JSON.stringify(r))); finish(t); }).catch(function(){ finish(ruleBrief(data)); });
+    if(aiOn() && window.__cowork_stub__.askClaude){
+      window.__cowork_stub__.askClaude(BRIEF_PROMPT, [data]).then(function(r){ var t=(typeof r==='string')?r:(r&&r.text?r.text:(r&&r.content?r.content:JSON.stringify(r))); finish(t); }).catch(function(){ finish(ruleBrief(data)); });
     } else { finish(ruleBrief(data)); }
   }).catch(function(e){ out.innerHTML='<div class="callout co-rd">Could not read COROS data: '+(e&&e.message?e.message:e)+'</div>'; });
 }
