@@ -80,7 +80,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .wk:hover{border-color:var(--brd);}
 .wk.sel{border-color:rgba(0,0,0,.45);box-shadow:0 0 0 1px rgba(0,0,0,.15);}
 .wk.current{outline:2px solid #1A1917;outline-offset:1px;}
-.wk.current .wn::after{content:' ◄ NOW';font-size:8px;color:#1A1917;opacity:.7;}
+.wk.current .wn::after{content:' â NOW';font-size:8px;color:#1A1917;opacity:.7;}
 .wic{font-size:10px;padding:1px 3px;border-radius:3px;}
 .det{background:var(--surf);border:1px solid var(--brd);border-radius:10px;padding:18px;margin-bottom:14px;}
 .dh{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px;}
@@ -153,7 +153,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
  user-select:none;transition:background .12s;}
 .ptsummary:hover{background:var(--brdl);}
 .ptsummary::-webkit-details-marker{display:none;}
-.ptsummary::before{content:'▸';font-size:14px;color:var(--t2);display:inline-block;transition:transform .15s;flex-shrink:0;}
+.ptsummary::before{content:'â¸';font-size:14px;color:var(--t2);display:inline-block;transition:transform .15s;flex-shrink:0;}
 .ptdetails[open] .ptsummary{border-radius:8px 8px 0 0;border-bottom-color:transparent;}
 .ptdetails[open] .ptsummary::before{transform:rotate(90deg);}
 .ptdetails[open]>.ptpreview,.ptdetails[open]>.overflow,.ptdetails[open]>.callout,.ptdetails[open]>div,.ptdetails[open]>.xgrid,.ptdetails[open]>.card{border:1px solid var(--brd);border-top:none;border-radius:0 0 8px 8px;padding:10px 12px;margin-bottom:0;}
@@ -281,7 +281,7 @@ html{color-scheme:light;}
 .actpill.done{border-color:#1D9E75;color:#14532D;background:#DCFCE7;}
 .actpill a{color:inherit;text-decoration:none;}
 .actnone{font-size:11px;color:var(--t3);}
-/* ── v3 redesign + new features ──────────────────────────────────────────── */
+/* ââ v3 redesign + new features ââââââââââââââââââââââââââââââââââââââââââââ */
 body{-webkit-font-smoothing:antialiased;}
 .hdr{background:linear-gradient(135deg,#1A1917,#2C2A27);}
 .det,.card{box-shadow:0 1px 3px rgba(0,0,0,.05);}
@@ -326,7 +326,7 @@ body{-webkit-font-smoothing:antialiased;}
  .ticker{padding:9px 14px;}
 }
 
-/* ── v4 fixes ─────────────────────────────────────────────────────────────── */
+/* ââ v4 fixes âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 .fl{min-width:104px;justify-content:center;text-align:center;display:inline-flex;align-items:center;gap:4px;}
 .fl.ico{background:var(--s2)!important;color:var(--t2)!important;}
 .day{display:block;}
@@ -400,7 +400,7 @@ body{-webkit-font-smoothing:antialiased;}
 .wkrow .wkbar span{display:block;height:3px;border-radius:2px;}
 .wkrow .wcheck{float:none;display:inline-block;margin-top:6px;}
 .wkrow.current{box-shadow:0 0 0 2px #1A1917;}
-.wkrow.current .wk-num::after{content:' ◄ NOW';font-size:8px;color:#1A1917;opacity:.7;}
+.wkrow.current .wk-num::after{content:' â NOW';font-size:8px;color:#1A1917;opacity:.7;}
 @media(max-width:600px){
  .wk.wkrow{flex-wrap:wrap;gap:8px 12px;}
  .wkrow .wk-c1{flex:0 0 auto;}
@@ -459,7 +459,7 @@ body{-webkit-font-smoothing:antialiased;}
 
 <div class="hdr">
  <h1>UTCT 100 Miler &#8212; Coaching Hub</h1>
- <p>Josh Krige &#183; Somerset West &#183; Sir Lowry&#8217;s Pass &#183; live · Tredict-connected</p>
+ <p>Josh Krige &#183; Somerset West &#183; Sir Lowry&#8217;s Pass &#183; live Â· Tredict-connected</p>
  <div class="hstats">
  <div class="hs"><div class="hl">Race date</div><div class="hv">Fri 20 Nov 2026 &#183; 17:00</div></div>
  <div class="hs"><div class="hl">Distance</div><div class="hv">161.7km &#183; 7,187m D+</div></div>
@@ -484,7 +484,7 @@ body{-webkit-font-smoothing:antialiased;}
 
 <!-- TODAY TAB -->
 <div id="t-today" style="display:none;">
- <div id="today-body"><div class="loading-msg">Loading…</div></div>
+ <div id="today-body"><div class="loading-msg">Loadingâ¦</div></div>
  <div id="trend-card"></div>
 </div>
 
@@ -506,7 +506,7 @@ body{-webkit-font-smoothing:antialiased;}
  <span class="fl ico">&#128293; Heat / sauna</span>
  </div>
  <div id="plan-loading" class="loading-msg" style="display:none;">
- <div class="loading-spinner"></div><br>Loading from Google Sheet…
+ <div class="loading-spinner"></div><br>Loading from Google Sheetâ¦
  </div>
  <div id="plan-error" class="error-box" style="display:none;"></div>
  <div id="nextup-wrap"></div>
@@ -517,7 +517,7 @@ body{-webkit-font-smoothing:antialiased;}
 <!-- TRACKING TAB -->
 <div id="t-track" style="display:none;">
  <div id="track-summary" class="tracksum"></div>
- <div class="card" style="margin-bottom:12px;"><h3>Cumulative distance — planned vs actual</h3><div style="position:relative;height:240px;"><canvas id="trackChart"></canvas></div></div>
+ <div class="card" style="margin-bottom:12px;"><h3>Cumulative distance â planned vs actual</h3><div style="position:relative;height:240px;"><canvas id="trackChart"></canvas></div></div>
  <div class="overflow"><table class="ptable" id="trackTable"></table></div>
 </div>
 
@@ -790,10 +790,10 @@ body{-webkit-font-smoothing:antialiased;}
  <tr><td><strong>Dead bug</strong></td><td>10 / side</td><td>Spinal stability &#8212; connects core to arm drive on technical terrain</td></tr>
  <tr><td><strong>Single-arm DB row</strong></td><td>12 / side</td><td>Upper back &#8212; combats forward lean at hour 25+</td></tr>
  <tr><td><strong>Push-up</strong></td><td>15</td><td>Chest &amp; shoulders &#8212; pole-ready upper body</td></tr>
- <tr><td><strong>Pallof press</strong></td><td>10 / side</td><td>Anti-rotation core &#8212; critical for UTCT&#8217;s uneven terrain</td></tr>
+ <tr><td><strong>Plank</strong></td><td>45 s</td><td>Core bracing &#8212; anti-flexion stability for technical descents</td></tr>
  <tr><td><strong>Side plank</strong></td><td>45 s / side</td><td>Lateral core &#8212; prevents hip drop at mile 40+</td></tr>
  <tr><td><strong>Glute bridge</strong></td><td>20</td><td>Posterior chain activation without quad fatigue</td></tr>
- <tr><td><strong>Face pull / band pull-apart</strong></td><td>20</td><td>Shoulder health &amp; posture &#8212; prevents rounding under pack weight</td></tr>
+ <tr><td><strong>Reverse fly</strong></td><td>15</td><td>Rear delts &amp; posture &#8212; prevents rounding under pack weight</td></tr>
  </tbody>
  </table>
  </div>
@@ -901,7 +901,7 @@ body{-webkit-font-smoothing:antialiased;}
 </div><!-- end cnt -->
 
 <script>
-// ─── STATIC DATA (fallback if no sheet connected) ────────────────────────────
+// âââ STATIC DATA (fallback if no sheet connected) ââââââââââââââââââââââââââââ
 var Q='\u2019',M='\u2014';
 var DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var PC={base:'#1D9E75',b1:'#185FA5',peak:'#534AB7',taper:'#6B6A66',race:'#993C1D',travel:'#C0392B',holiday:'#D97706'};
@@ -909,14 +909,14 @@ var PBG={base:'#DCFCE7',b1:'#DBEAFE',peak:'#EDE9FE',taper:'#E5E4DF',race:'#FFE4E
 var PTC={base:'#14532D',b1:'#1E3A5F',peak:'#3730A3',taper:'#4B4A46',race:'#881337',travel:'#881337',holiday:'#713F12'};
 var PN={base:'Base',b1:'Build',peak:'Peak',taper:'Taper',race:'Race week',travel:'Travel / disrupted',holiday:'Holiday'};
 var PHSTR={
- base:{s:['Consistent aerobic base building week on week','Strong on the home farm climbs','Good weekly training rhythm and habit'],w:['Keep easy days genuinely easy — HR in check','Groove the ~40-min fuelling habit on every long run','Build long-run distance gradually, no big jumps']},
+ base:{s:['Consistent aerobic base building week on week','Strong on the home farm climbs','Good weekly training rhythm and habit'],w:['Keep easy days genuinely easy â HR in check','Groove the ~40-min fuelling habit on every long run','Build long-run distance gradually, no big jumps']},
  b1:{s:['Back-to-back running capacity developing well','Getting comfortable on technical Peninsula terrain','Night-running adaptation underway'],w:['Sort night vision / contact lenses before peak','Fuel every ~40 min without needing a prompt','Practise descending fast but under control']},
- peak:{s:['Absorbing the biggest training weeks well','Race-sim efforts building real confidence','Course knowledge growing from the recces'],w:['Heat acclimatisation — add the sauna sessions','Mental resilience on long, solo, dark efforts','Aid-station efficiency — eat standing, keep moving']},
- taper:{s:['The hard work is in the bank','Race terrain well known from recces','Nutrition and kit already tested in races'],w:['Resist adding training — trust the taper','Protect sleep — it is the priority now','Final kit check: contacts, headtorch, shoes, pack']},
- race:{s:['A real test of your race-day systems','A hard effort on UTCT-style terrain','Confidence that comes from racing'],w:['Treat it as a dress rehearsal — exact race nutrition and kit','Start controlled, do not chase the ego early','Recover properly in the days afterwards']},
- travel:{s:['Enforced easy weeks bank absorbed fitness','Staying consistent despite the disruption','Likely to come back fresher than usual'],w:['Get the run done early before the day fills up','Otherwise stay off the feet — this is recovery','Eat and sleep well so the body repairs']},
+ peak:{s:['Absorbing the biggest training weeks well','Race-sim efforts building real confidence','Course knowledge growing from the recces'],w:['Heat acclimatisation â add the sauna sessions','Mental resilience on long, solo, dark efforts','Aid-station efficiency â eat standing, keep moving']},
+ taper:{s:['The hard work is in the bank','Race terrain well known from recces','Nutrition and kit already tested in races'],w:['Resist adding training â trust the taper','Protect sleep â it is the priority now','Final kit check: contacts, headtorch, shoes, pack']},
+ race:{s:['A real test of your race-day systems','A hard effort on UTCT-style terrain','Confidence that comes from racing'],w:['Treat it as a dress rehearsal â exact race nutrition and kit','Start controlled, do not chase the ego early','Recover properly in the days afterwards']},
+ travel:{s:['Enforced easy weeks bank absorbed fitness','Staying consistent despite the disruption','Likely to come back fresher than usual'],w:['Get the run done early before the day fills up','Otherwise stay off the feet â this is recovery','Eat and sleep well so the body repairs']},
  holiday:{s:['Family time doubles as genuine active recovery','Trail hikes add to your vert base','Mental reset before the hard block'],w:['Keep a short daily run going','Hold the long-run habit even if shorter','Protect the right ankle on unknown terrain']},
- racefinal:{s:['26 weeks of preparation banked','You have run these exact sections in recces and races','You know your body can keep moving for 30+ hours'],w:['Start controlled — the first 18km must feel easy','Contacts in before the 17:00 start','Commit to the fuelling and walk-the-climbs plan']}
+ racefinal:{s:['26 weeks of preparation banked','You have run these exact sections in recces and races','You know your body can keep moving for 30+ hours'],w:['Start controlled â the first 18km must feel easy','Contacts in before the 17:00 start','Commit to the fuelling and walk-the-climbs plan']}
 };
 var FI={nt:'\u{1F319}',dn:'\u2198\uFE0E',rc:'\u{1F4CD}',hb:'\u{1F9A1}',ht:'\u{1F525}'};
 var FN={nt:'Night run',dn:'Downhill focus',rc:'Course recce',hb:'HB check-in',ht:'Heat / sauna'};
@@ -925,104 +925,104 @@ var COC={nt:'co-pur',dn:'co-blu',rc:'co-grn',hb:'co-amb',ht:'co-rd'};
 var COT={nt:'Night running week. Every dark morning farm run is free practice. Test headtorch and glasses. Try contacts if not done yet.',dn:'Downhill focus week. Run the descents faster than feels comfortable. Controlled aggression. This is a trainable skill that takes repetition.',rc:'UTCT course recce. Study every technical section and note where you can make time. This terrain knowledge is irreplaceable in November.',hb:'Honey Badger check-in week. Your Saturday email will include an honest assessment of where sub-30h sits based on current form and trajectory.',ht:'Heat acclimatization week. Add midday outdoor exposure and 2 post-run sauna sessions (15\u201320 min). UTCT runs in late-November spring conditions.'};
 var DC={key:'d-key',long:'d-key',b2b:'d-key',race:'d-key',train:'d-train',hills:'d-key',str:'d-train',run:'d-train',night:'d-night',rest:'d-rest',travel:'d-travel'};
 
-// ─── WEEK DATA ────────────────────────────────────────────────────────────────
-// (same W array as original — this is the fallback when no sheet is connected)
+// âââ WEEK DATA ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// (same W array as original â this is the fallback when no sheet is connected)
 var W=[
-{n:1,dt:'14 Sep',p:'base',lb:'Restart — stronger from day one',km:60,v:2000,fl:[],dis:null,rn:null,
- rt:'Farm hills + Helderberg trails',rl:'Farm / Helderberg Nature Reserve',rk:'10–22 km',rv:'700–900m D+',
- rd:'First proper week back. Hills on Monday from the start — 6 easy reps. Friday long run at 22km: find a route with real climbing — target 600–700m vert — this is your first proper vert session back. Saturday B2B 10km easy. Every session aerobic only.',
+{n:1,dt:'14 Sep',p:'base',lb:'Restart â stronger from day one',km:60,v:2000,fl:[],dis:null,rn:null,
+ rt:'Farm hills + Helderberg trails',rl:'Farm / Helderberg Nature Reserve',rk:'10â22 km',rv:'700â900m D+',
+ rd:'First proper week back. Hills on Monday from the start â 6 easy reps. Friday long run at 22km: find a route with real climbing â target 600â700m vert â this is your first proper vert session back. Saturday B2B 10km easy. Every session aerobic only.',
  note:'Helderberg Nature Reserve and the farm hills give you concentrated vert in short distances. Even a single big loop on your long run starts building the climbing legs UTCT demands.\n\nDon\'t chase old reps on Monday. The ankle needs to remember what hills feel like. Consistency is the only goal this week.',
  dy:[
-  {t:'hills',s:'Hill reps x6',d:'First hills back. Easy effort on the ups — not chasing old reps. Full walk recovery on the downs. 300–400m total vert.',am:true,ph:false},
-  {t:'str',s:'Strength x4 + easy 8km',d:'4 rounds — back to basics, easy weights. Easy run in the afternoon. Good double day.',am:false,ph:true},
+  {t:'hills',s:'Hill reps x6',d:'First hills back. Easy effort on the ups â not chasing old reps. Full walk recovery on the downs. 300â400m total vert.',am:true,ph:false},
+  {t:'str',s:'Strength x4 + easy 8km',d:'4 rounds â back to basics, easy weights. Easy run in the afternoon. Good double day.',am:false,ph:true},
   {t:'run',s:'Easy 10km',d:'Aerobic base. HR under 140.',am:false,ph:false},
-  {t:'str',s:'Core & upper strength',d:'Thursday core & upper circuit — 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, Pallof press x10/side, side plank 45s/side, glute bridge x20, face pull x20. No heavy leg work. Legs stay fresh for Friday.',am:false,ph:true},
-  {t:'long',s:'Long run 22km',d:'Find a route with real climbing — aim for 600–700m total vert. Extend to 22km total. This is your first real vert session. Time on feet, not pace.',am:false,ph:false},
+  {t:'str',s:'Core & upper strength',d:'Thursday core & upper circuit â 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, plank 45s, side plank 45s/side, glute bridge x20, reverse fly x15. No heavy leg work. Legs stay fresh for Friday.',am:false,ph:true},
+  {t:'long',s:'Long run 22km',d:'Find a route with real climbing â aim for 600â700m total vert. Extend to 22km total. This is your first real vert session. Time on feet, not pace.',am:false,ph:false},
   {t:'run',s:'B2B 10km',d:'Easy flat run on tired legs. Note how the body responds after the vert.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Family.',am:false,ph:false}
  ]},
-{n:2,dt:'21 Sep',p:'base',lb:'Boggoms Bay — 60km Boggoms to Mossel Bay',km:105,v:800,fl:[],dis:null,rn:null,
- rt:'Boggoms Bay → Mossel Bay coastal route',rl:'Boggoms Bay / Still Bay / Mossel Bay',rk:'60km out-and-back + easy days',rv:'Flat (beach and coastal road)',
- rd:'The big session this week is Friday: 60km out-and-back from Boggoms Bay to Mossel Bay and back along the coastal route. This is ~30km each way, mostly flat beach and gravel road. Monday and Tuesday at home (hills and strength). Wednesday arrival run easy 12km to settle in. Thursday rest or short shakeout before the big effort. Friday is the main event — this is an ultra-distance effort on flat terrain. Saturday full rest — you cannot B2B after 60km. Pack support or carry everything you need for the full 60km.',
- note:'The 60km Boggoms→Mossel Bay run is the most technically demanding session in the first half of the plan. Half beach (30km), half sharp coastal rock (30km) — this is an 80km+ equivalent effort. Budget 8-9 hours and pace accordingly. The rocky coastal terrain is slow and relentless: it batters your feet, ankles and concentration in a way that is very specific to UTCT\'s own technical sections.\n\nGear: trail shoes with maximum rock protection. Carry poles if you have them — useful on the rocks. Nutrition for 9 hours minimum. Emergency contact aware of your route and expected finish time. The rocky sections require walking pace — no exceptions. Do not try to run them.',
+{n:2,dt:'21 Sep',p:'base',lb:'Boggoms Bay â 60km Boggoms to Mossel Bay',km:105,v:800,fl:[],dis:null,rn:null,
+ rt:'Boggoms Bay â Mossel Bay coastal route',rl:'Boggoms Bay / Still Bay / Mossel Bay',rk:'60km out-and-back + easy days',rv:'Flat (beach and coastal road)',
+ rd:'The big session this week is Friday: 60km out-and-back from Boggoms Bay to Mossel Bay and back along the coastal route. This is ~30km each way, mostly flat beach and gravel road. Monday and Tuesday at home (hills and strength). Wednesday arrival run easy 12km to settle in. Thursday rest or short shakeout before the big effort. Friday is the main event â this is an ultra-distance effort on flat terrain. Saturday full rest â you cannot B2B after 60km. Pack support or carry everything you need for the full 60km.',
+ note:'The 60km BoggomsâMossel Bay run is the most technically demanding session in the first half of the plan. Half beach (30km), half sharp coastal rock (30km) â this is an 80km+ equivalent effort. Budget 8-9 hours and pace accordingly. The rocky coastal terrain is slow and relentless: it batters your feet, ankles and concentration in a way that is very specific to UTCT\'s own technical sections.\n\nGear: trail shoes with maximum rock protection. Carry poles if you have them â useful on the rocks. Nutrition for 9 hours minimum. Emergency contact aware of your route and expected finish time. The rocky sections require walking pace â no exceptions. Do not try to run them.',
  dy:[
-  {t:'hills',s:'Hill reps x8',d:'At home — get the hills done before you leave for Boggoms. Zone 4 on the ups. Eight reps.',am:true,ph:false},
+  {t:'hills',s:'Hill reps x8',d:'At home â get the hills done before you leave for Boggoms. Zone 4 on the ups. Eight reps.',am:true,ph:false},
   {t:'str',s:'Strength x4 + easy 10km',d:'Strength first, then easy run. Last session at home before Boggoms Bay.',am:false,ph:true},
-  {t:'run',s:'Easy beach 12km',d:'Arrival run in Boggoms Bay. Find the beach at low tide. Easy effort — settle in, scout the coastal route towards Mossel Bay.',am:false,ph:false},
+  {t:'run',s:'Easy beach 12km',d:'Arrival run in Boggoms Bay. Find the beach at low tide. Easy effort â settle in, scout the coastal route towards Mossel Bay.',am:false,ph:false},
   {t:'run',s:'Easy shakeout 5km + prep',d:'Short easy run only. Prep gear, food, and water for tomorrow\'s 60km. Early to bed.',am:false,ph:false},
-  {t:'long',s:'60km — Boggoms Bay → Mossel Bay and back',d:'Start at dawn (05:00-06:00). The route is half beach (30km) and half sharp technical coastal rock (30km) — treat this like an 80km+ trail effort. Budget 8-9 hours. On beach: find hard-packed wet sand at low tide, walk if HR exceeds 140. On coastal rock: slow down completely — pick every foot placement, no rushing. The rocky sections will wreck your feet and ankles if you push pace. Wear your best trail shoes with rock protection. Eat every 25 min from km 1. Poles optional but useful on the rock. This is the hardest session in the first half of the plan.',am:false,ph:false},
+  {t:'long',s:'60km â Boggoms Bay â Mossel Bay and back',d:'Start at dawn (05:00-06:00). The route is half beach (30km) and half sharp technical coastal rock (30km) â treat this like an 80km+ trail effort. Budget 8-9 hours. On beach: find hard-packed wet sand at low tide, walk if HR exceeds 140. On coastal rock: slow down completely â pick every foot placement, no rushing. The rocky sections will wreck your feet and ankles if you push pace. Wear your best trail shoes with rock protection. Eat every 25 min from km 1. Poles optional but useful on the rock. This is the hardest session in the first half of the plan.',am:false,ph:false},
   {t:'rest',s:'Full rest',d:'Do not run today. 60km requires a full recovery day. Eat well, legs up, walk on the beach if you want.',am:false,ph:false},
   {t:'run',s:'Easy recovery 8km',d:'Gentle final run at Boggoms before travelling home. How do the legs feel after 60km? Note it.',am:false,ph:false}
  ]},
-{n:3,dt:'28 Sep',p:'b1',lb:'Back to the mountains — vert begins',km:85,v:3500,fl:[],dis:null,rn:null,
- rt:'Helderberg big loop',rl:'Helderberg / local trails',rk:'32km long run',rv:'1,800–2,000m D+',
- rd:'Back from Boggoms Bay and straight into the vert. If still traveling Monday, swap hills to Tuesday. Friday long run at 32km: your best local big-vert route — target 1,800–2,000m of vert. This is the first real UTCT-specific session of the plan.',
- note:'Note: if still travelling on Monday, substitute the hill reps with an easy run and do the hills on Tuesday instead. Don\'t miss the hills — just shift them.\n\nFind the most technical, exposed, vert-heavy route you can access from the farm or Helderberg. Friday is the day to seek out those routes.',
+{n:3,dt:'28 Sep',p:'b1',lb:'Back to the mountains â vert begins',km:85,v:3500,fl:[],dis:null,rn:null,
+ rt:'Helderberg big loop',rl:'Helderberg / local trails',rk:'32km long run',rv:'1,800â2,000m D+',
+ rd:'Back from Boggoms Bay and straight into the vert. If still traveling Monday, swap hills to Tuesday. Friday long run at 32km: your best local big-vert route â target 1,800â2,000m of vert. This is the first real UTCT-specific session of the plan.',
+ note:'Note: if still travelling on Monday, substitute the hill reps with an easy run and do the hills on Tuesday instead. Don\'t miss the hills â just shift them.\n\nFind the most technical, exposed, vert-heavy route you can access from the farm or Helderberg. Friday is the day to seek out those routes.',
  dy:[
   {t:'hills',s:'Hill reps x10',d:'Ten solid reps. Zone 4-5 on the ups. If traveling back from Boggoms today, do easy 12km instead and shift hills to Tuesday.',am:true,ph:false},
-  {t:'str',s:'Strength x5 + easy 8km',d:'Five rounds — add one exercise. Easy run in the afternoon.',am:false,ph:true},
+  {t:'str',s:'Strength x5 + easy 8km',d:'Five rounds â add one exercise. Easy run in the afternoon.',am:false,ph:true},
   {t:'run',s:'Easy 12km with terrain',d:'Include some real undulation. HR under 145.',am:false,ph:false},
-  {t:'str',s:'Core & upper strength + easy 5km',d:'Morning: Thursday core & upper circuit — 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, Pallof press x10/side, side plank 45s/side, glute bridge x20, face pull x20. No heavy leg work. Afternoon: 5km easy shakeout. Core and upper only — legs preserved for Friday.',am:false,ph:true},
-  {t:'long',s:'Long run 32km — big vert route',d:'Target 1,800–2,000m of vert. Options: a route combining multiple climbs — farm loop, Helderberg traverse, or any local route that stacks 1,800–2,000m of vert over 32km. Walk every climb. This is where UTCT prep actually starts.',am:false,ph:false},
+  {t:'str',s:'Core & upper strength + easy 5km',d:'Morning: Thursday core & upper circuit â 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, plank 45s, side plank 45s/side, glute bridge x20, reverse fly x15. No heavy leg work. Afternoon: 5km easy shakeout. Core and upper only â legs preserved for Friday.',am:false,ph:true},
+  {t:'long',s:'Long run 32km â big vert route',d:'Target 1,800â2,000m of vert. Options: a route combining multiple climbs â farm loop, Helderberg traverse, or any local route that stacks 1,800â2,000m of vert over 32km. Walk every climb. This is where UTCT prep actually starts.',am:false,ph:false},
   {t:'run',s:'B2B 16km',d:'Run on tired legs. Include some terrain. Note how the legs feel after the vert.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
  ]},
 {n:4,dt:'5 Oct',p:'b1',lb:'Night run + massive vert week',km:105,v:5000,fl:[],dis:null,rn:null,
  rt:'Helderberg / mountain trail',rl:'Helderberg / mountain trail',rk:'36km long run + night run 18km',rv:'2,200m D+',
- rd:'The week you start seriously preparing for UTCT. Thursday night: 18km run starting at 21:00 — this is your darkness prep session. Friday long run at 36km targeting 2,200m of vert. Saturday B2B 18km. Monday hills hit 12 reps. This is the biggest week so far.',
- note:'The night run on Thursday is non-negotiable. UTCT starts at 17:00 Friday — you will be running through the whole night and into Saturday morning. You need to know how your body handles darkness: headtorch, nutrition, pace judgement, and the psychological weight of 03:00.\n\nFor the Thursday night run: start at 21:00 on familiar terrain (Farm / Helderberg Nature Reserve or local). Easy pace. The point is darkness adaptation, not fitness.',
+ rd:'The week you start seriously preparing for UTCT. Thursday night: 18km run starting at 21:00 â this is your darkness prep session. Friday long run at 36km targeting 2,200m of vert. Saturday B2B 18km. Monday hills hit 12 reps. This is the biggest week so far.',
+ note:'The night run on Thursday is non-negotiable. UTCT starts at 17:00 Friday â you will be running through the whole night and into Saturday morning. You need to know how your body handles darkness: headtorch, nutrition, pace judgement, and the psychological weight of 03:00.\n\nFor the Thursday night run: start at 21:00 on familiar terrain (Farm / Helderberg Nature Reserve or local). Easy pace. The point is darkness adaptation, not fitness.',
  dy:[
-  {t:'hills',s:'Hill reps x12',d:'Twelve reps. Zone 4-5. The big hill session of the block. Big vert day — aim for 1,000m+ just from the hill session.',am:true,ph:false},
+  {t:'hills',s:'Hill reps x12',d:'Twelve reps. Zone 4-5. The big hill session of the block. Big vert day â aim for 1,000m+ just from the hill session.',am:true,ph:false},
   {t:'str',s:'Strength x5 + easy 8km',d:'Five rounds, progressive weights. Easy run after.',am:false,ph:true},
-  {t:'night',s:'Night run 18km — 21:00 start',d:'Start at 21:00 on familiar terrain. Headtorch on. Easy pace throughout. This is your first darkness session — the most specific UTCT prep you can do outside of racing. Eat and drink as if it were the race.',am:false,ph:false},
+  {t:'night',s:'Night run 18km â 21:00 start',d:'Start at 21:00 on familiar terrain. Headtorch on. Easy pace throughout. This is your first darkness session â the most specific UTCT prep you can do outside of racing. Eat and drink as if it were the race.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Full rest after the night run. Sleep in. Legs up before the big weekend.',am:false,ph:false},
-  {t:'long',s:'Long run 36km',d:'Target 2,000–2,200m of vert. a big mountain circuit stacking 2,000–2,200m of vert over 36km. Helderberg traverse loops or farm + reserve combination. Walk every climb. Eat from km 1.',am:false,ph:false},
+  {t:'long',s:'Long run 36km',d:'Target 2,000â2,200m of vert. a big mountain circuit stacking 2,000â2,200m of vert over 36km. Helderberg traverse loops or farm + reserve combination. Walk every climb. Eat from km 1.',am:false,ph:false},
   {t:'run',s:'B2B 18km',d:'Run on tired legs. This is the most UTCT-specific day of the plan so far. Easy pace. Don\'t skip it.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Full rest. Eat well.',am:false,ph:false}
  ]},
-{n:5,dt:'12 Oct',p:'peak',lb:'Peak week — 40km long + 20km B2B',km:110,v:6000,fl:[],dis:null,rn:null,
- rt:'Peak long run — max vert route',rl:'Helderberg / local trails',rk:'40km + 20km B2B',rv:'2,500m D+',
- rd:'This is the week that decides your UTCT. Friday 40km with 2,500m of vert — find the biggest, most technical vert route you can access. Saturday 20km B2B on dead legs. This combination is more valuable than any race you could have entered. Hills Monday stay at 12 reps.',
- note:'This is peak week 1. It will feel very hard. That is the point.\n\nFor the 40km route: consider the Helderberg traverse or any big-vert farm/reserve loop — look for routes with repeated steep climbs that mirror UTCT terrain.\n\nSaturday 20km on dead legs: easy pace, no ego. If you survive Friday and Saturday this week, you will finish UTCT.',
+{n:5,dt:'12 Oct',p:'peak',lb:'Peak week â 40km long + 20km B2B',km:110,v:6000,fl:[],dis:null,rn:null,
+ rt:'Peak long run â max vert route',rl:'Helderberg / local trails',rk:'40km + 20km B2B',rv:'2,500m D+',
+ rd:'This is the week that decides your UTCT. Friday 40km with 2,500m of vert â find the biggest, most technical vert route you can access. Saturday 20km B2B on dead legs. This combination is more valuable than any race you could have entered. Hills Monday stay at 12 reps.',
+ note:'This is peak week 1. It will feel very hard. That is the point.\n\nFor the 40km route: consider the Helderberg traverse or any big-vert farm/reserve loop â look for routes with repeated steep climbs that mirror UTCT terrain.\n\nSaturday 20km on dead legs: easy pace, no ego. If you survive Friday and Saturday this week, you will finish UTCT.',
  dy:[
   {t:'hills',s:'Hill reps x12',d:'Peak hill session. Zone 4-5. 1,000m+ vert from the hill session alone.',am:true,ph:false},
-  {t:'str',s:'Strength x4 + easy 8km',d:'Shorter session — saving legs for the weekend. Easy run after.',am:false,ph:false},
+  {t:'str',s:'Strength x4 + easy 8km',d:'Shorter session â saving legs for the weekend. Easy run after.',am:false,ph:false},
   {t:'run',s:'Easy 18km',d:'Moderate terrain. Aerobic base under the weekend.',am:false,ph:false},
-  {t:'str',s:'Core & upper strength + easy 6km',d:'Morning: Thursday core & upper circuit — 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, Pallof press x10/side, side plank 45s/side, glute bridge x20, face pull x20. No squats/lunges — legs rested for the big Friday session. Afternoon: 6km easy shakeout.',am:false,ph:true},
-  {t:'long',s:'Long run 40km — max vert route',d:'Your most important training day. Target 2,500m of vert. Find the biggest route you can access — stack the climbs. Walk every climb. Eat from km 1. Time on feet, not pace. This is UTCT prep at its most specific.',am:false,ph:false},
-  {t:'run',s:'B2B 20km',d:'Twenty kilometres on destroyed legs. This is the adaptation. Easy pace — no ego. If you can do this, you can run 100 miles.',am:false,ph:false},
+  {t:'str',s:'Core & upper strength + easy 6km',d:'Morning: Thursday core & upper circuit â 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, plank 45s, side plank 45s/side, glute bridge x20, reverse fly x15. No squats/lunges â legs rested for the big Friday session. Afternoon: 6km easy shakeout.',am:false,ph:true},
+  {t:'long',s:'Long run 40km â max vert route',d:'Your most important training day. Target 2,500m of vert. Find the biggest route you can access â stack the climbs. Walk every climb. Eat from km 1. Time on feet, not pace. This is UTCT prep at its most specific.',am:false,ph:false},
+  {t:'run',s:'B2B 20km',d:'Twenty kilometres on destroyed legs. This is the adaptation. Easy pace â no ego. If you can do this, you can run 100 miles.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Full rest. Eat everything.',am:false,ph:false}
  ]},
-{n:6,dt:'19 Oct',p:'peak',lb:'Peak week 2 — last big push before BYU',km:90,v:4500,fl:[],dis:null,rn:null,
- rt:'Strong long run — final BYU prep',rl:'Helderberg / farm big loop',rk:'35km + 15km B2B',rv:'2,200m D+',
+{n:6,dt:'19 Oct',p:'peak',lb:'Peak week 2 â last big push before BYU',km:90,v:4500,fl:[],dis:null,rn:null,
+ rt:'Strong long run â final BYU prep',rl:'Helderberg / farm big loop',rk:'35km + 15km B2B',rv:'2,200m D+',
  rd:'Last big training week before the Backyard Ultra. Hills taper to 10 reps. Long run Friday at 35km with 2,200m of vert. Saturday B2B 15km. BYU is 10 days away. Arrive with the training banked, not broken.',
- note:'By end of this week the body should be well-conditioned and tired. That\'s correct — BYU is your next big stimulus.\n\nLast full strength session this week. After this, strength drops to maintenance only. Arrive at BYU healthy and hungry.',
+ note:'By end of this week the body should be well-conditioned and tired. That\'s correct â BYU is your next big stimulus.\n\nLast full strength session this week. After this, strength drops to maintenance only. Arrive at BYU healthy and hungry.',
  dy:[
-  {t:'hills',s:'Hill reps x10',d:'Pulling back from last week. Quality reps — zone 4-5 on the ups.',am:true,ph:false},
+  {t:'hills',s:'Hill reps x10',d:'Pulling back from last week. Quality reps â zone 4-5 on the ups.',am:true,ph:false},
   {t:'str',s:'Strength x4 + easy 8km',d:'Last full strength session of the block. Easy run after.',am:false,ph:true},
   {t:'run',s:'Easy 14km',d:'Steady easy effort with terrain.',am:false,ph:false},
-  {t:'str',s:'Core & upper strength + easy 5km',d:'Morning: Thursday core & upper circuit — 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, Pallof press x10/side, side plank 45s/side, glute bridge x20, face pull x20. No heavy leg work. Afternoon: 5km easy shakeout. Legs saved for the big weekend.',am:false,ph:true},
-  {t:'long',s:'Long run 35km — Helderberg or farm trails',d:'Target 2,000–2,200m vert. Helderberg big loop or farm mountain route. Final quality long run before BYU.',am:false,ph:false},
+  {t:'str',s:'Core & upper strength + easy 5km',d:'Morning: Thursday core & upper circuit â 4 rounds, 45 min. Dead bug x10/side, single-arm row x12/side, push-up x15, plank 45s, side plank 45s/side, glute bridge x20, reverse fly x15. No heavy leg work. Afternoon: 5km easy shakeout. Legs saved for the big weekend.',am:false,ph:true},
+  {t:'long',s:'Long run 35km â Helderberg or farm trails',d:'Target 2,000â2,200m vert. Helderberg big loop or farm mountain route. Final quality long run before BYU.',am:false,ph:false},
   {t:'run',s:'B2B 15km',d:'Easy flat. Last full back-to-back. How do the legs feel after 6 weeks?',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
  ]},
-{n:7,dt:'26 Oct',p:'race',lb:'BYU taper + Backyard Ultra 31 Oct',km:95,v:2500,fl:[],dis:null,rn:'Backyard Ultra — 31 Oct',
+{n:7,dt:'26 Oct',p:'race',lb:'BYU taper + Backyard Ultra 31 Oct',km:95,v:2500,fl:[],dis:null,rn:'Backyard Ultra â 31 Oct',
  rt:'Backyard Ultra',rl:'TBC',rk:'6.7km loops',rv:'Flat or rolling',
- rd:'Backyard Ultra on Saturday 31 Oct. Target 10–12 hours (10–12 laps \xd7 6.7km = 67–80km). This is a training stimulus for UTCT, not a race to win. Run conservatively every lap. Eat and drink every loop. Stop at 10–12 laps.',
- note:'BYU strategy: run the first lap as if you plan to do 20. Eat real food from lap 1. Walk to the start during transition. Assess at lap 8 — if you feel good, continue to 12. If you feel destroyed, stop at 10.\n\nMonday is still a light hill session — keeps the legs moving before the taper.',
+ rd:'Backyard Ultra on Saturday 31 Oct. Target 10â12 hours (10â12 laps \xd7 6.7km = 67â80km). This is a training stimulus for UTCT, not a race to win. Run conservatively every lap. Eat and drink every loop. Stop at 10â12 laps.',
+ note:'BYU strategy: run the first lap as if you plan to do 20. Eat real food from lap 1. Walk to the start during transition. Assess at lap 8 â if you feel good, continue to 12. If you feel destroyed, stop at 10.\n\nMonday is still a light hill session â keeps the legs moving before the taper.',
  dy:[
-  {t:'hills',s:'Hill reps x4 — taper',d:'Light hill session. Four easy reps only. Keep the legs moving without accumulating fatigue.',am:true,ph:false},
+  {t:'hills',s:'Hill reps x4 â taper',d:'Light hill session. Four easy reps only. Keep the legs moving without accumulating fatigue.',am:true,ph:false},
   {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false},
   {t:'run',s:'Easy 8km',d:'Easy. Save the legs for Saturday.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Rest. Good sleep. Eat well.',am:false,ph:false},
   {t:'run',s:'Easy 5km + strides',d:'Light shakeout. 4 \xd7 100m strides. Gear prep for BYU.',am:false,ph:false},
-  {t:'race',s:'BACKYARD ULTRA — 31 Oct',d:'Target 10–12 laps \xd7 6.7km. Conservative early. Eat from lap 1. Stop between 10–12 laps. Last big UTCT stimulus.',am:false,ph:false},
+  {t:'race',s:'BACKYARD ULTRA â 31 Oct',d:'Target 10â12 laps \xd7 6.7km. Conservative early. Eat from lap 1. Stop between 10â12 laps. Last big UTCT stimulus.',am:false,ph:false},
   {t:'run',s:'Recovery walk / 5km jog',d:'Gentle. See how the body responds.',am:false,ph:false}
  ]},
-{n:8,dt:'2 Nov',p:'taper',lb:'BYU recovery — mandatory easy week',km:35,v:500,fl:[],dis:null,rn:null,
- rt:'Local flat trails',rl:'Farm / Helderberg Nature Reserve',rk:'5–12 km runs',rv:'Flat',
- rd:'Full recovery from BYU. Easy runs only. No hills, no intensity. Sleep as much as possible. The fitness is banked — now absorb it. Friday easy long 12km is the peak of this week.',
- note:'You will feel surprisingly OK on Monday and Tuesday after BYU. Don\'t be fooled. Deep fatigue usually arrives Wednesday–Thursday. Stick to easy running all week.\n\nUTCT is 18 days away. The hay is in the barn.',
+{n:8,dt:'2 Nov',p:'taper',lb:'BYU recovery â mandatory easy week',km:35,v:500,fl:[],dis:null,rn:null,
+ rt:'Local flat trails',rl:'Farm / Helderberg Nature Reserve',rk:'5â12 km runs',rv:'Flat',
+ rd:'Full recovery from BYU. Easy runs only. No hills, no intensity. Sleep as much as possible. The fitness is banked â now absorb it. Friday easy long 12km is the peak of this week.',
+ note:'You will feel surprisingly OK on Monday and Tuesday after BYU. Don\'t be fooled. Deep fatigue usually arrives WednesdayâThursday. Stick to easy running all week.\n\nUTCT is 18 days away. The hay is in the barn.',
  dy:[
   {t:'rest',s:'Rest',d:'Full rest. BYU takes more from you than it feels on the day.',am:false,ph:false},
   {t:'str',s:'Strength x3 + easy 5km',d:'Light maintenance strength only. Easy run after.',am:false,ph:true},
@@ -1032,37 +1032,37 @@ var W=[
   {t:'run',s:'Easy 5km',d:'Short shakeout.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Family.',am:false,ph:false}
  ]},
-{n:9,dt:'9 Nov',p:'taper',lb:'Final sharpener — last quality week',km:55,v:1200,fl:[],dis:null,rn:null,
+{n:9,dt:'9 Nov',p:'taper',lb:'Final sharpener â last quality week',km:55,v:1200,fl:[],dis:null,rn:null,
  rt:'Final long run',rl:'Helderberg Nature Reserve',rk:'22km long run',rv:'~800m D+',
  rd:'Last meaningful training week. Monday: final hill session (5 reps, short and sharp). Friday: final long run of 22km with 800m of vert. After this run you are in taper. Every session should finish feeling like you could have done more.',
  note:'This is the last week you can add fitness. After Friday\'s long run, the goal is to arrive at UTCT feeling fresh, sharp, and excited.\n\nFinal gear check this week. Headtorch. Contacts. Shoes. Pack. Poles. Drop bag contents confirmed.',
  dy:[
-  {t:'hills',s:'Hill reps x5 — final',d:'Short and sharp. Five quality reps. The final hill session of the block.',am:true,ph:false},
+  {t:'hills',s:'Hill reps x5 â final',d:'Short and sharp. Five quality reps. The final hill session of the block.',am:true,ph:false},
   {t:'str',s:'Strength x3 + easy 6km',d:'Final strength session. Maintenance only. No new stress.',am:false,ph:false},
   {t:'run',s:'Easy 10km',d:'Recovery run.',am:false,ph:false},
-  {t:'str',s:'Light core + easy 5km',d:'Morning: 3-round core only — dead bug, side plank, glute bridge (20 min). Afternoon: 5km easy shakeout. Very light — UTCT is two weeks out.',am:false,ph:false},
-  {t:'long',s:'Final long run — 22km',d:'Last one. Include 700–800m of vert. Finish feeling strong. Say goodbye to big training.',am:false,ph:false},
+  {t:'str',s:'Light core + easy 5km',d:'Morning: 3-round core only â dead bug, side plank, glute bridge (20 min). Afternoon: 5km easy shakeout. Very light â UTCT is two weeks out.',am:false,ph:false},
+  {t:'long',s:'Final long run â 22km',d:'Last one. Include 700â800m of vert. Finish feeling strong. Say goodbye to big training.',am:false,ph:false},
   {t:'run',s:'Easy 7km',d:'Shake out. Write your race plan this afternoon.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Rest.',am:false,ph:false}
  ]},
-{n:10,dt:'16 Nov',p:'race',lb:'Race week — UTCT 100 Miler',km:162,v:7187,fl:[],dis:'race',rn:'UTCT 100 Miler',
+{n:10,dt:'16 Nov',p:'race',lb:'Race week â UTCT 100 Miler',km:162,v:7187,fl:[],dis:'race',rn:'UTCT 100 Miler',
  rt:'UTCT 100 Miler',rl:'Cape Town, South Africa',rk:'161.7km',rv:'7,187m D+',
  rd:'Table Mountain. Twelve Apostles. Hout Bay. Karbonkelberg. Silvermine. False Bay. Simon\'s Town. Scarborough. Noordhoek. Constantia. Gardens Rugby Club. The build has been compressed but the key sessions are there. Start controlled. Your race begins at km 80.',
- note:'Mon–Thu: eat, sleep, hydrate, walk. Arrive Cape Town by Tuesday at the latest. Crew at Hout Bay confirmed. Contacts sorted for night sections. Start line: Friday 20 Nov at 17:00. Cutoff: 45 hours.\n\nGoal structure — be honest with yourself on the day:\nPrimary goal: FINISH within 45h. Completing UTCT at your first attempt is a genuine achievement that most runners never manage.\nStretch goal: sub-36h. If training and BYU have gone well, this is a real mid-pack target. Requires consistent movement and no major blowups.\nDream goal: THE HONEY BADGER — sub-30h. Only 43 people have ever earned it. Only chase this if you reach Karbonkelberg ahead of schedule and feeling strong. Do not pace for this from the start — it has broken many people who tried.\n\nRace strategy: start at the back of your wave — slower than feels right. Walk every climb from km 1. Eat before you are hungry, drink before you are thirsty. The first 40km will feel easy — that is the trap. Your race starts at Karbonkelberg (~km 80). If you arrive there intact and moving well, you can decide. If you arrive cooked, you are in survival mode for 80km.',
+ note:'MonâThu: eat, sleep, hydrate, walk. Arrive Cape Town by Tuesday at the latest. Crew at Hout Bay confirmed. Contacts sorted for night sections. Start line: Friday 20 Nov at 17:00. Cutoff: 45 hours.\n\nGoal structure â be honest with yourself on the day:\nPrimary goal: FINISH within 45h. Completing UTCT at your first attempt is a genuine achievement that most runners never manage.\nStretch goal: sub-36h. If training and BYU have gone well, this is a real mid-pack target. Requires consistent movement and no major blowups.\nDream goal: THE HONEY BADGER â sub-30h. Only 43 people have ever earned it. Only chase this if you reach Karbonkelberg ahead of schedule and feeling strong. Do not pace for this from the start â it has broken many people who tried.\n\nRace strategy: start at the back of your wave â slower than feels right. Walk every climb from km 1. Eat before you are hungry, drink before you are thirsty. The first 40km will feel easy â that is the trap. Your race starts at Karbonkelberg (~km 80). If you arrive there intact and moving well, you can decide. If you arrive cooked, you are in survival mode for 80km.',
  dy:[
   {t:'rest',s:'Rest',d:'Eat. Sleep. Hydrate. Relax.',am:false,ph:false},
   {t:'run',s:'Easy 8km + 4 strides',d:'Wake the legs up. 4 \xd7 100m at race pace. Nothing more.',am:false,ph:false},
   {t:'rest',s:'Rest / easy walk',d:'Final gear check. Drop bags packed. Sleep.',am:false,ph:false},
   {t:'rest',s:'Rest + briefing',d:'Athlete briefing if required. Eat carbs all day. Sleep early.',am:false,ph:false},
-  {t:'race',s:'UTCT 100 MILER — 17:00 START',d:'Race start: Gardens Rugby Club, 17:00. Start controlled. Eat from km 1. Walk every climb. This is what everything has been for.',am:false,ph:false},
+  {t:'race',s:'UTCT 100 MILER â 17:00 START',d:'Race start: Gardens Rugby Club, 17:00. Start controlled. Eat from km 1. Walk every climb. This is what everything has been for.',am:false,ph:false},
   {t:'race',s:'On course',d:'Still moving. You\'ve got this.',am:false,ph:false},
   {t:'race',s:'Finish line',d:'Whatever time it is. You finished a 100-miler.',am:false,ph:false}
  ]}
 ];
-// ─── STATE ────────────────────────────────────────────────────────────────────
+// âââ STATE ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var sel = 0;
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
+// âââ HELPERS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function phk(w) {
  if (w.dis === 'travel') return 'travel';
  if (w.dis === 'holiday') return 'holiday';
@@ -1089,7 +1089,7 @@ function weekProgHtml(i){
     + '</div>';
 }
 
-// ─── RENDER ──────────────────────────────────────────────────────────────────
+// âââ RENDER ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function renderGrid() {
  var g = document.getElementById('wgrid');
  g.innerHTML = '';
@@ -1105,7 +1105,7 @@ function renderGrid() {
  div.innerHTML =
    '<div class="wk-c1"><div class="wk-num">Wk ' + w.n + '</div><div class="wk-dt">' + w.dt + '</div></div>'
  + '<div class="wk-c2"><div class="wk-lbl">' + w.lb + '</div><div class="wk-meta"><span class="wk-phase" style="background:' + PBG[pk] + ';color:' + PTC[pk] + ';">' + PN[pk] + '</span>' + (w.rn ? '<span class="wk-race">' + w.rn + '</span>' : '') + fh + '</div></div>'
- + '<div class="wk-c3"><div class="wk-vol">' + w.km + ' km · ' + (w.v >= 1000 ? (w.v / 1000).toFixed(1) + 'k' : w.v) + ' m</div>' + weekProgHtml(i) + weekCheckBadge(w) + '</div>';
+ + '<div class="wk-c3"><div class="wk-vol">' + w.km + ' km Â· ' + (w.v >= 1000 ? (w.v / 1000).toFixed(1) + 'k' : w.v) + ' m</div>' + weekProgHtml(i) + weekCheckBadge(w) + '</div>';
  div.onclick = (function(idx){ return function(){ sel = idx; renderGrid(); renderDetail(); document.getElementById('det').scrollIntoView({ behavior:'smooth', block:'nearest' }); }; })(i);
  g.appendChild(div);
  });
@@ -1124,22 +1124,22 @@ function renderDetail() {
  var ovv = doneOverride(sel, origIdx);
  var done = effectiveDone(sel, pos), temp = dayTemporal(sel, pos);
  var statusIcon = '';
- if(done === true) statusIcon = '<span class="dcheck">✓</span>';
- else if(d.t !== 'rest'){ statusIcon = temp>0 ? '<span class="dup">○</span>' : (temp===0 ? '<span class="dtoday">today</span>' : '<span class="dmiss">missed</span>'); }
- if(ovv!==undefined) statusIcon += '<span class="manmark" title="manually set">✎</span>';
+ if(done === true) statusIcon = '<span class="dcheck">â</span>';
+ else if(d.t !== 'rest'){ statusIcon = temp>0 ? '<span class="dup">â</span>' : (temp===0 ? '<span class="dtoday">today</span>' : '<span class="dmiss">missed</span>'); }
+ if(ovv!==undefined) statusIcon += '<span class="manmark" title="manually set">â</span>';
  var logHtml;
  if(d.t === 'rest'){ logHtml = '<span class="dlmuted">Rest day</span>'; }
  else if(done === 'future'){ logHtml = '<span class="dlmuted">Upcoming</span>'; }
  else {
  var acts = actsOn(ymd(dObj));
- if(acts.length){ logHtml = acts.map(function(a){ var km=(a.distance||0)/1000; var inner=String(a.name||actKind(a))+(km>=0.1?' · '+km.toFixed(1)+'km':'')+(a.total_elevation_gain?' · '+Math.round(a.total_elevation_gain)+'m':''); if(a.id) inner='<a href="https://www.strava.com/activities/'+a.id+'" target="_blank" rel="noopener">'+inner+'</a>'; return '<span class="logact">'+inner+'</span>'; }).join(''); }
+ if(acts.length){ logHtml = acts.map(function(a){ var km=(a.distance||0)/1000; var inner=String(a.name||actKind(a))+(km>=0.1?' Â· '+km.toFixed(1)+'km':'')+(a.total_elevation_gain?' Â· '+Math.round(a.total_elevation_gain)+'m':''); if(a.id) inner='<a href="https://www.strava.com/activities/'+a.id+'" target="_blank" rel="noopener">'+inner+'</a>'; return '<span class="logact">'+inner+'</span>'; }).join(''); }
  else { logHtml = temp===0 ? '<span class="dlmuted">Not yet logged</span>' : '<span class="dlmiss">Nothing logged</span>'; }
  }
- var physio = d.ph ? ('<button class="phys ' + (physioDone(sel,origIdx)?'on':'') + '" onclick="togglePhysio(' + sel + ',' + origIdx + ')">' + (physioDone(sel,origIdx)?'☑':'☐') + ' Physio</button>') : '';
+ var physio = d.ph ? ('<button class="phys ' + (physioDone(sel,origIdx)?'on':'') + '" onclick="togglePhysio(' + sel + ',' + origIdx + ')">' + (physioDone(sel,origIdx)?'â':'â') + ' Physio</button>') : '';
  var doneCtrl = '';
- if(d.t !== 'rest'){ var isDone = done === true; doneCtrl = '<div class="donerow"><button class="donebtn' + (isDone?' on':'') + '" onclick="setDone(' + sel + ',' + origIdx + ',' + (isDone?0:1) + ')">' + (isDone?'✓ Done':'Mark done') + '</button>' + (ovv!==undefined ? '<button class="autobtn" onclick="clearDone(' + sel + ',' + origIdx + ')" title="Use Tredict auto-detection">use auto</button>' : '') + '</div>'; }
+ if(d.t !== 'rest'){ var isDone = done === true; doneCtrl = '<div class="donerow"><button class="donebtn' + (isDone?' on':'') + '" onclick="setDone(' + sel + ',' + origIdx + ',' + (isDone?0:1) + ')">' + (isDone?'â Done':'Mark done') + '</button>' + (ovv!==undefined ? '<button class="autobtn" onclick="clearDone(' + sel + ',' + origIdx + ')" title="Use Tredict auto-detection">use auto</button>' : '') + '</div>'; }
  return '<div class="day ' + cls + '" data-orig="' + origIdx + '">'
- + '<div class="dname"><span class="dhandle">⋮⋮</span>' + (DAYS[pos] || '') + ' <span class="ddate">' + dateLbl + '</span>' + statusIcon + '</div>'
+ + '<div class="dname"><span class="dhandle">â®â®</span>' + (DAYS[pos] || '') + ' <span class="ddate">' + dateLbl + '</span>' + statusIcon + '</div>'
  + '<div class="dseg dplan"><span class="dlbl">PLAN</span><div class="dtype">' + d.s + '</div><div class="ddetail">' + d.d + '</div>' + physio + '</div>'
  + '<div class="dseg dlog"><span class="dlbl">LOGGED</span>' + logHtml + '</div>'
  + doneCtrl
@@ -1163,8 +1163,8 @@ function renderDetail() {
  bindDayDrag();
 }
 
-// ─── TAB / PACE NAV ──────────────────────────────────────────────────────────
-// ── STRENGTH CONFIG ──────────────────────────────────────────────────────────
+// âââ TAB / PACE NAV ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ââ STRENGTH CONFIG ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var STR_EX=[
  {id:'goblet', letter:'a', name:'Goblet squat',         wArr:[12,16,20,24], defWi:1, rArr:[8,10,12,15], defRi:2, unit:'kg'},
  {id:'wlunge', letter:'b', name:'Weighted lunge',        wArr:[16,20,25,30], defWi:1, rArr:[5,7,8,10],  defRi:1, unit:'kg', perleg:true},
@@ -1250,7 +1250,7 @@ function strHistHtml(){
   return log.slice(0,8).map(function(l,i){
     var gob=l.ex.goblet, wl=l.ex.wlunge;
     var ex=(gob?('Goblet '+strWLabel({wArr:[12,16,20,24]},gob.wi)+' \xd7'+[8,10,12,15][gob.ri]):'')+
-           (wl?' · Lunge '+strWLabel({wArr:[16,20,25,30]},wl.wi):'' );
+           (wl?' Â· Lunge '+strWLabel({wArr:[16,20,25,30]},wl.wi):'' );
     return '<div class="str-hist-row">'
       +'<span class="str-hist-date">'+l.date+'</span>'
       +'<span class="str-hist-rnd">'+l.rounds+' rounds</span>'
@@ -1262,9 +1262,9 @@ function strHistHtml(){
 function strLastNote(){
   var log=strGetLog(); if(!log.length) return 'No sessions logged yet.';
   var d=strDaysSince(log[0].date);
-  return 'Last session: '+(d===0?'today':(d===1?'yesterday':d+' days ago'))+' · '+log[0].rounds+' rounds';
+  return 'Last session: '+(d===0?'today':(d===1?'yesterday':d+' days ago'))+' Â· '+log[0].rounds+' rounds';
 }
-// ─────────────────────────────────────────────────────────────────────────────
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function showTab(id, btn) {
  ['today','plan','track','pace','str','nut'].forEach(function(t){
  var el=document.getElementById('t-'+t); if(el) el.style.display=(t===id)?'block':'none';
@@ -1285,7 +1285,7 @@ function showPace(id, btn) {
  renderRaceNow(id);
 }
 
-// ─── RACE DAY: WHERE AM I NOW ──────────────────────────────────────────────────
+// âââ RACE DAY: WHERE AM I NOW ââââââââââââââââââââââââââââââââââââââââââââââââââ
 var RACE_START = new Date(2026, 10, 20, 17, 0, 0); // Fri 20 Nov 2026, 17:00
 // Aid station tables: [tag, name, km, raceTimeMin (minutes from start)]
 var AID_P30 = [
@@ -1329,9 +1329,9 @@ function renderRaceNow(planId){
  var aid=planId==='p45'?AID_P45:(planId==='p40'?AID_P40:(planId==='p36'?AID_P36:AID_P30));
  var html;
  if(elapsedMin<0){
-  html='<div class="callout co-blu" style="margin-bottom:12px;"><strong>🏁 Race starts '+fmtClock(RACE_START)+'</strong> &#8212; '+fmtElapsed(-elapsedMin)+' to go.</div>';
+  html='<div class="callout co-blu" style="margin-bottom:12px;"><strong>ð Race starts '+fmtClock(RACE_START)+'</strong> &#8212; '+fmtElapsed(-elapsedMin)+' to go.</div>';
  } else if(elapsedMin>totalMin){
-  html='<div class="callout co-grn" style="margin-bottom:12px;"><strong>🏁 Finished!</strong> Target time '+fmtElapsed(totalMin)+' has passed &#8212; well done.</div>';
+  html='<div class="callout co-grn" style="margin-bottom:12px;"><strong>ð Finished!</strong> Target time '+fmtElapsed(totalMin)+' has passed &#8212; well done.</div>';
  } else {
   var next=null, prev=null;
   for(var i=0;i<aid.length;i++){ if(aid[i][3]>elapsedMin){ next=aid[i]; prev=aid[i-1]||aid[0]; break; } }
@@ -1345,12 +1345,12 @@ function renderRaceNow(planId){
    if(after){ var eta2=new Date(RACE_START.getTime()+after[3]*60000);
     rows+='<div class="rn-row"><span class="rn-tag">'+after[0]+'</span><span class="rn-name">'+after[1]+'</span><span class="rn-km">'+after[2]+'km</span><span class="rn-clock">ETA '+fmtClock(eta2)+'</span></div>'; }
   }
-  html='<div class="rn-card"><div class="rn-head">🏃 Race in progress &middot; '+fmtElapsed(elapsedMin)+' elapsed</div>'+rows+'</div>';
+  html='<div class="rn-card"><div class="rn-head">ð Race in progress &middot; '+fmtElapsed(elapsedMin)+' elapsed</div>'+rows+'</div>';
  }
  host.innerHTML=html;
 }
 
-// ─── GOOGLE SHEET SYNC ───────────────────────────────────────────────────────
+// âââ GOOGLE SHEET SYNC âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var SHEET_URL_KEY = 'utct_sheet_url';
 
 function loadSavedUrl() {
@@ -1368,12 +1368,12 @@ function syncFromSheet() {
 
  var btn = document.getElementById('syncBtn');
  btn.disabled = true;
- btn.textContent = 'Syncing…';
- setStatus('Fetching from Google Sheet…', '');
+ btn.textContent = 'Syncingâ¦';
+ setStatus('Fetching from Google Sheetâ¦', '');
  document.getElementById('plan-loading').style.display = 'block';
  document.getElementById('plan-error').style.display = 'none';
 
- // Use JSONP — sidesteps CORS completely (Apps Script redirects break fetch)
+ // Use JSONP â sidesteps CORS completely (Apps Script redirects break fetch)
  var cbName = '__utctCb_' + Date.now();
  var script = document.createElement('script');
  var timer = setTimeout(function() {
@@ -1386,7 +1386,7 @@ function syncFromSheet() {
  if (script.parentNode) script.parentNode.removeChild(script);
  clearTimeout(timer);
  btn.disabled = false;
- btn.textContent = '⟳ Sync';
+ btn.textContent = 'â³ Sync';
  document.getElementById('plan-loading').style.display = 'none';
  }
 
@@ -1398,7 +1398,7 @@ function syncFromSheet() {
  sel = 0;
  renderGrid();
  renderDetail();
- setStatus('✓ Synced ' + data.length + ' weeks — ' + new Date().toLocaleTimeString(), 'ok');
+ setStatus('â Synced ' + data.length + ' weeks â ' + new Date().toLocaleTimeString(), 'ok');
  };
 
  var sep = url.indexOf('?') > -1 ? '&' : '?';
@@ -1412,10 +1412,10 @@ function showSyncError(msg) {
  errEl.style.display = 'block';
  errEl.innerHTML = '<strong>Could not load from Google Sheet</strong><br>' + msg
  + '<br><br><strong>3 things to check:</strong><br>'
- + '1. In Apps Script: Deploy → Manage deployments → confirm "Who has access" = <strong>Anyone</strong><br>'
- + '2. After any script change, do <strong>Deploy → New deployment</strong> (not redeploy same version)<br>'
+ + '1. In Apps Script: Deploy â Manage deployments â confirm "Who has access" = <strong>Anyone</strong><br>'
+ + '2. After any script change, do <strong>Deploy â New deployment</strong> (not redeploy same version)<br>'
  + '3. Sheet tabs must be named exactly <strong>Weeks</strong> and <strong>Days</strong> (capital W and D)';
- setStatus('Sync failed — see details above.', 'err');
+ setStatus('Sync failed â see details above.', 'err');
 }
 
 function setStatus(msg, cls) {
@@ -1424,7 +1424,7 @@ function setStatus(msg, cls) {
  el.className = 'sync-status' + (cls ? ' ' + cls : '');
 }
 
-// ─── CURRENT WEEK MARKER ─────────────────────────────────────────────────────
+// âââ CURRENT WEEK MARKER âââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function markCurrentWeek() {
   var today = new Date();
   var months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
@@ -1443,9 +1443,9 @@ function markCurrentWeek() {
   }
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// âââ INIT âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-// ─── STRAVA LIVE INTEGRATION ──────────────────────────────────────────────────
+// âââ STRAVA LIVE INTEGRATION ââââââââââââââââââââââââââââââââââââââââââââââââââ
 var ACT = [];
 var MATCH = {};
 var STRAVA_TOOL = 'mcp__a3bfc159-2746-42d4-9f76-57da38a9308b__list_activities';
@@ -1596,7 +1596,7 @@ function dayDone(wi, pos){
   return acts.some(isRunAct);
 }
 
-// ─── MANUAL DONE OVERRIDE (takes precedence over Strava auto-match) ────────────
+// âââ MANUAL DONE OVERRIDE (takes precedence over Strava auto-match) ââââââââââââ
 var DONE_KEY='utct_done_v1';
 var DONEOV=(function(){ try{return JSON.parse(localStorage.getItem(DONE_KEY))||{};}catch(e){return {};} })();
 function saveDone(){ try{ localStorage.setItem(DONE_KEY, JSON.stringify(DONEOV)); }catch(e){} }
@@ -1622,19 +1622,19 @@ function weekKeyStats(wi){
 function weekCheckBadge(w){
   var wi = W.indexOf(w), m = MATCH[wi]; if(!m) return '';
   var ks = weekKeyStats(wi); if(ks.total === 0) return '';
-  if(ks.done >= ks.total) return '<span class="wcheck done">✓ done</span>';
+  if(ks.done >= ks.total) return '<span class="wcheck done">â done</span>';
   if(ks.done > 0) return '<span class="wcheck part">' + ks.done + '/' + ks.total + '</span>';
   return '';
 }
-function dayCheckMark(w, d){ var wi = W.indexOf(w); return dayDone(wi, d) === true ? '<span class="dcheck">✓</span>' : ''; }
+function dayCheckMark(w, d){ var wi = W.indexOf(w); return dayDone(wi, d) === true ? '<span class="dcheck">â</span>' : ''; }
 
 function weekActBox(w){
   var wi=W.indexOf(w), m=MATCH[wi]; if(!m) return '';
   var kmPct = w.km?Math.round(m.actKm/w.km*100):0;
-  return '<div class="weeklog"><span class="wlk">\u{1F4F1} Logged this week</span> <strong>'+m.actKm.toFixed(1)+' km · '+Math.round(m.actVert)+' m</strong> <span class="wlmut">('+kmPct+'% of '+w.km+' km plan)</span></div>';
+  return '<div class="weeklog"><span class="wlk">\u{1F4F1} Logged this week</span> <strong>'+m.actKm.toFixed(1)+' km Â· '+Math.round(m.actVert)+' m</strong> <span class="wlmut">('+kmPct+'% of '+w.km+' km plan)</span></div>';
 }
 
-// ─── LOAD CHECK ──────────────────────────────────────────────────────────────
+// âââ LOAD CHECK ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // Compares actual vs planned km for the current week (pro-rated to today) and flags
 // meaningful over/under-load with a concrete suggestion.
 function loadCheckHtml(){
@@ -1648,13 +1648,13 @@ function loadCheckHtml(){
   var remainKm=Math.max(0, w.km-actKm), remainDays=7-daysElapsed;
   if(diff<0){
     var perDay=remainDays>0?(remainKm/remainDays).toFixed(1):remainKm.toFixed(1);
-    return '<div class="callout co-amb" style="margin-bottom:10px;"><strong>⚠ Behind plan:</strong> '+actKm.toFixed(1)+' km logged vs ~'+expectedKm.toFixed(1)+' km expected by now ('+pct+'%). '
+    return '<div class="callout co-amb" style="margin-bottom:10px;"><strong>â  Behind plan:</strong> '+actKm.toFixed(1)+' km logged vs ~'+expectedKm.toFixed(1)+' km expected by now ('+pct+'%). '
       +(remainDays>0
         ? ('To hit '+w.km+' km this week, remaining sessions average ~'+perDay+' km/day &#8212; or extend the next long run and let a smaller session slide.')
         : ('Week is closing '+remainKm.toFixed(1)+' km short. Not worth chasing now &#8212; note it and move on; consistency over the block matters more than one week.'))
       +'</div>';
   } else {
-    return '<div class="callout co-blu" style="margin-bottom:10px;"><strong>ℹ Ahead of plan:</strong> '+actKm.toFixed(1)+' km logged vs ~'+expectedKm.toFixed(1)+' km expected ('+pct+'%). '
+    return '<div class="callout co-blu" style="margin-bottom:10px;"><strong>â¹ Ahead of plan:</strong> '+actKm.toFixed(1)+' km logged vs ~'+expectedKm.toFixed(1)+' km expected ('+pct+'%). '
       +(remainDays>0
         ? 'Good buffer &#8212; no need to add extra volume. If legs feel heavy, treat an upcoming session as easy/optional recovery.'
         : 'Strong week. Make sure tomorrow starts the next week fresh rather than carrying fatigue in.')
@@ -1672,7 +1672,7 @@ function renderNextUp(){
   var wrap = document.getElementById('nextup-wrap'); if(!wrap) return;
   var wi = currentWeekIdx(), w = W[wi], m = MATCH[wi] || { actKm:0, actVert:0 };
   var today = new Date(), dow = (today.getDay()+6) % 7;
-  var nextTxt = 'All tracked sessions for this week are done — recover well.', nextSub = '';
+  var nextTxt = 'All tracked sessions for this week are done â recover well.', nextSub = '';
   var days = w.dy || [], ord = dayOrder(wi);
   for(var oi=0;oi<ord.length;oi++){
     var d = days[ord[oi]], r = effectiveDone(wi, oi);
@@ -1684,7 +1684,7 @@ function renderNextUp(){
   var kmPct = Math.min(100, w.km ? Math.round(m.actKm/w.km*100) : 0);
   var vPct = Math.min(100, w.v ? Math.round(m.actVert/w.v*100) : 0);
   wrap.innerHTML = '<div class="nextup">'
-    + '<div class="nl">Next up — Week ' + w.n + ' · ' + w.dt + '</div>'
+    + '<div class="nl">Next up â Week ' + w.n + ' Â· ' + w.dt + '</div>'
     + '<div class="nv">' + nextTxt + '</div>'
     + (nextSub ? ('<div class="nd">' + nextSub + '</div>') : '')
     + '<div class="weekprog">'
@@ -1701,17 +1701,17 @@ function loadStrava(){
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){
     setStravaStatus('Open in Cowork to sync Strava', 'err'); rerenderAll(); return;
   }
-  setStravaStatus('Syncing…');
+  setStravaStatus('Syncingâ¦');
   window.__cowork_stub__.callMcpTool(STRAVA_TOOL, { first: 100 }).then(function(res){
     ACT = extractActivities(res); rerenderAll();
-    setStravaStatus('Synced ' + ACT.length + ' activities · ' + new Date().toLocaleTimeString(), 'ok');
+    setStravaStatus('Synced ' + ACT.length + ' activities Â· ' + new Date().toLocaleTimeString(), 'ok');
   }).catch(function(e){
     setStravaStatus('Could not reach Strava: ' + (e && e.message ? e.message : e), 'err'); rerenderAll();
   });
   loadHrZones();
 }
 
-// ─── HR ZONES ────────────────────────────────────────────────────────────────
+// âââ HR ZONES ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var HR_ZONES=null;
 function loadHrZones(){
   var key='utct_hrzones';
@@ -1760,16 +1760,16 @@ function zoneCheck(){
     var a=acts[0]; if(!a.average_heartrate) return '';
     var zi=hrZoneIndex(Math.round(a.average_heartrate));
     if(zi>=2){ // Zone 3+
-      return 'Yesterday\'s "'+d.s+'" averaged '+Math.round(a.average_heartrate)+' bpm (Zone '+(zi+1)+') — hotter than an easy session should be. If today is also a training day, consider keeping it deliberately easy.';
+      return 'Yesterday\'s "'+d.s+'" averaged '+Math.round(a.average_heartrate)+' bpm (Zone '+(zi+1)+') â hotter than an easy session should be. If today is also a training day, consider keeping it deliberately easy.';
     }
     return '';
   }
   return '';
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
+// âââ INIT âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-// ─── RACE COUNTDOWN TICKER ────────────────────────────────────────────────────
+// âââ RACE COUNTDOWN TICKER ââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var RACES=[
  {n:'Backyard Ultra', d:'2026-10-31', tag:'B', wk:7},
  {n:'UTCT 100M', d:'2026-11-20', tag:'A', wk:10}
@@ -1783,7 +1783,7 @@ function renderTicker(){
   el.innerHTML=RACES.map(function(r,ri){
     var n=daysUntil(r.d), done=n<0;
     var cls='rchip rclick'+(r.tag==='A'?' arace':'')+(r.n===nextName?' next':'')+(done?' rdone':'');
-    var big=done?'✓ done':fmtCountdown(n);
+    var big=done?'â done':fmtCountdown(n);
     return '<div class="'+cls+'" onclick="openRaceDetail('+ri+')" title="Tap for race details"><div class="rd">'+big+'</div><div class="rn">'+r.n+(r.cond?' *':'')+'</div></div>';
   }).join('')+'<div class="rchip rnote">* ballot /<br>conditional</div>';
 }
@@ -1810,7 +1810,7 @@ function raceStatsHtml(a){
   if(a.average_cadence) cells.push(rmStat('Cadence', Math.round(a.average_cadence*2)+' spm'));
   if(a.suffer_score) cells.push(rmStat('Effort', a.suffer_score));
   if(a.kilojoules) cells.push(rmStat('Work', Math.round(a.kilojoules)+' kJ'));
-  var link=a.id?'<a class="rm-link" href="https://www.strava.com/activities/'+a.id+'" target="_blank" rel="noopener">View on Strava ↗</a>':'';
+  var link=a.id?'<a class="rm-link" href="https://www.strava.com/activities/'+a.id+'" target="_blank" rel="noopener">View on Strava â</a>':'';
   return '<div class="rm-stats">'+cells.join('')+'</div>'+link;
 }
 function raceTargetHtml(w){ return '<div class="rm-stats">'+rmStat('Distance', w.rk||(w.km+' km'))+rmStat('Elevation', w.rv||(w.v+' m'))+'</div>'; }
@@ -1818,10 +1818,10 @@ function loadRaceInsight(a, w){
   var out=document.getElementById('rm-insight'); if(!out) return;
   var km=(a.distance||0)/1000, mt=a.moving_time||0, paceSec=km>0?Math.round(mt/km):null;
   function rule(){ var pm=paceSec?(Math.floor(paceSec/60)+':'+('0'+(paceSec%60)).slice(-2)):'?';
-    return 'You covered '+km.toFixed(1)+' km with '+Math.round(a.total_elevation_gain||0)+' m of climbing in '+Math.floor(mt/3600)+'h'+('0'+Math.round((mt%3600)/60)).slice(-2)+', averaging '+pm+'/km'+(a.average_heartrate?(' at '+Math.round(a.average_heartrate)+' bpm'):'')+'. '+((a.average_heartrate&&a.average_heartrate<150)?'Heart rate stayed controlled — strong aerobic discipline on this terrain.':'A committed, hard effort.'); }
+    return 'You covered '+km.toFixed(1)+' km with '+Math.round(a.total_elevation_gain||0)+' m of climbing in '+Math.floor(mt/3600)+'h'+('0'+Math.round((mt%3600)/60)).slice(-2)+', averaging '+pm+'/km'+(a.average_heartrate?(' at '+Math.round(a.average_heartrate)+' bpm'):'')+'. '+((a.average_heartrate&&a.average_heartrate<150)?'Heart rate stayed controlled â strong aerobic discipline on this terrain.':'A committed, hard effort.'); }
   function show(t){ out.innerHTML='<div class="rm-plan"><span class="dlbl">INSIGHTS</span>'+t+'</div>'; }
   var key='utct_raceins_'+a.id, cached=null; try{ cached=localStorage.getItem(key); }catch(e){}
-  if(cached && !looksLikeAiError(cached)){ show(cached); return; }            // cached once per race — no repeat Claude call
+  if(cached && !looksLikeAiError(cached)){ show(cached); return; }            // cached once per race â no repeat Claude call
   if(cached){ try{ localStorage.removeItem(key); }catch(e){} }                // drop stale error/limit message so we retry
   if(aiOn() && window.__cowork_stub__ && window.__cowork_stub__.askClaude){
     var data={ distanceKm:+km.toFixed(1), movingTimeMin:Math.round(mt/60), elevationM:Math.round(a.total_elevation_gain||0), avgHr:a.average_heartrate, maxHr:a.max_heartrate, avgPaceSecPerKm:paceSec, sufferScore:a.suffer_score, plannedKm:w&&w.km, plannedVert:w&&w.v };
@@ -1849,10 +1849,10 @@ function openRaceDetail(i){
   var n=daysUntil(race.d), done=n<0, w=W[(race.wk||1)-1]||{};
   var html='<div class="rm-card"><button class="rm-close" onclick="closeRaceDetail()">&times;</button>'
     +'<div class="rm-title">'+race.n+'</div>'
-    +'<div class="rm-sub">'+new Date(race.d+'T00:00:00').toDateString()+' · '+(done?'Completed':(n===0?'Race day!':'in '+fmtCountdown(n)))+'</div>';
+    +'<div class="rm-sub">'+new Date(race.d+'T00:00:00').toDateString()+' Â· '+(done?'Completed':(n===0?'Race day!':'in '+fmtCountdown(n)))+'</div>';
   if(done){
     var a=findRaceActivity(race);
-    if(a){ html+='<div id="rm-stats">'+raceStatsHtml(a)+'</div><div id="rm-insight"><div class="loading-msg"><div class="loading-spinner"></div><br>Generating insights…</div></div><div id="rm-splits"></div>'; }
+    if(a){ html+='<div id="rm-stats">'+raceStatsHtml(a)+'</div><div id="rm-insight"><div class="loading-msg"><div class="loading-spinner"></div><br>Generating insightsâ¦</div></div><div id="rm-splits"></div>'; }
     else { html+='<div class="callout co-amb" style="margin:6px 0;">No activity found within a few days of this race yet. Once it syncs from Tredict, full stats will show here.</div>'; }
   } else {
     html+='<div class="rm-up"><div class="rm-count">'+(n===0?'TODAY':fmtCountdown(n))+'</div><div class="rm-uplbl">until race day</div></div>';
@@ -1938,13 +1938,13 @@ function splitsTableHtml(sp){
   sp.forEach(function(x,idx){ var g=x.average_grade_adjusted_speed||x.average_speed||0, gp=g>0?1000/g:0; if(idx<half){f+=gp;fc++;}else{s2+=gp;sc++;} });
   var fade='';
   if(fc&&sc){ var diff=Math.round(s2/sc - f/fc);
-    fade='<div class="rm-fade">'+(diff>8?('Faded late — second half ~'+diff+'s/km slower, grade-adjusted.'):(diff<-8?('Strong finish — second half ~'+Math.abs(diff)+'s/km faster, grade-adjusted.'):'Even effort front to back (grade-adjusted) — well controlled.'))+'</div>'; }
+    fade='<div class="rm-fade">'+(diff>8?('Faded late â second half ~'+diff+'s/km slower, grade-adjusted.'):(diff<-8?('Strong finish â second half ~'+Math.abs(diff)+'s/km faster, grade-adjusted.'):'Even effort front to back (grade-adjusted) â well controlled.'))+'</div>'; }
   var rows=sp.map(function(x){ var km=(x.distance||1000)/1000, pace=km>0?(x.moving_time||x.elapsed_time)/km:0, ed=Math.round(x.elevation_difference||0), hr=x.average_heartrate?Math.round(x.average_heartrate):'';
-    return '<tr><td>'+x.split+'</td><td>'+fmtPace(pace)+'</td><td>'+(ed>0?'+':'')+ed+' m</td><td>'+(hr||'—')+'</td></tr>'; }).join('');
+    return '<tr><td>'+x.split+'</td><td>'+fmtPace(pace)+'</td><td>'+(ed>0?'+':'')+ed+' m</td><td>'+(hr||'â')+'</td></tr>'; }).join('');
   return '<div class="rm-plan"><span class="dlbl">PER-KM SPLITS</span>'+fade+'<div class="rm-chartwrap"><canvas id="rm-splitchart"></canvas></div><div class="rm-splitwrap"><table class="rm-splittable"><thead><tr><th>Km</th><th>Pace /km</th><th>Elev</th><th>HR</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 
-// ─── DAY ORDER + DRAG-AND-DROP ────────────────────────────────────────────────
+// âââ DAY ORDER + DRAG-AND-DROP ââââââââââââââââââââââââââââââââââââââââââââââââ
 var ORDER_KEY='utct_dayorder_v3';
 var ORDER=(function(){ try{return JSON.parse(localStorage.getItem(ORDER_KEY))||{};}catch(e){return {};} })();
 function saveOrder(){ try{localStorage.setItem(ORDER_KEY, JSON.stringify(ORDER));}catch(e){} }
@@ -1977,7 +1977,7 @@ function startDrag(e){
   cell.classList.add('dragging');
   drag.wrap.classList.add('drag-active');
   var nm=cell.querySelector('.dtype'); nm=nm?nm.textContent:'session';
-  dragHint(true, '↕ Moving: ' + nm + ' — drop on a day to place it');
+  dragHint(true, 'â Moving: ' + nm + ' â drop on a day to place it');
   try{ cell.setPointerCapture(e.pointerId); }catch(_){}
   document.addEventListener('pointermove', moveDrag);
   document.addEventListener('pointerup', endDrag);
@@ -2014,7 +2014,7 @@ function endDrag(e){
   drag=null;
 }
 
-// ─── TRACKING TAB ─────────────────────────────────────────────────────────────
+// âââ TRACKING TAB âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 var trackChartObj=null;
 function renderTracking(){
   var tbl=document.getElementById('trackTable'); if(!tbl) return;
@@ -2022,13 +2022,13 @@ function renderTracking(){
   var rows='<thead><tr><th>Wk</th><th>Dates</th><th>Phase</th><th>Plan km</th><th>Act km</th><th>Act Vert</th><th>Plan Vert</th><th>Sess</th><th></th></tr></thead><tbody>';
   W.forEach(function(w,i){
     var m=MATCH[i]||{actKm:0,actVert:0}, ks=weekKeyStats(i), future=i>cw, pk=phk(w);
-    var status=future?'·':(ks.total>0&&ks.done>=ks.total?'✓':(ks.done>0?'◐':'—'));
-    var aK=future?'—':m.actKm.toFixed(0), aV=future?'—':Math.round(m.actVert), sess=future?'—':(ks.done+'/'+ks.total);
+    var status=future?'Â·':(ks.total>0&&ks.done>=ks.total?'â':(ks.done>0?'â':'â'));
+    var aK=future?'â':m.actKm.toFixed(0), aV=future?'â':Math.round(m.actVert), sess=future?'â':(ks.done+'/'+ks.total);
     var rowStyle=i===cw?' style="background:rgba(29,158,117,.10);"':(future?' style="opacity:.5;"':'');
     rows+='<tr'+rowStyle+'><td><strong>'+w.n+'</strong></td><td>'+w.dt+'</td>'
       +'<td><span class="dpill" style="background:'+PBG[pk]+';color:'+PTC[pk]+';font-size:9px;padding:2px 7px;">'+PN[pk]+'</span></td>'
       +'<td>'+w.km+'</td><td>'+aK+'</td>'
-      +'<td>'+(future?'—':aV)+'</td><td>'+(w.v>=1000?(w.v/1000).toFixed(1)+'k':w.v)+'</td>'
+      +'<td>'+(future?'â':aV)+'</td><td>'+(w.v>=1000?(w.v/1000).toFixed(1)+'k':w.v)+'</td>'
       +'<td>'+sess+'</td><td style="font-size:14px;text-align:center;">'+status+'</td></tr>';
   });
   tbl.innerHTML=rows+'</tbody>';
@@ -2059,9 +2059,9 @@ function buildTrackChart(){
   });
 }
 
-// ─── INIT (v3) ───
+// âââ INIT (v3) âââ
 
-// ─── TODAY / MORNING BRIEFING TAB ─────────────────────────────────────────────
+// âââ TODAY / MORNING BRIEFING TAB âââââââââââââââââââââââââââââââââââââââââââââ
 var UTCT_RACE = new Date('2026-11-20T00:00:00');
 var BRIEF_PROMPT = "You are Josh's coach writing a short, context-appropriate morning briefing for his UTCT 100 Miler build. You get ONE JSON object with today's planned session and its type, days-to-race, recent Strava activities, HealthBridge data (sleep, resting heart rate ~48-52 baseline, HRV, recent workouts), and an optional zoneNote flagging if yesterday's easy run was run in a higher heart-rate zone than intended. Decide what actually matters TODAY and lead with that: it might be recovery (after a hard day, poor sleep, or a zoneNote), execution cues for a key/long/race session, logistics on a travel or recce week, fuelling, or simply a green light on an easy day. Do not force a recovery angle when it is not the story. Write 80-140 words of plain text, no markdown headings: open with the date, days-to-race and today's session; give one or two sentences of the single most relevant insight (use only numbers present in the data, never invent values); then a clear, decisive recommendation for today. If zoneNote is present, weigh it into today's recommendation. If physioDue is true, add a one-line reminder. Warm, direct, specific. Training guidance, not medical advice.";
 
@@ -2094,23 +2094,23 @@ function metricVal(hb, name){ if(!hb||!hb.metrics) return null; for(var i=0;i<hb
 
 function ruleBrief(data){
   var hb=data.recovery||{}, L=[];
-  L.push(data.date + ' — ' + data.daysToRace + ' days to UTCT. Today: ' + data.plannedToday + '.');
+  L.push(data.date + ' â ' + data.daysToRace + ' days to UTCT. Today: ' + data.plannedToday + '.');
   if(hb.sleep && hb.sleep.avgAsleepMinutes){ var m=Math.round(hb.sleep.avgAsleepMinutes); L.push('Sleep (recent avg): ' + Math.floor(m/60) + 'h' + ('0'+(m%60)).slice(-2) + ' at ' + Math.round(hb.sleep.avgEfficiencyPct||0) + '% efficiency.'); }
   var rhr=metricVal(hb,'Resting Heart Rate'), hrv=metricVal(hb,'Heart Rate Variability (SDNN)');
   var recovered=true;
-  if(rhr&&rhr.avg){ var hi=rhr.avg>54; if(hi) recovered=false; L.push('Resting HR ~'+Math.round(rhr.avg)+' bpm'+(hi?' (a touch high — possible fatigue).':' (steady).')); }
+  if(rhr&&rhr.avg){ var hi=rhr.avg>54; if(hi) recovered=false; L.push('Resting HR ~'+Math.round(rhr.avg)+' bpm'+(hi?' (a touch high â possible fatigue).':' (steady).')); }
   if(hrv&&hrv.avg){ L.push('HRV ~'+Math.round(hrv.avg)+' ms.'); }
   var last=(data.recentActivities||[])[0];
   if(last){ L.push('Last logged: '+last.name+(last.km?(' '+last.km+'km'):'')+(last.vert?(' / '+Math.round(last.vert)+'m'):'')+(last.avgHr?(' @ '+Math.round(last.avgHr)+'bpm avg'):'')+'.'); }
   if(data.zoneNote){ L.push(data.zoneNote); recovered=false; }
   var planTag=(todayInfo().d||{}).t;
-  if(planTag==='rest'){ L.push('Recommendation: rest day — keep it easy and sleep well.'); }
-  else if(recovered){ L.push('Recommendation: green light — do today\'s session as planned.'); }
-  else { L.push('Recommendation: ease off — keep it Z1-2 or swap for easy, and prioritise sleep tonight.'); }
-  if(data.physioDue) L.push('Physio: ankle routine due today — tick it in the Plan tab when done.');
+  if(planTag==='rest'){ L.push('Recommendation: rest day â keep it easy and sleep well.'); }
+  else if(recovered){ L.push('Recommendation: green light â do today\'s session as planned.'); }
+  else { L.push('Recommendation: ease off â keep it Z1-2 or swap for easy, and prioritise sleep tonight.'); }
+  if(data.physioDue) L.push('Physio: ankle routine due today â tick it in the Plan tab when done.');
   var strLog=strGetLog();
-  if(strLog.length){ var sd=strDaysSince(strLog[0].date); if(sd>=4) L.push('Strength: last session '+sd+' days ago — due soon if phase calls for it.'); }
-  else { L.push('Strength: no sessions logged yet — log after your next circuit.'); }
+  if(strLog.length){ var sd=strDaysSince(strLog[0].date); if(sd>=4) L.push('Strength: last session '+sd+' days ago â due soon if phase calls for it.'); }
+  else { L.push('Strength: no sessions logged yet â log after your next circuit.'); }
   return L.join('\n');
 }
 
@@ -2120,7 +2120,7 @@ function briefHtml(t){
   return '<div class="briefcard"><div class="dlbl">TODAY\'S BRIEFING</div>'+html+'</div>';
 }
 
-// ─── COROS TEXT PARSERS ───────────────────────────────────────────────────────
+// âââ COROS TEXT PARSERS âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function corosUnwrapText(res){
   if(!res) return '';
   if(typeof res==='string') return res;
@@ -2128,7 +2128,7 @@ function corosUnwrapText(res){
   if(res.structuredContent && typeof res.structuredContent==='string') return res.structuredContent;
   return '';
 }
-// Parse COROS RHR text: "YYYY-MM-DD: NN bpm" lines → [{qty,recordedAt}]
+// Parse COROS RHR text: "YYYY-MM-DD: NN bpm" lines â [{qty,recordedAt}]
 function parseCOROS_RHR(text){
   var samples=[];
   if(!text) return samples;
@@ -2138,7 +2138,7 @@ function parseCOROS_RHR(text){
   });
   return samples;
 }
-// Parse COROS training load text → [{qty:stl,recordedAt}]
+// Parse COROS training load text â [{qty:stl,recordedAt}]
 function parseCOROS_TrainingLoad(text){
   var samples=[], curDate=null;
   if(!text) return samples;
@@ -2152,7 +2152,7 @@ function parseCOROS_TrainingLoad(text){
   return samples;
 }
 
-// ─── RECOVERY TREND (last 8 weeks: resting HR, training load) ─────────────────
+// âââ RECOVERY TREND (last 8 weeks: resting HR, training load) âââââââââââââââââ
 function trendMondayOf(d){ var x=new Date(d); if(isNaN(x)) return null; x.setHours(0,0,0,0); var day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); return x; }
 function trendParseSamples(res){ var d=hbUnwrap(res); return Array.isArray(d)?d:[]; }
 function trendWeekly(samples){
@@ -2167,19 +2167,19 @@ function trendWeeklySleep(res){
 function trendBaseLast(arr){ if(arr.length<2) return null; var prev=arr.slice(0,-1); return { base:prev.reduce(function(s,x){return s+x.avg;},0)/prev.length, last:arr[arr.length-1].avg }; }
 function trendFlag(data){
   var msgs=[], level=0;
-  var r=trendBaseLast(data.rhr); if(r){ var dr=r.last-r.base; if(dr>=3){ level=Math.max(level, dr>=5?2:1); msgs.push('Resting HR is about '+Math.round(dr)+' bpm above your recent baseline — a classic early sign of fatigue or a cold coming on.'); } else if(r.base-r.last>=2){ msgs.push('Resting HR is drifting down (good adaptation).'); } }
-  var s=trendBaseLast(data.sleep); if(s){ var ds=s.base-s.last; if(ds>=30){ level=Math.max(level,1); msgs.push('Sleep is down about '+(Math.round(ds/6)/10)+'h/night vs baseline — protect it this week.'); } }
-  if(data.hrv.length>=3){ var hv=trendBaseLast(data.hrv); if(hv && hv.base && (hv.base-hv.last)/hv.base>=0.1){ level=Math.max(level,1); msgs.push('HRV is trending down — another fatigue signal.'); } }
-  if(!msgs.length) msgs.push('Resting HR, HRV and sleep are stable — recovery is on track.');
+  var r=trendBaseLast(data.rhr); if(r){ var dr=r.last-r.base; if(dr>=3){ level=Math.max(level, dr>=5?2:1); msgs.push('Resting HR is about '+Math.round(dr)+' bpm above your recent baseline â a classic early sign of fatigue or a cold coming on.'); } else if(r.base-r.last>=2){ msgs.push('Resting HR is drifting down (good adaptation).'); } }
+  var s=trendBaseLast(data.sleep); if(s){ var ds=s.base-s.last; if(ds>=30){ level=Math.max(level,1); msgs.push('Sleep is down about '+(Math.round(ds/6)/10)+'h/night vs baseline â protect it this week.'); } }
+  if(data.hrv.length>=3){ var hv=trendBaseLast(data.hrv); if(hv && hv.base && (hv.base-hv.last)/hv.base>=0.1){ level=Math.max(level,1); msgs.push('HRV is trending down â another fatigue signal.'); } }
+  if(!msgs.length) msgs.push('Resting HR, HRV and sleep are stable â recovery is on track.');
   return {level:level, text:msgs.join(' ')};
 }
 function trendHtml(data){
   var f=trendFlag(data), co=f.level>=2?'co-rd':(f.level===1?'co-amb':'co-grn');
-  var rhrL=data.rhr.length?Math.round(data.rhr[data.rhr.length-1].avg)+' bpm':'—';
-  var loadL=(data.load&&data.load.length)?Math.round(data.load[data.load.length-1].avg)+' STL':'—';
-  var slpL=data.sleep.length?(Math.round(data.sleep[data.sleep.length-1].avg/6)/10)+'h':'—';
-  var hrvL=data.hrv.length?Math.round(data.hrv[data.hrv.length-1].avg)+' ms':'—';
-  return '<div class="card"><h3>Recovery trend <span style="font-weight:400;color:var(--t2);font-size:11px;">· last 8 weeks · COROS + Apple Health</span></h3>'
+  var rhrL=data.rhr.length?Math.round(data.rhr[data.rhr.length-1].avg)+' bpm':'â';
+  var loadL=(data.load&&data.load.length)?Math.round(data.load[data.load.length-1].avg)+' STL':'â';
+  var slpL=data.sleep.length?(Math.round(data.sleep[data.sleep.length-1].avg/6)/10)+'h':'â';
+  var hrvL=data.hrv.length?Math.round(data.hrv[data.hrv.length-1].avg)+' ms':'â';
+  return '<div class="card"><h3>Recovery trend <span style="font-weight:400;color:var(--t2);font-size:11px;">Â· last 8 weeks Â· COROS + Apple Health</span></h3>'
     +'<div class="callout '+co+'" style="margin-bottom:11px;">'+f.text+'</div>'
     +'<div class="trendstats"><span>Resting HR<strong>'+rhrL+'</strong></span><span>Sleep<strong>'+slpL+'</strong></span><span>HRV<strong>'+hrvL+'</strong></span><span>STL<strong>'+loadL+'</strong></span></div>'
     +'<div style="position:relative;height:180px;margin-top:10px;"><canvas id="trendChart"></canvas></div>'
@@ -2225,7 +2225,7 @@ function renderTrend(){
   }).catch(function(e){ host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="callout co-rd">Couldn\'t load trend: '+(e&&e.message?e.message:e)+'</div></div>'; });
 }
 
-// ─── SHOE MILEAGE ─────────────────────────────────────────────────────────────
+// âââ SHOE MILEAGE âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function shoeStatus(km){ if(km>=700) return {cls:'red',label:'Replace'}; if(km>=500) return {cls:'amb',label:'Rotate / replace soon'}; return {cls:'grn',label:'Good'}; }
 function renderShoes(){
   var host=document.getElementById('shoe-body'); if(!host) return;
@@ -2255,8 +2255,8 @@ function renderShoes(){
         +'<div class="shoe-st '+st.cls+'">'+st.label+'</div></div>';
     }).join('');
     var over=shoes.filter(function(s){ var km=Math.round((gearKm[s.id]||(s.converted_distance||0))/1000)||Math.round((s.distance||0)/1000); return km>=700; }).length;
-    var head=over?('<div class="callout co-rd" style="margin-bottom:11px;">'+over+' shoe'+(over>1?'s are':' is')+' past ~700 km — retire '+(over>1?'them':'it')+' before peak mileage. Worn midsoles are a real injury risk given your right-ankle history.</div>'):'';
-    var html=head+'<div class="shoes">'+rows+'</div><p style="font-size:11px;color:var(--t2);margin-top:9px;">Mileage from your recent Strava activities. Rough guide: trail shoes lose midsole protection around 500–700 km — rotate before, replace after.</p>';
+    var head=over?('<div class="callout co-rd" style="margin-bottom:11px;">'+over+' shoe'+(over>1?'s are':' is')+' past ~700 km â retire '+(over>1?'them':'it')+' before peak mileage. Worn midsoles are a real injury risk given your right-ankle history.</div>'):'';
+    var html=head+'<div class="shoes">'+rows+'</div><p style="font-size:11px;color:var(--t2);margin-top:9px;">Mileage from your recent Strava activities. Rough guide: trail shoes lose midsole protection around 500â700 km â rotate before, replace after.</p>';
     host.innerHTML=html;
     try{ localStorage.setItem('utct_shoes_cache', JSON.stringify({date:ymd(new Date()), html:html})); }catch(e){}
   }).catch(function(e){ host.innerHTML='<div class="callout co-rd">Could not load gear from Strava: '+(e&&e.message?e.message:e)+'</div>'; });
@@ -2264,21 +2264,21 @@ function renderShoes(){
 function aiOn(){ try{ return localStorage.getItem('utct_ai')!=='0'; }catch(e){ return true; } }
 function toggleAI(){ try{ localStorage.setItem('utct_ai', aiOn()?'0':'1'); }catch(e){} try{ localStorage.removeItem('utct_brief_cache'); }catch(e){} renderToday(); }
 function refreshBriefing(){ try{ localStorage.removeItem('utct_brief_cache'); }catch(e){} renderToday(); }
-function briefFooter(){ return '<div class="brief-foot"><button class="brief-btn" onclick="refreshBriefing()">↻ Regenerate</button><button class="brief-btn" onclick="toggleAI()">AI insights: '+(aiOn()?'On':'Off')+'</button></div>'; }
+function briefFooter(){ return '<div class="brief-foot"><button class="brief-btn" onclick="refreshBriefing()">â» Regenerate</button><button class="brief-btn" onclick="toggleAI()">AI insights: '+(aiOn()?'On':'Off')+'</button></div>'; }
 function renderToday(){
   var host=document.getElementById('today-body'); if(!host) return;
   var ti=todayInfo();
-  var planLine = ti.d ? (ti.d.s + (ti.d.d?(' — '+ti.d.d):'')) : 'Rest day';
+  var planLine = ti.d ? (ti.d.s + (ti.d.d?(' â '+ti.d.d):'')) : 'Rest day';
   var physio = !!(ti.d && ti.d.ph);
   var head='<div class="todayhead"><div class="th-date">'+new Date().toDateString()+' &middot; '+raceCountdown()+' days to UTCT &middot; Week '+ti.w.n+' ('+PN[phk(ti.w)]+')</div>'
     +'<div class="th-plan"><span class="dlbl">TODAY\'S PLAN</span><div class="th-plan-v">'+planLine+'</div></div>'
-    +(physio?'<div class="th-phys">＋ Ankle physio due today — tick it in the Plan tab when done.</div>':'')+'</div>'
+    +(physio?'<div class="th-phys">ï¼ Ankle physio due today â tick it in the Plan tab when done.</div>':'')+'</div>'
     +loadCheckHtml();
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){
     host.innerHTML=head+'<div class="callout co-amb">The recovery briefing runs in the desktop Cowork app (COROS data isn\'t available without the Cowork connection). Your plan, Strava tracking and tracking tab all still work here.</div>';
     return;
   }
-  // Serve today's cached briefing — avoids a fresh Claude/HealthBridge call on every open.
+  // Serve today's cached briefing â avoids a fresh Claude/HealthBridge call on every open.
   var cached=null; try{ cached=JSON.parse(localStorage.getItem('utct_brief_cache')); }catch(e){}
   if(cached && cached.date===ymd(new Date()) && cached.html){
     host.innerHTML=head+'<div id="brief-out">'+cached.html+briefFooter()+'</div>'; return;
@@ -2286,9 +2286,9 @@ function renderToday(){
   // Wait for Strava to load before generating (so it only runs once, with real data).
   if(!(ACT && ACT.length)){
     setTimeout(function(){ if(!(ACT&&ACT.length)) refreshBriefing(); },8000);
-    host.innerHTML=head+'<div id="brief-out"><div class="loading-msg" style="padding:18px;">Your briefing will appear once activities finish syncing…</div>'+briefFooter()+'</div>'; return;
+    host.innerHTML=head+'<div id="brief-out"><div class="loading-msg" style="padding:18px;">Your briefing will appear once activities finish syncingâ¦</div>'+briefFooter()+'</div>'; return;
   }
-  host.innerHTML=head+'<div id="brief-out"><div class="loading-msg"><div class="loading-spinner"></div><br>Preparing your briefing…</div></div>';
+  host.innerHTML=head+'<div id="brief-out"><div class="loading-msg"><div class="loading-spinner"></div><br>Preparing your briefingâ¦</div></div>';
   var out=document.getElementById('brief-out');
   Promise.all([
     window.__cowork_stub__.callMcpTool(COROS_ID+'__queryRecoveryStatus',{}).catch(function(){return null;}),
