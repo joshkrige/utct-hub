@@ -2302,9 +2302,10 @@ function renderToday(){
     var data={ date:new Date().toDateString(), daysToRace:raceCountdown(), week:ti.w.n, phase:PN[phk(ti.w)], plannedToday:planLine, physioDue:physio,
       recovery:coros, zoneNote:zoneCheck(),
       recentActivities:(ACT||[]).slice(0,6).map(function(a){ return { name:a.name, date:(a.start_date_local||'').slice(0,10), km:Math.round((a.distance||0)/100)/10, vert:a.total_elevation_gain, avgHr:a.average_heartrate, type:a.sport_type }; }) };
-    function finish(t){ var html=briefHtml(t); try{ localStorage.setItem('utct_brief_cache', JSON.stringify({date:ymd(new Date()), html:html})); }catch(e){} out.innerHTML=html+briefFooter(); }
+    function finish(t,cache){ var html=briefHtml(t); if(cache!==false){ try{ localStorage.setItem('utct_brief_cache', JSON.stringify({date:ymd(new Date()), html:html})); }catch(e){} } out.innerHTML=html+briefFooter(); }
+    function badBrief(t){ if(!t) return true; var s=String(t).trim(); if(s.length<60) return true; return /no longer shown|artifact (is|was) |not available|unavailable/i.test(s); }
     if(aiOn() && window.__cowork_stub__.askClaude){
-      window.__cowork_stub__.askClaude(BRIEF_PROMPT, [data]).then(function(r){ var t=(typeof r==='string')?r:(r&&r.text?r.text:(r&&r.content?r.content:JSON.stringify(r))); finish(t); }).catch(function(){ finish(ruleBrief(data)); });
+      window.__cowork_stub__.askClaude(BRIEF_PROMPT, [data]).then(function(r){ var t=(typeof r==='string')?r:(r&&r.text?r.text:(r&&r.content?r.content:JSON.stringify(r))); if(badBrief(t)){ finish(ruleBrief(data),false); } else { finish(t); } }).catch(function(){ finish(ruleBrief(data),false); });
     } else { finish(ruleBrief(data)); }
   }).catch(function(e){ out.innerHTML='<div class="callout co-rd">Could not read COROS data: '+(e&&e.message?e.message:e)+'</div>'; });
 }
