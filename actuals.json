@@ -1,14 +1,14 @@
 {
-  "synced_at": "22 Sep 2026 12:29",
+  "synced_at": "22 Sep 2026 11:07",
   "weeks": {
     "0": {
       "actKm": 62.86,
-      "actVert": 2673.9,
+      "actVert": 2674,
       "actStr": 1
     },
     "1": {
       "actKm": 8.56,
-      "actVert": 487.4,
+      "actVert": 487,
       "actStr": 0
     }
   }
