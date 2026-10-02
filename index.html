@@ -1693,7 +1693,7 @@ function renderNextUp(){
     + '</div></div>';
 }
 
-function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache');}}catch(_e){}
+function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache_v2')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache_v2');}}catch(_e){}
 renderTicker(); renderToday(); renderTrend(); var _rp=document.getElementById('p45')&&document.getElementById('p45').style.display==='block'?'p45':(document.getElementById('p40')&&document.getElementById('p40').style.display==='block'?'p40':(document.getElementById('p36')&&document.getElementById('p36').style.display==='block'?'p36':'p30')); renderRaceNow(_rp); }
 
 function loadStrava(){
@@ -2203,7 +2203,7 @@ function drawTrendChart(data){
 function renderTrend(){
   var host=document.getElementById('trend-card'); if(!host) return;
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ host.innerHTML=''; return; }
-  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache')); }catch(e){}
+  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v2')); }catch(e){}
   if(c && c.date===ymd(new Date()) && c.html){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
   host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="loading-msg"><div class="loading-spinner"></div></div></div>';
   var from56=ymd(new Date(Date.now()-56*86400000));
@@ -2211,15 +2211,17 @@ function renderTrend(){
     window.__cowork_stub__.callMcpTool(COROS_ID+'__queryRestingHeartRate',{days:56}).catch(function(){return null;}),
     window.__cowork_stub__.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:56}).catch(function(){return null;}),
     window.__cowork_stub__.callMcpTool('mcp__healthbridge__get_samples',{metric:'Heart Rate Variability (SDNN)',from:from56}).catch(function(){return null;}),
-    window.__cowork_stub__.callMcpTool('mcp__healthbridge__summarize_sleep',{from:from56}).catch(function(){return null;})
+    window.__cowork_stub__.callMcpTool('mcp__healthbridge__summarize_sleep',{from:from56}).catch(function(){return null;}),
+    window.__cowork_stub__.callMcpTool('mcp__healthbridge__get_samples',{metric:'Resting Heart Rate',from:from56}).catch(function(){return null;})
   ]).then(function(res){
     var rhrSamples=parseCOROS_RHR(corosUnwrapText(res[0]));
+    if(!(rhrSamples&&rhrSamples.length)){ rhrSamples=trendParseSamples(res[4]); }
     var loadSamples=parseCOROS_TrainingLoad(corosUnwrapText(res[1]));
     var hrvSamples=trendParseSamples(res[2]);
     var sleepData=res[3];
     var data={ rhr:trendWeekly(rhrSamples), hrv:trendWeekly(hrvSamples), sleep:trendWeeklySleep(sleepData), load:trendWeekly(loadSamples) };
     var html=trendHtml(data); host.innerHTML=html;
-    if(data.rhr.length||data.load.length||data.sleep.length){ try{ localStorage.setItem('utct_trend_cache', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
+    if(data.rhr.length||data.load.length||data.sleep.length){ try{ localStorage.setItem('utct_trend_cache_v2', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
     setTimeout(function(){ drawTrendChart(data); },0);
   }).catch(function(e){ host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="callout co-rd">Couldn\'t load trend: '+(e&&e.message?e.message:e)+'</div></div>'; });
 }
