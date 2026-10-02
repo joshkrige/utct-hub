@@ -2215,7 +2215,8 @@ function renderTrend(){
     window.__cowork_stub__.callMcpTool('mcp__healthbridge__get_samples',{metric:'Resting Heart Rate',from:from56}).catch(function(){return null;})
   ]).then(function(res){
     var rhrSamples=parseCOROS_RHR(corosUnwrapText(res[0]));
-    if(!(rhrSamples&&rhrSamples.length)){ rhrSamples=trendParseSamples(res[4]); }
+    var rhrHb=trendParseSamples(res[4]);
+    if(((rhrHb&&rhrHb.length)||0)>((rhrSamples&&rhrSamples.length)||0)){ rhrSamples=rhrHb; }
     var loadSamples=parseCOROS_TrainingLoad(corosUnwrapText(res[1]));
     var hrvSamples=trendParseSamples(res[2]);
     var sleepData=res[3];
