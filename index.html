@@ -501,7 +501,6 @@ body{-webkit-font-smoothing:antialiased;}
  <div class="flrow">
  <span class="fl ico">&#127769; Night run</span>
  <span class="fl ico">&#8600;&#65038; Downhill focus</span>
- <span class="fl ico">&#129441; HB check-in</span>
  <span class="fl ico">&#128293; Heat adaptation</span>
  </div>
  <div id="plan-loading" class="loading-msg" style="display:none;">
@@ -802,17 +801,17 @@ var PHSTR={
  holiday:{s:['Family time doubles as genuine active recovery','Trail hikes add to your vert base','Mental reset before the hard block'],w:['Keep a short daily run going','Hold the long-run habit even if shorter','Protect the right ankle on unknown terrain']},
  racefinal:{s:['The full build is banked','You have run these exact sections in recces and races','You know your body can keep moving all day and into the night'],w:['Start controlled — the first 18km must feel easy','Contacts in before the 17:00 start','Commit to the fuelling and walk-the-climbs plan']}
 };
-var FI={nt:'\u{1F319}',dn:'\u2198\uFE0E',rc:'\u{1F4CD}',hb:'\u{1F9A1}',ht:'\u{1F525}'};
-var FN={nt:'Night run',dn:'Downhill focus',rc:'Course recce',hb:'HB check-in',ht:'Heat adaptation'};
-var FC={nt:['#EDE9FE','#4C1D95'],dn:['#DBEAFE','#1E40AF'],rc:['#DCFCE7','#14532D'],hb:['#FEF3C7','#713F12'],ht:['#FFE4E6','#9F1239']};
-var COC={nt:'co-pur',dn:'co-blu',rc:'co-grn',hb:'co-amb',ht:'co-rd'};
-var COT={nt:'Night running week. Every dark morning farm run is free practice. Test headtorch and glasses. Try contacts if not done yet.',dn:'Downhill focus week. Run the descents faster than feels comfortable. Controlled aggression. This is a trainable skill that takes repetition.',rc:'UTCT course recce. Study every technical section and note where you can make time. This terrain knowledge is irreplaceable in November.',hb:'Honey Badger check-in week. Your Saturday email will include an honest assessment of where sub-30h sits based on current form and trajectory.',ht:'Heat adaptation week. No sauna needed - run midday, overdressed, on easy days only. Build to 4-5 sessions per week and never stack it on a quality session. Adaptation takes 10-14 days and fades within a week, so this window sits deliberately close to race day.'};
+var FI={nt:'\u{1F319}',dn:'\u2198\uFE0E',ht:'\u{1F525}'};
+var FN={nt:'Night run',dn:'Downhill focus',ht:'Heat adaptation'};
+var FC={nt:['#EDE9FE','#4C1D95'],dn:['#DBEAFE','#1E40AF'],ht:['#FFE4E6','#9F1239']};
+var COC={nt:'co-pur',dn:'co-blu',ht:'co-rd'};
+var COT={nt:'Night running week. Every dark morning farm run is free practice. Test headtorch and glasses. Try contacts if not done yet.',dn:'Downhill focus week. Run the descents faster than feels comfortable. Controlled aggression. This is a trainable skill that takes repetition.',ht:'Heat adaptation week. No sauna needed - run midday, overdressed, on easy days only. Build to 4-5 sessions per week and never stack it on a quality session. Adaptation takes 10-14 days and fades within a week, so this window sits deliberately close to race day.'};
 var DC={key:'d-key',long:'d-key',b2b:'d-key',race:'d-key',train:'d-train',hills:'d-key',str:'d-train',run:'d-train',night:'d-night',rest:'d-rest',travel:'d-travel'};
 
 // ─── WEEK DATA ────────────────────────────────────────────────────────────────
 // (same W array as original — this is the fallback when no sheet is connected)
 var W=[
-{n:1,dt:'14 Sep',p:'base',lb:'Restart — stronger from day one',km:60,v:2000,fl:['hb'],dis:null,rn:null,
+{n:1,dt:'14 Sep',p:'base',lb:'Restart — stronger from day one',km:60,v:2000,fl:[],dis:null,rn:null,
  rt:'Farm hills + Helderberg trails',rl:'Farm / Helderberg Nature Reserve',rk:'10–22 km',rv:'700–900m D+',
  rd:'First proper week back. Hills on Monday from the start — 6 easy reps. Friday long run at 22km: find a route with real climbing — target 600–700m vert — this is your first proper vert session back. Saturday B2B 10km easy. Every session aerobic only.',
  note:'Helderberg Nature Reserve and the farm hills give you concentrated vert in short distances. Even a single big loop on your long run starts building the climbing legs UTCT demands.\n\nDon\'t chase old reps on Monday. The ankle needs to remember what hills feel like. Consistency is the only goal this week.',
@@ -864,33 +863,33 @@ var W=[
   {t:'run',s:'B2B 18km',d:'Run on tired legs. This is the most UTCT-specific day of the plan so far. Easy pace. Don\'t skip it.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Full rest. Eat well.',am:false,ph:false}
  ]},
-{n:5,dt:'12 Oct',p:'peak',lb:'Volume returns — 110km, first dark finish',km:110,v:4250,fl:['dn'],dis:null,rn:null,
- rt:'Farm hills + Helderberg',rl:'Farm / Helderberg Nature Reserve',rk:'8–44 km',rv:'4,250m D+',
+{n:5,dt:'12 Oct',p:'peak',lb:'Volume returns — 110km, first dark finish',km:110,v:5050,fl:['dn'],dis:null,rn:null,
+ rt:'Farm hills + Helderberg',rl:'Farm / Helderberg Nature Reserve',rk:'8–44 km',rv:'5,050m D+',
  rd:'Volume steps back up properly. The vert is roughly level with last week — the growth is in flat and easy kilometres, which is the lower-risk way to add load. Friday is the first long run that finishes in the dark: start mid-afternoon so the last 90 minutes are on the headtorch. Saturday is 22km easy on wrecked legs, which is exactly what km 70 to 99 will feel like.',
  note:'Fuelling starts here: 60g of carbohydrate per hour on Friday, every hour, from hour one. Use a glucose-fructose mix.\n\nGuardrail for the three big weeks: if HRV sits below 36 two mornings running, or resting HR holds above 53 for three days, W6 comes back by 20 percent. Otherwise push on.',
  dy:[
   {t:'hills',s:'Hill reps x14',d:'Around 12km and 750m. Strong on the ups, walk the downs. If the ankle has anything to say, it says it here — tell me if so.',am:true,ph:true},
   {t:'str',s:'Strength x6 + easy 10km',d:'Six rounds of the full leg circuit. Easy 10km after.',am:false,ph:true},
-  {t:'run',s:'Easy 14km',d:'Aerobic with some undulation. HR under 145.',am:false,ph:false},
+  {t:'run',s:'Easy 14km hilly',d:'Take a route with real climbing — 500m or so. Aerobic effort, HR under 145.',am:false,ph:false},
   {t:'str',s:'Core & stability + easy 8km',d:'Thursday core & stability circuit — 4 rounds, 40 min. Dead bug x10/side, plank 45s, side plank 45s/side, glute bridge x20, single-leg deadlift x10/side, single-leg calf raise x15/side, single-leg balance 45s/side. No upper body — no poles, so that time goes to ankle and single-leg work instead. Easy 8km after, genuinely easy: Friday is the big one.',am:false,ph:true},
-  {t:'long',s:'Long 44km / 2,500m — dark finish',d:'Start around 14:30 so the final 90 minutes are on the headtorch, including real descending. Fuel 60g/h from hour one. Full race kit and pack — find out now what rubs.',am:false,ph:false},
-  {t:'run',s:'Easy 22km on tired legs',d:'Flat and genuinely easy. Not a secret second session. This is durability work: moving well when already wrecked is what the last 30km of the race asks for.',am:false,ph:false},
+  {t:'long',s:'Long 44km / 2,800m — dark finish',d:'Start around 14:30 so the final 90 minutes are on the headtorch, including real descending. Fuel 60g/h from hour one. Full race kit and pack — find out now what rubs.',am:false,ph:false},
+  {t:'run',s:'Easy 22km rolling, tired legs',d:'Rolling trail rather than flat — around 600m. Genuinely easy effort though, not a second session. Durability work: moving well when already wrecked is what the last 30km asks for.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Full day off. Family.',am:false,ph:false}
  ]},
-{n:6,dt:'19 Oct',p:'peak',lb:'Biggest week — 115km, 2h dark',km:115,v:4800,fl:['dn','nt'],dis:null,rn:null,
- rt:'Helderberg / farm trails',rl:'Helderberg Nature Reserve',rk:'8–48 km',rv:'4,800m D+',
+{n:6,dt:'19 Oct',p:'peak',lb:'Biggest week — 119km / 5,950m',km:119,v:5950,fl:['dn','nt'],dis:null,rn:null,
+ rt:'Helderberg / farm trails',rl:'Helderberg Nature Reserve',rk:'8–50 km',rv:'5,950m D+',
  rd:'The biggest week of the build by volume. Friday goes to 48km with 2,800m and two full hours in the dark. After this the volume comes down and the 13 Peaks day becomes the quality peak rather than the big one.',
  note:'Fuelling steps to 70g/h on Friday. If the gut argues, hold at 65 and build again next long run.\n\nThis is the week the guardrail matters most. Three consecutive weeks above 100km with 4,000m-plus is the real risk in this block — not any single session. Check HRV against the 36 floor each morning.',
  dy:[
   {t:'hills',s:'Hill reps x16',d:'Around 13km and 850m. Zone 4 on the ups, full recovery on the downs.',am:true,ph:false},
   {t:'str',s:'Strength x6 + easy 10km',d:'Full leg circuit, six rounds. Easy run after.',am:false,ph:true},
-  {t:'run',s:'Easy 16km',d:'Steady aerobic with undulation. HR under 145.',am:false,ph:false},
+  {t:'run',s:'Easy 16km hilly',d:'Real climbing again — 650m. Steady aerobic, HR under 145.',am:false,ph:false},
   {t:'str',s:'Core & stability + easy 8km',d:'Thursday core & stability circuit — 4 rounds, 40 min. Dead bug x10/side, plank 45s, side plank 45s/side, glute bridge x20, single-leg deadlift x10/side, single-leg calf raise x15/side, single-leg balance 45s/side. No upper body — no poles, so that time goes to ankle and single-leg work instead. Easy 8km after, genuinely easy: Friday is the big one.',am:false,ph:true},
-  {t:'long',s:'Long 48km / 2,800m — 2h dark',d:'Biggest training day before 13 Peaks. Start around 13:30. Final two hours on the headtorch including descending. Fuel 70g/h. Full race kit.',am:false,ph:false},
-  {t:'run',s:'Easy 22km on tired legs',d:'Flat, easy, on thoroughly tired legs. Same purpose as last Saturday.',am:false,ph:false},
+  {t:'long',s:'Long 50km / 3,400m — 2h dark',d:'Biggest training day before 13 Peaks. Start around 13:30. Final two hours on the headtorch including descending. Fuel 70g/h. Full race kit.',am:false,ph:false},
+  {t:'run',s:'Easy 22km rolling, tired legs',d:'Rolling trail, around 650m. Easy effort on thoroughly tired legs. Same purpose as last Saturday.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Full rest.',am:false,ph:false}
  ]},
-{n:7,dt:'26 Oct',p:'peak',lb:'13 Peaks dress rehearsal — quality peak',km:82,v:3400,fl:['nt','dn'],dis:null,rn:null,
+{n:7,dt:'26 Oct',p:'peak',lb:'13 Peaks dress rehearsal — quality peak',km:82,v:3900,fl:['nt','dn'],dis:null,rn:null,
  rt:'13 Peaks (portion) — Table Mountain massif',rl:'Cape Town',rk:'50 km',rv:'3,000m D+ on the day',
  rd:'Volume drops so the day itself can be the peak. A portion of 13 Peaks with a friend on Friday 30 Oct — Table Mountain, Devils Peak, Lions Head and the Apostles are substantially the ground you race on. Target 50km with 3,000m. Mon to Thu are deliberately light so you arrive fresh.',
  note:'This is the dress rehearsal. Everything gets tested: full race kit and pack, fuelling at 70–80g/h for the whole day, sodium 500–800mg/h, headtorch and glasses on tired legs. If you can influence the start time, arrange it so the last two hours are dark.\n\nSaturday 31 Oct: rest, or an easy social jog. Not the Backyard Ultra.\n\nPractise the 02:30 race breakfast at least once this week — 80–100g carbs, low fibre, low fat.',
@@ -903,7 +902,7 @@ var W=[
   {t:'rest',s:'Rest — not the BYU',d:'Full rest, or an easy social jog if you want company. Skip the Backyard Ultra: it is designed to stop you pulling out, and a flat loop event gives you nothing this race needs.',am:false,ph:false},
   {t:'rest',s:'Rest',d:'Complete rest. Big day banked.',am:false,ph:false}
  ]},
-{n:8,dt:'2 Nov',p:'taper',lb:'Recovery + heat adaptation begins',km:50,v:1500,fl:['ht','hb'],dis:null,rn:null,
+{n:8,dt:'2 Nov',p:'taper',lb:'Recovery + heat adaptation begins',km:50,v:1500,fl:['ht'],dis:null,rn:null,
  rt:'Easy local + heat sessions',rl:'Home / farm',rk:'6–14 km',rv:'1,500m D+',
  rd:'Recovery from the 13 Peaks day, and the week heat adaptation starts. Four overdressed midday runs: Mon 2, Wed 4, Fri 6, Sun 8. Easy only — never stack heat onto a quality session.',
  note:'Heat protocol: run 11:00–15:00, overdressed by one extra layer, 30–60 minutes, easy effort only. Adaptation takes 10–14 days and fades within about a week, which is why this window sits where it does.\n\nA 04:00 start puts you on the mountain through the hottest part of race day, around seven to nine hours in. This is not optional work.\n\nPractise fuelling ON the hot runs — heat lowers gut tolerance, so eating well when cool proves less than you think.',
@@ -929,7 +928,7 @@ var W=[
   {t:'run',s:'HEAT: easy 8km overdressed',d:'Midday, extra layer, easy.',am:false,ph:false},
   {t:'run',s:'HEAT: easy 6km overdressed',d:'Fifth heat session. Easy.',am:false,ph:false}
  ]},
-{n:10,dt:'16 Nov',p:'race',lb:'RACE WEEK — UTCT 100km',km:25,v:600,fl:['ht','hb'],dis:'race',rn:'UTCT 100km',
+{n:10,dt:'16 Nov',p:'race',lb:'RACE WEEK — UTCT 100km',km:25,v:600,fl:['ht'],dis:'race',rn:'UTCT 100km',
  rt:'UTCT 100km',rl:'Cape Town, South Africa',rk:'99.17 km',rv:'4,676m D+',
  rd:'Official route: 99.17km, 4,676m D+, 13 aid and timing points, 26h cutoff. It is NOT front-loaded — half the climbing is still ahead at Hout Bay (km 57.35). The crux is Hout Bay to Constantia Glen: 945m over 15km, arriving eleven hours in. Platteklip Gorge (876m in 4.83km) is the steepest section, at km 20-25. Dead Mans Tree adds 487m between km 88 and 96. One drop bag only, at Hout Bay.',
  note:'Last heat session Wednesday 18 Nov, then stop — adaptation holds for about a week.\n\nRace morning: wake around 02:15, breakfast by 02:30 — 80–100g carbs, low fibre, low fat, exactly what you rehearsed. Another 30g at about 03:45.\n\nOn course: 60–80g carbs per hour from hour one, sodium 500–800mg/h and toward 1,000 through the midday heat. Solids early while the stomach is willing, gels and liquid later. Save caffeine for after dark — from roughly hour 12, then steadily to the finish.\n\nHeadtorch from the start until about 05:30, and again from about 19:45 to the finish. Spare batteries at the last crew point.',
