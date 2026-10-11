@@ -462,7 +462,7 @@ body{-webkit-font-smoothing:antialiased;}
  <p>Josh Krige &#183; Somerset West &#183; Sir Lowry&#8217;s Pass &#183; live · Tredict-connected</p>
  <div class="hstats">
  <div class="hs"><div class="hl">Race date</div><div class="hv">Sat 21 Nov 2026 &#183; 04:00</div></div>
- <div class="hs"><div class="hl">Distance</div><div class="hv">99.85km &#183; 5,085m D+</div></div>
+ <div class="hs"><div class="hl">Distance</div><div class="hv">99.17km &#183; 4,676m D+</div></div>
  <div class="hs"><div class="hl">Primary goal</div><div class="hv">Strong finish</div></div>
  <div class="hs"><div class="hl">Target</div><div class="hv">Sub-20h</div></div>
  </div>
@@ -527,94 +527,108 @@ body{-webkit-font-smoothing:antialiased;}
  <div class="pst active" onclick="showPace('p30',this)">Sub-20h &#8212; Target</div>
  <div class="pst" onclick="showPace('p36',this)">Sub-18h &#8212; Stretch</div>
  <div class="pst" onclick="showPace('p40',this)">Sub-22h &#8212; Solid</div>
- <div class="pst" onclick="showPace('p45',this)">Beat the cutoff &#8212; 26h limit</div>
+ <div class="pst" onclick="showPace('p45',this)">Cutoff &#8212; 26h limit</div>
  </div>
  <div id="p30">
  <div class="dstats" style="margin-bottom:14px;">
  <div class="dst"><div class="sl2">Target</div><div class="sv">20h00</div></div>
- <div class="dst"><div class="sl2">Avg pace</div><div class="sv">12:01/km</div></div>
+ <div class="dst"><div class="sl2">Avg pace</div><div class="sv">12:06/km</div></div>
  <div class="dst"><div class="sl2">Finish</div><div class="sv">00:00 Sun</div></div>
  </div>
  <div class="overflow"><table class="ptable">
- <thead><tr><th>Point</th><th>km</th><th>Clock</th><th>Elapsed</th><th>Leg pace</th></tr></thead><tbody>
- <tr class="kr"><td><strong>START</strong></td><td>0</td><td>04:00 Sat</td><td>0h00</td><td>&#8212;</td></tr>
- <tr><td>10 km</td><td>10</td><td>06:00 Sat</td><td>2h00</td><td>12:00/km</td></tr>
- <tr><td>20 km</td><td>20</td><td>08:15 Sat</td><td>4h15</td><td>13:30/km</td></tr>
- <tr><td>30 km</td><td>30</td><td>10:10 Sat</td><td>6h10</td><td>11:30/km</td></tr>
- <tr><td>40 km</td><td>40</td><td>12:10 Sat</td><td>8h10</td><td>12:00/km</td></tr>
- <tr><td>50 km</td><td>50</td><td>14:00 Sat</td><td>10h00</td><td>11:00/km</td></tr>
- <tr><td>60 km</td><td>60</td><td>15:50 Sat</td><td>11h50</td><td>11:00/km</td></tr>
- <tr><td>70 km</td><td>70</td><td>17:45 Sat</td><td>13h45</td><td>11:30/km</td></tr>
- <tr><td>80 km</td><td>80</td><td>19:45 Sat</td><td>15h45</td><td>12:00/km</td></tr>
- <tr><td>90 km</td><td>90</td><td>21:50 Sat</td><td>17h50</td><td>12:30/km</td></tr>
- <tr class="kr"><td><strong>FINISH</strong></td><td>99.85</td><td>00:00 Sun</td><td>20h00</td><td>13:11/km</td></tr>
+ <thead><tr><th>Station</th><th>km</th><th>D+</th><th>Clock</th><th>Elapsed</th><th>Leg</th><th>Cutoff</th></tr></thead><tbody>
+ <tr class="kr"><td>Cape Town (START)</td><td>0.0</td><td>0</td><td>04:00 Sat</td><td>0h00</td><td>&#8212;</td><td>&#8212;</td></tr>
+ <tr><td>Signal Hill</td><td>11.91</td><td>506</td><td>05:43 Sat</td><td>1h43</td><td>8:38/km</td><td>&#8212;</td></tr>
+ <tr><td>Kloof Nek</td><td>20.2</td><td>757</td><td>06:59 Sat</td><td>2h59</td><td>9:10/km</td><td><strong style="color:#C0392B;">08:00 Sat</strong></td></tr>
+ <tr class="nr"><td>Platteklip Gorge <span style="color:var(--t2);font-size:10px;">TP</span></td><td>25.03</td><td>1633</td><td>08:36 Sat</td><td>4h36</td><td>20:04/km</td><td>&#8212;</td></tr>
+ <tr><td>Table Mountain</td><td>31.07</td><td>1771</td><td>09:52 Sat</td><td>5h52</td><td>12:34/km</td><td>&#8212;</td></tr>
+ <tr><td>Llandudno</td><td>41.52</td><td>1882</td><td>12:02 Sat</td><td>8h02</td><td>12:26/km</td><td>&#8212;</td></tr>
+ <tr><td>Rocket Road</td><td>47.33</td><td>2123</td><td>13:17 Sat</td><td>9h17</td><td>12:54/km</td><td>&#8212;</td></tr>
+ <tr><td>Hout Bay &#128230;</td><td>57.35</td><td>2654</td><td>15:06 Sat</td><td>11h06</td><td>10:52/km</td><td><strong style="color:#C0392B;">18:30 Sat</strong></td></tr>
+ <tr><td>Constantia Glen</td><td>72.31</td><td>3599</td><td>18:11 Sat</td><td>14h11</td><td>12:21/km</td><td>&#8212;</td></tr>
+ <tr><td>Alphen Trail</td><td>76.72</td><td>3654</td><td>18:58 Sat</td><td>14h58</td><td>10:39/km</td><td><strong style="color:#C0392B;">23:00 Sat</strong></td></tr>
+ <tr class="nr"><td>Nursery Ravine <span style="color:var(--t2);font-size:10px;">TP</span></td><td>81.31</td><td>3956</td><td>20:07 Sat</td><td>16h07</td><td>15:01/km</td><td>&#8212;</td></tr>
+ <tr><td>Newlands Picnic</td><td>88.36</td><td>4178</td><td>21:39 Sat</td><td>17h39</td><td>13:02/km</td><td><strong style="color:#C0392B;">03:00 Sun</strong></td></tr>
+ <tr class="nr"><td>Dead Man's Tree <span style="color:var(--t2);font-size:10px;">TP</span></td><td>96.3</td><td>4665</td><td>23:33 Sat</td><td>19h33</td><td>14:21/km</td><td>&#8212;</td></tr>
+ <tr class="kr"><td>Cape Town (FINISH) &#128230;</td><td>99.17</td><td>4676</td><td>00:00 Sun</td><td>20h00</td><td>9:24/km</td><td><strong style="color:#C0392B;">06:00 Sun</strong></td></tr>
  </tbody></table></div>
- <div class="callout co-amb" style="margin-top:12px;"><strong>&#9888; The course is front-loaded.</strong> Table Mountain and Karbonkelberg both land inside the first 50km &#8212; roughly half the total climbing, taken while you feel strongest. Going out on feel here is the classic way to lose this race. Hold the splits even when they feel too easy on the early climbs.</div>
- <div class="callout co-blu" style="margin-top:8px;"><strong>&#127748; Dark at both ends.</strong> Headtorch from the 04:00 start until roughly 05:30. On a sub-20h finish you are back in the dark from about 19:45 &#8212; around four hours of torchlit running on tired legs. Spare batteries at the last crew point.</div>
- <div class="callout co-grn" style="margin-top:8px;"><strong>Cutoff: 26 hours.</strong> A sub-20h target leaves six hours of margin. You are racing the clock you chose, not the one the race set.</div>
- <div style="padding:10px 2px 0;font-size:11px;color:var(--t2);line-height:1.6;">Splits are 10km markers, not official aid stations. UTCT 100km has 9 aid stations &#8212; once the race book publishes their exact distances, these become station-by-station.</div>
+ <div class="callout co-rd" style="margin-top:12px;"><strong>&#9888; It is not front-loaded &#8212; the crux is late.</strong> Half the climbing is still ahead of you at Hout Bay (km 57.35, 58% of the distance). The single biggest climbing stage is <strong>Hout Bay to Constantia Glen: 945m over 15km</strong>, and it lands at 11&#8211;14 hours when you are already deep in. Then <strong>Dead Man&#8217;s Tree adds 487m between km 88 and 96</strong>. Plan the second half as the hard half, because it is.</div>
+ <div class="callout co-pur" style="margin-top:8px;"><strong>&#9968; Platteklip Gorge: 876m in 4.83km.</strong> That is 181m per km &#8212; the steepest thing on the course, at km 20&#8211;25. Power-hike it from the bottom, no heroics. The split allows twenty minutes a kilometre here and that is correct.</div>
+ <div class="callout co-blu" style="margin-top:8px;"><strong>&#127748; Headtorch twice.</strong> From the 04:00 start to about 05:30 (you reach Signal Hill at 05:43). Then again from roughly 19:45 &#8212; which on this schedule is about <strong>km 80, just before Nursery Ravine</strong>. That is the final 19km in the dark on tired legs. Spare batteries in the Hout Bay drop bag will be long gone by then, so carry them.</div>
+ <div class="callout co-amb" style="margin-top:8px;"><strong>&#128230; One mid-race drop bag: Hout Bay, km 57.35</strong> &#8212; you reach it around 15:06, about 11 hours in. It is the only place to restock between start and finish, so it carries the second half of your nutrition, fresh socks, and your torch and batteries.</div>
+ <div class="callout co-grn" style="margin-top:8px;"><strong>Cutoffs are not your problem at this pace.</strong> Tightest margin is Kloof Nek at +1h01; everything after that is three hours or more, and you finish with six hours in hand. Race your own clock.</div>
+ <div style="padding:10px 2px 0;font-size:11px;color:var(--t2);line-height:1.6;">Stage distances, elevation and cutoffs are from the official UTCT race book. Splits use the organiser&#8217;s own pacing model (the lead and back-runner curves track each other almost exactly as a fraction of total time, so they scale cleanly to any target). Course totals: <strong>99.17km, 4,676m D+</strong>. Note the 2026 ITRA listing shows 99.85km / 5,085m &#8212; if the route changes slightly for 2026, send me the new book.</div>
  </div>
  <div id="p36" style="display:none;">
  <div class="dstats" style="margin-bottom:14px;">
  <div class="dst"><div class="sl2">Target</div><div class="sv">18h00</div></div>
- <div class="dst"><div class="sl2">Avg pace</div><div class="sv">10:48/km</div></div>
+ <div class="dst"><div class="sl2">Avg pace</div><div class="sv">10:53/km</div></div>
  <div class="dst"><div class="sl2">Finish</div><div class="sv">22:00 Sat</div></div>
  </div>
  <div class="overflow"><table class="ptable">
- <thead><tr><th>Point</th><th>km</th><th>Clock</th><th>Elapsed</th><th>Leg pace</th></tr></thead><tbody>
- <tr class="kr"><td><strong>START</strong></td><td>0</td><td>04:00 Sat</td><td>0h00</td><td>&#8212;</td></tr>
- <tr><td>10 km</td><td>10</td><td>05:48 Sat</td><td>1h48</td><td>10:48/km</td></tr>
- <tr><td>20 km</td><td>20</td><td>07:50 Sat</td><td>3h50</td><td>12:12/km</td></tr>
- <tr><td>30 km</td><td>30</td><td>09:33 Sat</td><td>5h33</td><td>10:18/km</td></tr>
- <tr><td>40 km</td><td>40</td><td>11:21 Sat</td><td>7h21</td><td>10:48/km</td></tr>
- <tr><td>50 km</td><td>50</td><td>13:00 Sat</td><td>9h00</td><td>9:54/km</td></tr>
- <tr><td>60 km</td><td>60</td><td>14:39 Sat</td><td>10h39</td><td>9:54/km</td></tr>
- <tr><td>70 km</td><td>70</td><td>16:22 Sat</td><td>12h22</td><td>10:18/km</td></tr>
- <tr><td>80 km</td><td>80</td><td>18:10 Sat</td><td>14h10</td><td>10:48/km</td></tr>
- <tr><td>90 km</td><td>90</td><td>20:03 Sat</td><td>16h03</td><td>11:18/km</td></tr>
- <tr class="kr"><td><strong>FINISH</strong></td><td>99.85</td><td>22:00 Sat</td><td>18h00</td><td>11:52/km</td></tr>
+ <thead><tr><th>Station</th><th>km</th><th>D+</th><th>Clock</th><th>Elapsed</th><th>Leg</th><th>Cutoff</th></tr></thead><tbody>
+ <tr class="kr"><td>Cape Town (START)</td><td>0.0</td><td>0</td><td>04:00 Sat</td><td>0h00</td><td>&#8212;</td><td>&#8212;</td></tr>
+ <tr><td>Signal Hill</td><td>11.91</td><td>506</td><td>05:33 Sat</td><td>1h33</td><td>7:48/km</td><td>&#8212;</td></tr>
+ <tr><td>Kloof Nek</td><td>20.2</td><td>757</td><td>06:41 Sat</td><td>2h41</td><td>8:12/km</td><td><strong style="color:#C0392B;">08:00 Sat</strong></td></tr>
+ <tr class="nr"><td>Platteklip Gorge <span style="color:var(--t2);font-size:10px;">TP</span></td><td>25.03</td><td>1633</td><td>08:09 Sat</td><td>4h09</td><td>18:13/km</td><td>&#8212;</td></tr>
+ <tr><td>Table Mountain</td><td>31.07</td><td>1771</td><td>09:17 Sat</td><td>5h17</td><td>11:15/km</td><td>&#8212;</td></tr>
+ <tr><td>Llandudno</td><td>41.52</td><td>1882</td><td>11:14 Sat</td><td>7h14</td><td>11:11/km</td><td>&#8212;</td></tr>
+ <tr><td>Rocket Road</td><td>47.33</td><td>2123</td><td>12:22 Sat</td><td>8h22</td><td>11:42/km</td><td>&#8212;</td></tr>
+ <tr><td>Hout Bay &#128230;</td><td>57.35</td><td>2654</td><td>13:59 Sat</td><td>9h59</td><td>9:40/km</td><td><strong style="color:#C0392B;">18:30 Sat</strong></td></tr>
+ <tr><td>Constantia Glen</td><td>72.31</td><td>3599</td><td>16:46 Sat</td><td>12h46</td><td>11:09/km</td><td>&#8212;</td></tr>
+ <tr><td>Alphen Trail</td><td>76.72</td><td>3654</td><td>17:28 Sat</td><td>13h28</td><td>9:31/km</td><td><strong style="color:#C0392B;">23:00 Sat</strong></td></tr>
+ <tr class="nr"><td>Nursery Ravine <span style="color:var(--t2);font-size:10px;">TP</span></td><td>81.31</td><td>3956</td><td>18:30 Sat</td><td>14h30</td><td>13:30/km</td><td>&#8212;</td></tr>
+ <tr><td>Newlands Picnic</td><td>88.36</td><td>4178</td><td>19:53 Sat</td><td>15h53</td><td>11:46/km</td><td><strong style="color:#C0392B;">03:00 Sun</strong></td></tr>
+ <tr class="nr"><td>Dead Man's Tree <span style="color:var(--t2);font-size:10px;">TP</span></td><td>96.3</td><td>4665</td><td>21:36 Sat</td><td>17h36</td><td>12:58/km</td><td>&#8212;</td></tr>
+ <tr class="kr"><td>Cape Town (FINISH) &#128230;</td><td>99.17</td><td>4676</td><td>22:00 Sat</td><td>18h00</td><td>8:21/km</td><td><strong style="color:#C0392B;">06:00 Sun</strong></td></tr>
  </tbody></table></div>
  </div>
  <div id="p40" style="display:none;">
  <div class="dstats" style="margin-bottom:14px;">
  <div class="dst"><div class="sl2">Target</div><div class="sv">22h00</div></div>
- <div class="dst"><div class="sl2">Avg pace</div><div class="sv">13:13/km</div></div>
+ <div class="dst"><div class="sl2">Avg pace</div><div class="sv">13:18/km</div></div>
  <div class="dst"><div class="sl2">Finish</div><div class="sv">02:00 Sun</div></div>
  </div>
  <div class="overflow"><table class="ptable">
- <thead><tr><th>Point</th><th>km</th><th>Clock</th><th>Elapsed</th><th>Leg pace</th></tr></thead><tbody>
- <tr class="kr"><td><strong>START</strong></td><td>0</td><td>04:00 Sat</td><td>0h00</td><td>&#8212;</td></tr>
- <tr><td>10 km</td><td>10</td><td>06:12 Sat</td><td>2h12</td><td>13:12/km</td></tr>
- <tr><td>20 km</td><td>20</td><td>08:40 Sat</td><td>4h40</td><td>14:48/km</td></tr>
- <tr><td>30 km</td><td>30</td><td>10:47 Sat</td><td>6h47</td><td>12:42/km</td></tr>
- <tr><td>40 km</td><td>40</td><td>12:59 Sat</td><td>8h59</td><td>13:12/km</td></tr>
- <tr><td>50 km</td><td>50</td><td>15:00 Sat</td><td>11h00</td><td>12:06/km</td></tr>
- <tr><td>60 km</td><td>60</td><td>17:01 Sat</td><td>13h01</td><td>12:06/km</td></tr>
- <tr><td>70 km</td><td>70</td><td>19:08 Sat</td><td>15h08</td><td>12:42/km</td></tr>
- <tr><td>80 km</td><td>80</td><td>21:20 Sat</td><td>17h20</td><td>13:12/km</td></tr>
- <tr><td>90 km</td><td>90</td><td>23:37 Sat</td><td>19h37</td><td>13:42/km</td></tr>
- <tr class="kr"><td><strong>FINISH</strong></td><td>99.85</td><td>02:00 Sun</td><td>22h00</td><td>14:31/km</td></tr>
+ <thead><tr><th>Station</th><th>km</th><th>D+</th><th>Clock</th><th>Elapsed</th><th>Leg</th><th>Cutoff</th></tr></thead><tbody>
+ <tr class="kr"><td>Cape Town (START)</td><td>0.0</td><td>0</td><td>04:00 Sat</td><td>0h00</td><td>&#8212;</td><td>&#8212;</td></tr>
+ <tr><td>Signal Hill</td><td>11.91</td><td>506</td><td>05:53 Sat</td><td>1h53</td><td>9:29/km</td><td>&#8212;</td></tr>
+ <tr><td>Kloof Nek</td><td>20.2</td><td>757</td><td>07:17 Sat</td><td>3h17</td><td>10:07/km</td><td><strong style="color:#C0392B;">08:00 Sat</strong></td></tr>
+ <tr class="nr"><td>Platteklip Gorge <span style="color:var(--t2);font-size:10px;">TP</span></td><td>25.03</td><td>1633</td><td>09:04 Sat</td><td>5h04</td><td>22:09/km</td><td>&#8212;</td></tr>
+ <tr><td>Table Mountain</td><td>31.07</td><td>1771</td><td>10:27 Sat</td><td>6h27</td><td>13:44/km</td><td>&#8212;</td></tr>
+ <tr><td>Llandudno</td><td>41.52</td><td>1882</td><td>12:50 Sat</td><td>8h50</td><td>13:41/km</td><td>&#8212;</td></tr>
+ <tr><td>Rocket Road</td><td>47.33</td><td>2123</td><td>14:13 Sat</td><td>10h13</td><td>14:17/km</td><td>&#8212;</td></tr>
+ <tr><td>Hout Bay &#128230;</td><td>57.35</td><td>2654</td><td>16:12 Sat</td><td>12h12</td><td>11:52/km</td><td><strong style="color:#C0392B;">18:30 Sat</strong></td></tr>
+ <tr><td>Constantia Glen</td><td>72.31</td><td>3599</td><td>19:36 Sat</td><td>15h36</td><td>13:38/km</td><td>&#8212;</td></tr>
+ <tr><td>Alphen Trail</td><td>76.72</td><td>3654</td><td>20:27 Sat</td><td>16h27</td><td>11:33/km</td><td><strong style="color:#C0392B;">23:00 Sat</strong></td></tr>
+ <tr class="nr"><td>Nursery Ravine <span style="color:var(--t2);font-size:10px;">TP</span></td><td>81.31</td><td>3956</td><td>21:44 Sat</td><td>17h44</td><td>16:46/km</td><td>&#8212;</td></tr>
+ <tr><td>Newlands Picnic</td><td>88.36</td><td>4178</td><td>23:25 Sat</td><td>19h25</td><td>14:19/km</td><td><strong style="color:#C0392B;">03:00 Sun</strong></td></tr>
+ <tr class="nr"><td>Dead Man's Tree <span style="color:var(--t2);font-size:10px;">TP</span></td><td>96.3</td><td>4665</td><td>01:30 Sun</td><td>21h30</td><td>15:44/km</td><td>&#8212;</td></tr>
+ <tr class="kr"><td>Cape Town (FINISH) &#128230;</td><td>99.17</td><td>4676</td><td>02:00 Sun</td><td>22h00</td><td>10:27/km</td><td><strong style="color:#C0392B;">06:00 Sun</strong></td></tr>
  </tbody></table></div>
  </div>
  <div id="p45" style="display:none;">
  <div class="dstats" style="margin-bottom:14px;">
  <div class="dst"><div class="sl2">Target</div><div class="sv">26h00</div></div>
- <div class="dst"><div class="sl2">Avg pace</div><div class="sv">15:37/km</div></div>
+ <div class="dst"><div class="sl2">Avg pace</div><div class="sv">15:43/km</div></div>
  <div class="dst"><div class="sl2">Finish</div><div class="sv">06:00 Sun</div></div>
  </div>
  <div class="overflow"><table class="ptable">
- <thead><tr><th>Point</th><th>km</th><th>Clock</th><th>Elapsed</th><th>Leg pace</th></tr></thead><tbody>
- <tr class="kr"><td><strong>START</strong></td><td>0</td><td>04:00 Sat</td><td>0h00</td><td>&#8212;</td></tr>
- <tr><td>10 km</td><td>10</td><td>06:36 Sat</td><td>2h36</td><td>15:36/km</td></tr>
- <tr><td>20 km</td><td>20</td><td>09:32 Sat</td><td>5h32</td><td>17:36/km</td></tr>
- <tr><td>30 km</td><td>30</td><td>12:01 Sat</td><td>8h01</td><td>14:54/km</td></tr>
- <tr><td>40 km</td><td>40</td><td>14:37 Sat</td><td>10h37</td><td>15:36/km</td></tr>
- <tr><td>50 km</td><td>50</td><td>17:00 Sat</td><td>13h00</td><td>14:18/km</td></tr>
- <tr><td>60 km</td><td>60</td><td>19:23 Sat</td><td>15h23</td><td>14:18/km</td></tr>
- <tr><td>70 km</td><td>70</td><td>21:52 Sat</td><td>17h52</td><td>14:54/km</td></tr>
- <tr><td>80 km</td><td>80</td><td>00:28 Sun</td><td>20h28</td><td>15:36/km</td></tr>
- <tr><td>90 km</td><td>90</td><td>03:11 Sun</td><td>23h11</td><td>16:18/km</td></tr>
- <tr class="kr"><td><strong>FINISH</strong></td><td>99.85</td><td>06:00 Sun</td><td>26h00</td><td>17:09/km</td></tr>
+ <thead><tr><th>Station</th><th>km</th><th>D+</th><th>Clock</th><th>Elapsed</th><th>Leg</th><th>Cutoff</th></tr></thead><tbody>
+ <tr class="kr"><td>Cape Town (START)</td><td>0.0</td><td>0</td><td>04:00 Sat</td><td>0h00</td><td>&#8212;</td><td>&#8212;</td></tr>
+ <tr><td>Signal Hill</td><td>11.91</td><td>506</td><td>06:14 Sat</td><td>2h14</td><td>11:15/km</td><td>&#8212;</td></tr>
+ <tr><td>Kloof Nek</td><td>20.2</td><td>757</td><td>07:53 Sat</td><td>3h53</td><td>11:56/km</td><td><strong style="color:#C0392B;">08:00 Sat</strong></td></tr>
+ <tr class="nr"><td>Platteklip Gorge <span style="color:var(--t2);font-size:10px;">TP</span></td><td>25.03</td><td>1633</td><td>09:59 Sat</td><td>5h59</td><td>26:05/km</td><td>&#8212;</td></tr>
+ <tr><td>Table Mountain</td><td>31.07</td><td>1771</td><td>11:38 Sat</td><td>7h38</td><td>16:23/km</td><td>&#8212;</td></tr>
+ <tr><td>Llandudno</td><td>41.52</td><td>1882</td><td>14:27 Sat</td><td>10h27</td><td>16:10/km</td><td>&#8212;</td></tr>
+ <tr><td>Rocket Road</td><td>47.33</td><td>2123</td><td>16:04 Sat</td><td>12h04</td><td>16:41/km</td><td>&#8212;</td></tr>
+ <tr><td>Hout Bay &#128230;</td><td>57.35</td><td>2654</td><td>18:25 Sat</td><td>14h25</td><td>14:04/km</td><td><strong style="color:#C0392B;">18:30 Sat</strong></td></tr>
+ <tr><td>Constantia Glen</td><td>72.31</td><td>3599</td><td>22:27 Sat</td><td>18h27</td><td>16:10/km</td><td>&#8212;</td></tr>
+ <tr><td>Alphen Trail</td><td>76.72</td><td>3654</td><td>23:27 Sat</td><td>19h27</td><td>13:36/km</td><td><strong style="color:#C0392B;">23:00 Sat</strong></td></tr>
+ <tr class="nr"><td>Nursery Ravine <span style="color:var(--t2);font-size:10px;">TP</span></td><td>81.31</td><td>3956</td><td>00:57 Sun</td><td>20h57</td><td>19:36/km</td><td>&#8212;</td></tr>
+ <tr><td>Newlands Picnic</td><td>88.36</td><td>4178</td><td>02:57 Sun</td><td>22h57</td><td>17:01/km</td><td><strong style="color:#C0392B;">03:00 Sun</strong></td></tr>
+ <tr class="nr"><td>Dead Man's Tree <span style="color:var(--t2);font-size:10px;">TP</span></td><td>96.3</td><td>4665</td><td>05:25 Sun</td><td>25h25</td><td>18:38/km</td><td>&#8212;</td></tr>
+ <tr class="kr"><td>Cape Town (FINISH) &#128230;</td><td>99.17</td><td>4676</td><td>06:00 Sun</td><td>26h00</td><td>12:11/km</td><td><strong style="color:#C0392B;">06:00 Sun</strong></td></tr>
  </tbody></table></div>
  </div>
  </div>
@@ -733,12 +747,13 @@ body{-webkit-font-smoothing:antialiased;}
  </div>
  </details>
  <details class="ptdetails" style="margin-bottom:12px;">
- <summary class="ptsummary">Race phase strategy &#8212; 04:00 start</summary>
+ <summary class="ptsummary">Race phase strategy &#8212; by aid station</summary>
  <div style="margin-top:8px;">
- <div class="pblk" style="border-color:var(--pur);margin-bottom:5px;"><strong>Hrs 0&#8211;5 &#183; 04:00&#8211;09:00 &#183; to ~25km:</strong> Headtorch until about 05:30. Signal Hill, Lions Head, then Table Mountain. <strong>This is the trap</strong> &#8212; you are fresh, it is cool, and half the race climbing is here. Walk every steep section from the very first one. Eat from hour one even though you do not want to.</div>
- <div class="pblk" style="border-color:var(--blu);margin-bottom:5px;"><strong>Hrs 5&#8211;10 &#183; 09:00&#8211;14:00 &#183; to ~50km:</strong> Karbonkelberg and the remote trails. Heat building through this block. Sodium up toward 1,000mg/h. Solids while you still can. Halfway should feel comfortably controlled, not heroic.</div>
- <div class="pblk" style="border-color:var(--amb);margin-bottom:5px;"><strong>Hrs 10&#8211;15 &#183; 14:00&#8211;19:00 &#183; to ~75km:</strong> Hottest part of the day early in this block, then cooling. Sustained gradients rather than the sharp climbing of the first half. Shift toward gels and liquid carb. Caffeine starts around hour 12.</div>
- <div class="pblk" style="border-color:var(--rd);"><strong>Hrs 15&#8211;20 &#183; 19:00&#8211;00:00 &#183; to the finish:</strong> Torch back on around 19:45 &#8212; roughly four hours of dark on tired legs. Simple sugars, Coke, caffeine. Descend carefully: this is where the ankle is at most risk and where the race is lost, not won.</div>
+ <div class="pblk" style="border-color:var(--pur);margin-bottom:5px;"><strong>START &#8594; Kloof Nek &#183; km 20 &#183; 0&#8211;3h &#183; 04:00&#8211;07:00:</strong> Headtorch to about 05:30. Signal Hill then Kloof Nek, 757m of climbing. It is cool, you are fresh, and it will feel far too easy &#8212; good. Eat from hour one anyway. Kloof Nek cutoff is 08:00 and you should be an hour clear.</div>
+ <div class="pblk" style="border-color:var(--blu);margin-bottom:5px;"><strong>&#8594; Table Mountain &#183; km 31 &#183; 3&#8211;6h:</strong> Platteklip Gorge &#8212; 876m in under 5km. The steepest section of the whole race. Power-hike from the bottom, eat at the top, do not race anyone up it. Twenty minutes per kilometre here is on schedule, not slow.</div>
+ <div class="pblk" style="border-color:var(--grn);margin-bottom:5px;"><strong>&#8594; Hout Bay &#183; km 57 &#183; 6&#8211;11h &#183; 10:00&#8211;15:00:</strong> Llandudno and Rocket Road. Runnable, and this is where the heat arrives &#8212; you are out here through the hottest hours. Sodium toward 1,000mg/h. <strong>Hout Bay is your only drop bag</strong>: restock everything, change socks, pick up the torch. Keep the stop under ten minutes.</div>
+ <div class="pblk" style="border-color:var(--amb);margin-bottom:5px;"><strong>&#8594; Constantia Glen &#183; km 72 &#183; 11&#8211;14h &#183; THE CRUX:</strong> 945m of climbing over 15km &#8212; the biggest single stage on the course, arriving when you are eleven hours in. Everything you saved in the first half is for this. Walk the climbs deliberately, keep eating, and expect it to take over three hours.</div>
+ <div class="pblk" style="border-color:var(--rd);"><strong>&#8594; FINISH &#183; km 99 &#183; 14&#8211;20h:</strong> Alphen is a brief flat reprieve, then Nursery Ravine. Torch back on around km 80. Newlands, then <strong>Dead Man&#8217;s Tree stings you for 487m between km 88 and 96</strong> &#8212; do not be surprised by it. Caffeine from here. Then 2.87km downhill into the city and done.</div>
  </div>
  </details>
  <details class="ptdetails" style="margin-bottom:12px;">
@@ -914,8 +929,8 @@ var W=[
   {t:'run',s:'HEAT: easy 6km overdressed',d:'Fifth heat session. Easy.',am:false,ph:false}
  ]},
 {n:10,dt:'16 Nov',p:'race',lb:'RACE WEEK — UTCT 100km',km:25,v:600,fl:['ht','hb'],dis:'race',rn:'UTCT 100km',
- rt:'UTCT 100km',rl:'Cape Town, South Africa',rk:'99.85 km',rv:'5,085m D+',
- rd:'Signal Hill and Lions Head out of the city, then Table Mountain, then Karbonkelberg — roughly half the climbing inside the first 50km, taken while you feel strongest. That is the trap. Hold the splits early even when they feel too easy. Cutoff is 26 hours; sub-20h leaves six hours of margin.',
+ rt:'UTCT 100km',rl:'Cape Town, South Africa',rk:'99.17 km',rv:'4,676m D+',
+ rd:'Official route: 99.17km, 4,676m D+, 13 aid and timing points, 26h cutoff. It is NOT front-loaded — half the climbing is still ahead at Hout Bay (km 57.35). The crux is Hout Bay to Constantia Glen: 945m over 15km, arriving eleven hours in. Platteklip Gorge (876m in 4.83km) is the steepest section, at km 20-25. Dead Mans Tree adds 487m between km 88 and 96. One drop bag only, at Hout Bay.',
  note:'Last heat session Wednesday 18 Nov, then stop — adaptation holds for about a week.\n\nRace morning: wake around 02:15, breakfast by 02:30 — 80–100g carbs, low fibre, low fat, exactly what you rehearsed. Another 30g at about 03:45.\n\nOn course: 60–80g carbs per hour from hour one, sodium 500–800mg/h and toward 1,000 through the midday heat. Solids early while the stomach is willing, gels and liquid later. Save caffeine for after dark — from roughly hour 12, then steadily to the finish.\n\nHeadtorch from the start until about 05:30, and again from about 19:45 to the finish. Spare batteries at the last crew point.',
  dy:[
   {t:'run',s:'HEAT: easy 6km overdressed',d:'Second-last heat session. Easy.',am:false,ph:false},
@@ -923,7 +938,7 @@ var W=[
   {t:'run',s:'HEAT: easy 5km — LAST heat session',d:'Final heat exposure. Short and easy. Stop here — three days out is the right place to finish.',am:false,ph:false},
   {t:'rest',s:'Rest — gear check',d:'Full rest. Mandatory kit laid out and checked. Drop bags packed. Travel sorted.',am:false,ph:false},
   {t:'rest',s:'Rest + 20min shakeout',d:'Very easy 20 minutes or nothing at all. Eat carbs through the day. In bed early — you are up at 02:15.',am:false,ph:false},
-  {t:'race',s:'UTCT 100km — 04:00 START',d:'Breakfast 02:30. Headtorch on. Walk every steep climb from the first one. Eat from hour one. The first 50km will feel easy and that is the point — you are saving the race for after Karbonkelberg.',am:true,ph:false},
+  {t:'race',s:'UTCT 100km — 04:00 START',d:'Breakfast 02:30. Headtorch on. Walk every steep climb from the first one. Eat from hour one. Power-hike Platteklip, do not race it. The first half should feel comfortably controlled — half the climbing is still ahead at Hout Bay, and the crux is the 945m haul to Constantia Glen at eleven hours in. Restock properly at the Hout Bay drop bag.',am:true,ph:false},
   {t:'rest',s:'Recover',d:'Eat, sleep, and be pleased with yourself.',am:false,ph:false}
  ]}
 ];
@@ -1157,16 +1172,16 @@ function showPace(id, btn) {
 var RACE_START = new Date(2026, 10, 21, 4, 0, 0); // Sat 21 Nov 2026, 04:00
 // Aid station tables: [tag, name, km, raceTimeMin (minutes from start)]
 var AID_P30 = [
- ['S','Start',0,0],['1','10 km',10,120],['2','20 km',20,255],['3','30 km',30,370],['4','40 km',40,490],['5','50 km',50,600],['6','60 km',60,710],['7','70 km',70,825],['8','80 km',80,945],['9','90 km',90,1070],['F','Finish',99.85,1200]
+ ['S','Cape Town',0.0,0],['1','Signal Hill',11.91,103],['2','Kloof Nek',20.2,179],['TP','Platteklip Gorge',25.03,276],['4','Table Mountain',31.07,352],['5','Llandudno',41.52,482],['6','Rocket Road',47.33,557],['7','Hout Bay',57.35,666],['8','Constantia Glen',72.31,851],['9','Alphen Trail',76.72,898],['TP','Nursery Ravine',81.31,967],['11','Newlands Picnic',88.36,1059],['TP','Dead Man\'s Tree',96.3,1173],['F','Cape Town',99.17,1200]
 ];
 var AID_P36 = [
- ['S','Start',0,0],['1','10 km',10,108],['2','20 km',20,230],['3','30 km',30,333],['4','40 km',40,441],['5','50 km',50,540],['6','60 km',60,639],['7','70 km',70,742],['8','80 km',80,850],['9','90 km',90,963],['F','Finish',99.85,1080]
+ ['S','Cape Town',0.0,0],['1','Signal Hill',11.91,93],['2','Kloof Nek',20.2,161],['TP','Platteklip Gorge',25.03,249],['4','Table Mountain',31.07,317],['5','Llandudno',41.52,434],['6','Rocket Road',47.33,502],['7','Hout Bay',57.35,599],['8','Constantia Glen',72.31,766],['9','Alphen Trail',76.72,808],['TP','Nursery Ravine',81.31,870],['11','Newlands Picnic',88.36,953],['TP','Dead Man\'s Tree',96.3,1056],['F','Cape Town',99.17,1080]
 ];
 var AID_P40 = [
- ['S','Start',0,0],['1','10 km',10,132],['2','20 km',20,280],['3','30 km',30,407],['4','40 km',40,539],['5','50 km',50,660],['6','60 km',60,781],['7','70 km',70,908],['8','80 km',80,1040],['9','90 km',90,1177],['F','Finish',99.85,1320]
+ ['S','Cape Town',0.0,0],['1','Signal Hill',11.91,113],['2','Kloof Nek',20.2,197],['TP','Platteklip Gorge',25.03,304],['4','Table Mountain',31.07,387],['5','Llandudno',41.52,530],['6','Rocket Road',47.33,613],['7','Hout Bay',57.35,732],['8','Constantia Glen',72.31,936],['9','Alphen Trail',76.72,987],['TP','Nursery Ravine',81.31,1064],['11','Newlands Picnic',88.36,1165],['TP','Dead Man\'s Tree',96.3,1290],['F','Cape Town',99.17,1320]
 ];
 var AID_P45 = [
- ['S','Start',0,0],['1','10 km',10,156],['2','20 km',20,332],['3','30 km',30,481],['4','40 km',40,637],['5','50 km',50,780],['6','60 km',60,923],['7','70 km',70,1072],['8','80 km',80,1228],['9','90 km',90,1391],['F','Finish',99.85,1560]
+ ['S','Cape Town',0.0,0],['1','Signal Hill',11.91,134],['2','Kloof Nek',20.2,233],['TP','Platteklip Gorge',25.03,359],['4','Table Mountain',31.07,458],['5','Llandudno',41.52,627],['6','Rocket Road',47.33,724],['7','Hout Bay',57.35,865],['8','Constantia Glen',72.31,1107],['9','Alphen Trail',76.72,1167],['TP','Nursery Ravine',81.31,1257],['11','Newlands Picnic',88.36,1377],['TP','Dead Man\'s Tree',96.3,1525],['F','Cape Town',99.17,1560]
 ];
 function fmtClock(d){ var h=d.getHours(), m=d.getMinutes(); return ('0'+(h%12||12)).slice(-2)+':'+('0'+m).slice(-2)+(h<12?'am':'pm'); }
 function fmtElapsed(min){ var h=Math.floor(min/60), m=Math.round(min%60); return h+'h'+('0'+m).slice(-2); }
