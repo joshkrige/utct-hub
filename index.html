@@ -2023,7 +2023,11 @@ function renderTrend(){
   var host=document.getElementById('trend-card'); if(!host) return;
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ host.innerHTML=''; return; }
   var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v3')); }catch(e){}
-  if(c && c.date===ymd(new Date()) && c.html){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
+  // Serve the cache only if it is from today AND complete. A partial cache must never
+  // be re-served — that hides the failure for the rest of the day.
+  function _full(d){ return d && d.rhr && d.rhr.length && d.hrv && d.hrv.length && d.sleep && d.sleep.length && d.load && d.load.length; }
+  if(c && c.date===ymd(new Date()) && c.html && _full(c.data)){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
+  try{ localStorage.removeItem('utct_trend_cache_v3'); }catch(e){}
   host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="loading-msg"><div class="loading-spinner"></div></div></div>';
   var d56=new Date(Date.now()-56*86400000), dNow=new Date();
   var cFrom=ymdCompact(d56), cTo=ymdCompact(dNow);
