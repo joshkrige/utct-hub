@@ -1911,10 +1911,16 @@ function briefHtml(t){
 // ─── COROS TEXT PARSERS ───────────────────────────────────────────────────────
 function corosUnwrapText(res){
   if(!res) return '';
-  if(typeof res==='string') return res;
-  if(res.content && Array.isArray(res.content)) return res.content.map(function(c){return (c&&c.text)||'';}).join('');
-  if(res.structuredContent && typeof res.structuredContent==='string') return res.structuredContent;
-  return '';
+  var t='';
+  if(typeof res==='string') t=res;
+  else if(res.content && Array.isArray(res.content)) t=res.content.map(function(c){return (c&&c.text)||'';}).join('');
+  else if(res.structuredContent && typeof res.structuredContent==='string') t=res.structuredContent;
+  else return '';
+  // COROS payloads arrive JSON-encoded: a quoted string whose newlines are literal backslash-n.
+  // Undecoded, split by newline yields one giant line and every line-anchored parser returns nothing.
+  if(t.charAt(0)==='"'){ try{ var p=JSON.parse(t); if(typeof p==='string') t=p; }catch(e){} }
+  if(t.indexOf('\n')===-1 && t.indexOf('\\n')>-1){ t=t.replace(/\\r/g,'').replace(/\\n/g,'\n'); }
+  return t;
 }
 // Parse COROS RHR text: "YYYY-MM-DD: NN bpm" lines → [{qty,recordedAt}]
 function parseCOROS_RHR(text){
