@@ -503,10 +503,6 @@ body{-webkit-font-smoothing:antialiased;}
  <span class="fl ico">&#8600;&#65038; Downhill focus</span>
  <span class="fl ico">&#128293; Heat adaptation</span>
  </div>
- <div id="plan-loading" class="loading-msg" style="display:none;">
- <div class="loading-spinner"></div><br>Loading from Google Sheet…
- </div>
- <div id="plan-error" class="error-box" style="display:none;"></div>
  <div id="nextup-wrap"></div>
  <div class="wgrid" id="wgrid"></div>
  <div class="det" id="det">Click any week to see the full plan.</div>
@@ -1214,80 +1210,6 @@ function renderRaceNow(planId){
   html='<div class="rn-card"><div class="rn-head">🏃 Race in progress &middot; '+fmtElapsed(elapsedMin)+' elapsed</div>'+rows+'</div>';
  }
  host.innerHTML=html;
-}
-
-// ─── GOOGLE SHEET SYNC ───────────────────────────────────────────────────────
-var SHEET_URL_KEY = 'utct_sheet_url';
-
-function loadSavedUrl() {
- try {
- var saved = localStorage.getItem(SHEET_URL_KEY);
- if (saved) document.getElementById('sheetUrl').value = saved;
- } catch(e) {}
-}
-
-function syncFromSheet() {
- var url = document.getElementById('sheetUrl').value.trim();
- if (!url) { setStatus('Paste your Apps Script URL first.', 'err'); return; }
-
- try { localStorage.setItem(SHEET_URL_KEY, url); } catch(e) {}
-
- var btn = document.getElementById('syncBtn');
- btn.disabled = true;
- btn.textContent = 'Syncing…';
- setStatus('Fetching from Google Sheet…', '');
- document.getElementById('plan-loading').style.display = 'block';
- document.getElementById('plan-error').style.display = 'none';
-
- // Use JSONP — sidesteps CORS completely (Apps Script redirects break fetch)
- var cbName = '__utctCb_' + Date.now();
- var script = document.createElement('script');
- var timer = setTimeout(function() {
- cleanup();
- showSyncError('Timed out after 15s. Check the URL and that the Web App is deployed.');
- }, 15000);
-
- function cleanup() {
- delete window[cbName];
- if (script.parentNode) script.parentNode.removeChild(script);
- clearTimeout(timer);
- btn.disabled = false;
- btn.textContent = '⟳ Sync';
- document.getElementById('plan-loading').style.display = 'none';
- }
-
- window[cbName] = function(data) {
- cleanup();
- if (data && data.error) { showSyncError(data.error); return; }
- if (!Array.isArray(data) || data.length === 0) { showSyncError('No week data returned. Check your Weeks tab has data.'); return; }
- W = data;
- sel = 0;
- renderGrid();
- renderDetail();
- setStatus('✓ Synced ' + data.length + ' weeks — ' + new Date().toLocaleTimeString(), 'ok');
- };
-
- var sep = url.indexOf('?') > -1 ? '&' : '?';
- script.src = url + sep + 'callback=' + cbName + '&t=' + Date.now();
- script.onerror = function() { cleanup(); showSyncError('Script load failed. Make sure the Web App is deployed with "Anyone" access.'); };
- document.head.appendChild(script);
-}
-
-function showSyncError(msg) {
- var errEl = document.getElementById('plan-error');
- errEl.style.display = 'block';
- errEl.innerHTML = '<strong>Could not load from Google Sheet</strong><br>' + msg
- + '<br><br><strong>3 things to check:</strong><br>'
- + '1. In Apps Script: Deploy → Manage deployments → confirm "Who has access" = <strong>Anyone</strong><br>'
- + '2. After any script change, do <strong>Deploy → New deployment</strong> (not redeploy same version)<br>'
- + '3. Sheet tabs must be named exactly <strong>Weeks</strong> and <strong>Days</strong> (capital W and D)';
- setStatus('Sync failed — see details above.', 'err');
-}
-
-function setStatus(msg, cls) {
- var el = document.getElementById('syncStatus');
- el.textContent = msg;
- el.className = 'sync-status' + (cls ? ' ' + cls : '');
 }
 
 // ─── CURRENT WEEK MARKER ─────────────────────────────────────────────────────
@@ -2018,16 +1940,44 @@ function parseCOROS_TrainingLoad(text){
   return samples;
 }
 
+  // yyyyMMdd for COROS date params
+  function ymdCompact(d){ return ''+d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); }
+  // COROS sleep HRV: use the official assessment block only, ignore the raw time series
+  function parseCOROS_HRV(text){
+    var out=[];
+    if(!text) return out;
+    var cut=text.indexOf('Sleep HRV Time Series');
+    var body=cut>-1?text.slice(0,cut):text;
+    var cur=null;
+    body.split('\n').forEach(function(line){
+      var dm=line.match(/^\s*(\d{4}-\d{2}-\d{2}):\s*$/);
+      if(dm){ cur=dm[1]; return; }
+      var m=line.match(/HRV Avg:\s*(\d+)\s*ms/i);
+      if(m&&cur){ out.push({qty:parseInt(m[1]),recordedAt:cur}); cur=null; }
+    });
+    return out;
+  }
+  // COROS sleep overview: Main Sleep (asleep) minutes per wake-up date
+  function parseCOROS_Sleep(text){
+    var out=[], cur=null;
+    if(!text) return out;
+    text.split('\n').forEach(function(line){
+      var dm=line.match(/^\s*(\d{4}-\d{2}-\d{2})\s*$/);
+      if(dm){ cur=dm[1]; return; }
+      var m=line.match(/Main Sleep \(asleep\):\s*(?:(\d+)h\s*)?(?:(\d+)min)?/i);
+      if(m&&cur&&(m[1]||m[2])){
+        var mins=(parseInt(m[1]||0)*60)+parseInt(m[2]||0);
+        if(mins>=180) out.push({qty:mins,recordedAt:cur});
+        cur=null;
+      }
+    });
+    return out;
+  }
+
 // ─── RECOVERY TREND (last 8 weeks: resting HR, training load) ─────────────────
 function trendMondayOf(d){ var x=new Date(d); if(isNaN(x)) return null; x.setHours(0,0,0,0); var day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); return x; }
-function trendParseSamples(res){ var d=hbUnwrap(res); return Array.isArray(d)?d:[]; }
 function trendWeekly(samples){
   var b={}; samples.forEach(function(s){ var v=(s.qty!=null?s.qty:s.value); var t=s.recordedAt||s.date; if(v==null||!t) return; var mo=trendMondayOf(t); if(!mo) return; var k=ymd(mo); (b[k]=b[k]||[]).push(+v); });
-  return Object.keys(b).sort().map(function(k){ var a=b[k]; return {wk:k, avg:a.reduce(function(x,y){return x+y;},0)/a.length, n:a.length}; });
-}
-function trendWeeklySleep(res){
-  var d=hbUnwrap(res), nights=(d&&d.nights)?d.nights:[]; var b={};
-  nights.forEach(function(n){ if(!n.date||(n.asleepMinutes||0)<180) return; var mo=trendMondayOf(n.date); if(!mo) return; var k=ymd(mo); (b[k]=b[k]||[]).push(n.asleepMinutes); });
   return Object.keys(b).sort().map(function(k){ var a=b[k]; return {wk:k, avg:a.reduce(function(x,y){return x+y;},0)/a.length, n:a.length}; });
 }
 function trendBaseLast(arr){ if(arr.length<2) return null; var prev=arr.slice(0,-1); return { base:prev.reduce(function(s,x){return s+x.avg;},0)/prev.length, last:arr[arr.length-1].avg }; }
@@ -2073,23 +2023,21 @@ function renderTrend(){
   var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v2')); }catch(e){}
   if(c && c.date===ymd(new Date()) && c.html){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
   host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="loading-msg"><div class="loading-spinner"></div></div></div>';
-  var from56=ymd(new Date(Date.now()-56*86400000));
+  var d56=new Date(Date.now()-56*86400000), dNow=new Date();
+  var cFrom=ymdCompact(d56), cTo=ymdCompact(dNow);
   Promise.all([
     window.__cowork_stub__.callMcpTool(COROS_ID+'__queryRestingHeartRate',{days:56}).catch(function(){return null;}),
     window.__cowork_stub__.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:56}).catch(function(){return null;}),
-    window.__cowork_stub__.callMcpTool('mcp__healthbridge__get_samples',{metric:'Heart Rate Variability (SDNN)',from:from56}).catch(function(){return null;}),
-    window.__cowork_stub__.callMcpTool('mcp__healthbridge__summarize_sleep',{from:from56}).catch(function(){return null;}),
-    window.__cowork_stub__.callMcpTool('mcp__healthbridge__get_samples',{metric:'Resting Heart Rate',from:from56}).catch(function(){return null;})
+    window.__cowork_stub__.callMcpTool(COROS_ID+'__querySleepHrv',{startDate:cFrom,endDate:cTo,days:7}).catch(function(){return null;}),
+    window.__cowork_stub__.callMcpTool(COROS_ID+'__querySleepOverview',{startDate:cFrom,endDate:cTo,days:56}).catch(function(){return null;})
   ]).then(function(res){
     var rhrSamples=parseCOROS_RHR(corosUnwrapText(res[0]));
-    var rhrHb=trendParseSamples(res[4]);
-    if(((rhrHb&&rhrHb.length)||0)>((rhrSamples&&rhrSamples.length)||0)){ rhrSamples=rhrHb; }
     var loadSamples=parseCOROS_TrainingLoad(corosUnwrapText(res[1]));
-    var hrvSamples=trendParseSamples(res[2]);
-    var sleepData=res[3];
-    var data={ rhr:trendWeekly(rhrSamples), hrv:trendWeekly(hrvSamples), sleep:trendWeeklySleep(sleepData), load:trendWeekly(loadSamples) };
+    var hrvSamples=parseCOROS_HRV(corosUnwrapText(res[2]));
+    var sleepSamples=parseCOROS_Sleep(corosUnwrapText(res[3]));
+    var data={ rhr:trendWeekly(rhrSamples), hrv:trendWeekly(hrvSamples), sleep:trendWeekly(sleepSamples), load:trendWeekly(loadSamples) };
     var html=trendHtml(data); host.innerHTML=html;
-    if(data.rhr.length||data.load.length||data.sleep.length){ try{ localStorage.setItem('utct_trend_cache_v2', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
+    if(data.rhr.length||data.load.length||data.sleep.length||data.hrv.length){ try{ localStorage.setItem('utct_trend_cache_v3', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
     setTimeout(function(){ drawTrendChart(data); },0);
   }).catch(function(e){ host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="callout co-rd">Couldn\'t load trend: '+(e&&e.message?e.message:e)+'</div></div>'; });
 }
@@ -2161,13 +2109,11 @@ function renderToday(){
   var out=document.getElementById('brief-out');
   Promise.all([
     window.__cowork_stub__.callMcpTool(COROS_ID+'__queryRecoveryStatus',{}).catch(function(){return null;}),
-    window.__cowork_stub__.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:7}).catch(function(){return null;}),
-    window.__cowork_stub__.callMcpTool('mcp__healthbridge__get_context',{focus:'recovery'}).catch(function(){return null;})
+    window.__cowork_stub__.callMcpTool(COROS_ID+'__queryTrainingLoadAssessment',{days:7}).catch(function(){return null;})
   ]).then(function(corosRes){
     var recoveryText=corosUnwrapText(corosRes[0])||'Recovery data unavailable';
     var loadText=corosUnwrapText(corosRes[1])||'Training load data unavailable';
-    var hbContext=hbUnwrap(corosRes[2]);
-    var coros={ recovery:recoveryText, trainingLoad:loadText, healthbridge:hbContext };
+        var coros={ recovery:recoveryText, trainingLoad:loadText };
     var data={ date:new Date().toDateString(), daysToRace:raceCountdown(), week:ti.w.n, phase:PN[phk(ti.w)], plannedToday:planLine, physioDue:physio,
       recovery:coros, zoneNote:zoneCheck(),
       recentActivities:(ACT||[]).slice(0,6).map(function(a){ return { name:a.name, date:(a.start_date_local||'').slice(0,10), km:Math.round((a.distance||0)/100)/10, vert:a.total_elevation_gain, avgHr:a.average_heartrate, type:a.sport_type }; }) };
