@@ -1482,7 +1482,7 @@ function renderNextUp(){
     + '</div></div>';
 }
 
-function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache_v2')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache_v2');}}catch(_e){}
+function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache_v3')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache_v3');}}catch(_e){}
 renderTicker(); renderToday(); renderTrend(); var _rp=document.getElementById('p45')&&document.getElementById('p45').style.display==='block'?'p45':(document.getElementById('p40')&&document.getElementById('p40').style.display==='block'?'p40':(document.getElementById('p36')&&document.getElementById('p36').style.display==='block'?'p36':'p30')); renderRaceNow(_rp); }
 
 function loadStrava(){
@@ -1995,32 +1995,34 @@ function trendHtml(data){
   var loadL=(data.load&&data.load.length)?Math.round(data.load[data.load.length-1].avg)+' STL':'—';
   var slpL=data.sleep.length?(Math.round(data.sleep[data.sleep.length-1].avg/6)/10)+'h':'—';
   var hrvL=data.hrv.length?Math.round(data.hrv[data.hrv.length-1].avg)+' ms':'—';
-  return '<div class="card"><h3>Recovery trend <span style="font-weight:400;color:var(--t2);font-size:11px;">· last 8 weeks · COROS + Apple Health</span></h3>'
+  return '<div class="card"><h3>Recovery trend <span style="font-weight:400;color:var(--t2);font-size:11px;">· last 8 weeks · COROS</span></h3>'
     +'<div class="callout '+co+'" style="margin-bottom:11px;">'+f.text+'</div>'
     +'<div class="trendstats"><span>Resting HR<strong>'+rhrL+'</strong></span><span>Sleep<strong>'+slpL+'</strong></span><span>HRV<strong>'+hrvL+'</strong></span><span>STL<strong>'+loadL+'</strong></span></div>'
     +'<div style="position:relative;height:180px;margin-top:10px;"><canvas id="trendChart"></canvas></div>'
-    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Weekly averages. RHR &amp; training load from COROS; HRV &amp; sleep from Apple Health. Rising resting HR, falling sleep/HRV, or a rapidly climbing load ratio are early fatigue signals.</p></div>';
+    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Weekly averages. All four series from COROS. Rising resting HR, falling sleep/HRV, or a rapidly climbing load ratio are early fatigue signals.</p></div>';
 }
 function drawTrendChart(data){
   var cv=document.getElementById('trendChart'); if(!cv || typeof Chart==='undefined') return;
-  var wk={}; data.rhr.forEach(function(p){wk[p.wk]=1;}); data.sleep.forEach(function(p){wk[p.wk]=1;}); (data.load||[]).forEach(function(p){wk[p.wk]=1;});
+  var wk={}; data.rhr.forEach(function(p){wk[p.wk]=1;}); data.sleep.forEach(function(p){wk[p.wk]=1;}); (data.load||[]).forEach(function(p){wk[p.wk]=1;}); (data.hrv||[]).forEach(function(p){wk[p.wk]=1;});
   var keys=Object.keys(wk).sort();
   function look(arr,k){ for(var i=0;i<arr.length;i++) if(arr[i].wk===k) return arr[i].avg; return null; }
   var labels=keys.map(function(k){ var d=new Date(k+'T00:00:00'); return d.getDate()+'/'+(d.getMonth()+1); });
   var rhr=keys.map(function(k){ var v=look(data.rhr,k); return v==null?null:Math.round(v*10)/10; });
   var slp=keys.map(function(k){ var v=look(data.sleep,k); return v==null?null:Math.round(v/6)/10; });
   var load=keys.map(function(k){ var v=look(data.load||[],k); return v==null?null:Math.round(v); });
+  var hrv=keys.map(function(k){ var v=look(data.hrv||[],k); return v==null?null:Math.round(v); });
   if(window._trendChart){ try{window._trendChart.destroy();}catch(e){} }
   window._trendChart=new Chart(cv.getContext('2d'),{ data:{labels:labels, datasets:[
     {type:'line', label:'Resting HR (bpm)', data:rhr, yAxisID:'yH', borderColor:'#C0392B', backgroundColor:'rgba(192,57,43,.07)', fill:true, pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
     {type:'line', label:'Sleep (h/night)', data:slp, yAxisID:'yS', borderColor:'#185FA5', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
-    {type:'line', label:'STL (COROS)', data:load, yAxisID:'yL', borderColor:'#1D9E75', pointRadius:2, tension:.3, borderWidth:1.5, borderDash:[4,2], spanGaps:true}
-  ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},scales:{yH:{position:'left',ticks:{font:{size:9}}},yS:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}},yL:{display:false},x:{ticks:{font:{size:9}}}}} });
+    {type:'line', label:'STL (COROS)', data:load, yAxisID:'yL', borderColor:'#1D9E75', pointRadius:2, tension:.3, borderWidth:1.5, borderDash:[4,2], spanGaps:true},
+    {type:'line', label:'HRV (ms)', data:hrv, yAxisID:'yV', borderColor:'#6D28D9', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true}
+  ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},scales:{yH:{position:'left',ticks:{font:{size:9}}},yS:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}},yL:{display:false},yV:{display:false},x:{ticks:{font:{size:9}}}}} });
 }
 function renderTrend(){
   var host=document.getElementById('trend-card'); if(!host) return;
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ host.innerHTML=''; return; }
-  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v2')); }catch(e){}
+  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v3')); }catch(e){}
   if(c && c.date===ymd(new Date()) && c.html){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
   host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="loading-msg"><div class="loading-spinner"></div></div></div>';
   var d56=new Date(Date.now()-56*86400000), dNow=new Date();
