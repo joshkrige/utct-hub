@@ -2037,9 +2037,17 @@ function renderTrend(){
     var loadSamples=parseCOROS_TrainingLoad(corosUnwrapText(res[1]));
     var hrvSamples=parseCOROS_HRV(corosUnwrapText(res[2]));
     var sleepSamples=parseCOROS_Sleep(corosUnwrapText(res[3]));
+    // Diagnose silently-failing sources: distinguish "call returned nothing" from "parsed nothing".
+    var diag=[['Resting HR',res[0],rhrSamples],['Load',res[1],loadSamples],['HRV',res[2],hrvSamples],['Sleep',res[3],sleepSamples]]
+      .map(function(d){ var raw=corosUnwrapText(d[1]); return {name:d[0], ok:d[2].length>0, why: d[1]==null?'call failed':(!raw?'empty response':(d[2].length?'':'parsed 0 of '+raw.length+' chars'))}; });
+    var bad=diag.filter(function(d){ return !d.ok; });
     var data={ rhr:trendWeekly(rhrSamples), hrv:trendWeekly(hrvSamples), sleep:trendWeekly(sleepSamples), load:trendWeekly(loadSamples) };
-    var html=trendHtml(data); host.innerHTML=html;
-    if(data.rhr.length||data.load.length||data.sleep.length||data.hrv.length){ try{ localStorage.setItem('utct_trend_cache_v3', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
+    var html=trendHtml(data);
+    if(bad.length){ html+='<div class="callout co-amb" style="margin-top:-6px;font-size:11px;">No data from: '+bad.map(function(d){return '<strong>'+d.name+'</strong> ('+d.why+')';}).join(' &#183; ')+'</div>'; }
+    host.innerHTML=html;
+    // Only cache a COMPLETE result — a partial one would be re-served all day and hide the failure.
+    if(data.rhr.length&&data.load.length&&data.sleep.length&&data.hrv.length){ try{ localStorage.setItem('utct_trend_cache_v3', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
+    else { try{ localStorage.removeItem('utct_trend_cache_v3'); }catch(e){} }
     setTimeout(function(){ drawTrendChart(data); },0);
   }).catch(function(e){ host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="callout co-rd">Couldn\'t load trend: '+(e&&e.message?e.message:e)+'</div></div>'; });
 }
