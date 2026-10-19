@@ -1482,7 +1482,7 @@ function renderNextUp(){
     + '</div></div>';
 }
 
-function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache_v3')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache_v3');}}catch(_e){}
+function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache_v4')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache_v4');}}catch(_e){}
 renderTicker(); renderToday(); renderTrend(); var _rp=document.getElementById('p45')&&document.getElementById('p45').style.display==='block'?'p45':(document.getElementById('p40')&&document.getElementById('p40').style.display==='block'?'p40':(document.getElementById('p36')&&document.getElementById('p36').style.display==='block'?'p36':'p30')); renderRaceNow(_rp); }
 
 function loadStrava(){
@@ -1980,17 +1980,38 @@ function parseCOROS_TrainingLoad(text){
     return out;
   }
 
-// ─── RECOVERY TREND (last 8 weeks: resting HR, training load) ─────────────────
+// ─── RECOVERY TREND (last 28 days, daily: resting HR, HRV, sleep, training load) ───
 function trendMondayOf(d){ var x=new Date(d); if(isNaN(x)) return null; x.setHours(0,0,0,0); var day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); return x; }
+function trendDaily(samples, days){
+  var cut=new Date(); cut.setHours(0,0,0,0); cut.setDate(cut.getDate()-(days||28));
+  var b={};
+  samples.forEach(function(s){
+    var v=(s.qty!=null?s.qty:s.value); var t=s.recordedAt||s.date;
+    if(v==null||!t) return;
+    var d=new Date(t); if(isNaN(d)) return; d.setHours(0,0,0,0);
+    if(d<cut) return;
+    var k=ymd(d); (b[k]=b[k]||[]).push(+v);
+  });
+  return Object.keys(b).sort().map(function(k){ var a=b[k]; return {wk:k, avg:a.reduce(function(x,y){return x+y;},0)/a.length, n:a.length}; });
+}
 function trendWeekly(samples){
   var b={}; samples.forEach(function(s){ var v=(s.qty!=null?s.qty:s.value); var t=s.recordedAt||s.date; if(v==null||!t) return; var mo=trendMondayOf(t); if(!mo) return; var k=ymd(mo); (b[k]=b[k]||[]).push(+v); });
   return Object.keys(b).sort().map(function(k){ var a=b[k]; return {wk:k, avg:a.reduce(function(x,y){return x+y;},0)/a.length, n:a.length}; });
 }
-function trendBaseLast(arr){ if(arr.length<2) return null; var prev=arr.slice(0,-1); return { base:prev.reduce(function(s,x){return s+x.avg;},0)/prev.length, last:arr[arr.length-1].avg }; }
+function trendBaseLast(arr){
+  // With daily points, comparing a single day against everything prior makes one bad
+  // night look like a collapse. Use a 3-day average as "recent" instead.
+  if(!arr || arr.length<4) return null;
+  var n=Math.min(3, Math.floor(arr.length/2));
+  var recent=arr.slice(-n), prev=arr.slice(0,-n);
+  if(!prev.length) return null;
+  function mean(a){ return a.reduce(function(s,x){return s+x.avg;},0)/a.length; }
+  return { base:mean(prev), last:mean(recent) };
+}
 function trendFlag(data){
   var msgs=[], level=0;
-  var r=trendBaseLast(data.rhr); if(r){ var dr=r.last-r.base; if(dr>=3){ level=Math.max(level, dr>=5?2:1); msgs.push('Resting HR is about '+Math.round(dr)+' bpm above your recent baseline — a classic early sign of fatigue or a cold coming on.'); } else if(r.base-r.last>=2){ msgs.push('Resting HR is drifting down (good adaptation).'); } }
-  var s=trendBaseLast(data.sleep); if(s){ var ds=s.base-s.last; if(ds>=30){ level=Math.max(level,1); msgs.push('Sleep is down about '+(Math.round(ds/6)/10)+'h/night vs baseline — protect it this week.'); } }
+  var r=trendBaseLast(data.rhr); if(r){ var dr=r.last-r.base; if(dr>=3){ level=Math.max(level, dr>=5?2:1); msgs.push('Resting HR over the last 3 days is about '+Math.round(dr)+' bpm above your baseline — a classic early sign of fatigue or a cold coming on.'); } else if(r.base-r.last>=2){ msgs.push('Resting HR is drifting down (good adaptation).'); } }
+  var s=trendBaseLast(data.sleep); if(s){ var ds=s.base-s.last; if(ds>=30){ level=Math.max(level,1); msgs.push('Sleep over the last 3 nights is down about '+(Math.round(ds/6)/10)+'h/night vs your baseline — protect it this week.'); } }
   if(data.hrv.length>=3){ var hv=trendBaseLast(data.hrv); if(hv && hv.base && (hv.base-hv.last)/hv.base>=0.1){ level=Math.max(level,1); msgs.push('HRV is trending down — another fatigue signal.'); } }
   if(!msgs.length) msgs.push('Resting HR, HRV and sleep are stable — recovery is on track.');
   return {level:level, text:msgs.join(' ')};
@@ -2001,11 +2022,11 @@ function trendHtml(data){
   var loadL=(data.load&&data.load.length)?Math.round(data.load[data.load.length-1].avg)+' STL':'—';
   var slpL=data.sleep.length?(Math.round(data.sleep[data.sleep.length-1].avg/6)/10)+'h':'—';
   var hrvL=data.hrv.length?Math.round(data.hrv[data.hrv.length-1].avg)+' ms':'—';
-  return '<div class="card"><h3>Recovery trend <span style="font-weight:400;color:var(--t2);font-size:11px;">· last 8 weeks · COROS</span></h3>'
+  return '<div class="card"><h3>Recovery trend <span style="font-weight:400;color:var(--t2);font-size:11px;">· last 28 days · COROS</span></h3>'
     +'<div class="callout '+co+'" style="margin-bottom:11px;">'+f.text+'</div>'
     +'<div class="trendstats"><span>Resting HR<strong>'+rhrL+'</strong></span><span>Sleep<strong>'+slpL+'</strong></span><span>HRV<strong>'+hrvL+'</strong></span><span>STL<strong>'+loadL+'</strong></span></div>'
     +'<div style="position:relative;height:180px;margin-top:10px;"><canvas id="trendChart"></canvas></div>'
-    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Weekly averages. All four series from COROS. Rising resting HR, falling sleep/HRV, or a rapidly climbing load ratio are early fatigue signals.</p></div>';
+    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Daily values. All four series from COROS. Rising resting HR, falling sleep/HRV, or a rapidly climbing load ratio are early fatigue signals.</p></div>';
 }
 function drawTrendChart(data){
   var cv=document.getElementById('trendChart'); if(!cv || typeof Chart==='undefined') return;
@@ -2028,12 +2049,12 @@ function drawTrendChart(data){
 function renderTrend(){
   var host=document.getElementById('trend-card'); if(!host) return;
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ host.innerHTML=''; return; }
-  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v3')); }catch(e){}
+  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v4')); }catch(e){}
   // Serve the cache only if it is from today AND complete. A partial cache must never
   // be re-served — that hides the failure for the rest of the day.
   function _full(d){ return d && d.rhr && d.rhr.length && d.hrv && d.hrv.length && d.sleep && d.sleep.length && d.load && d.load.length; }
   if(c && c.date===ymd(new Date()) && c.html && _full(c.data)){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
-  try{ localStorage.removeItem('utct_trend_cache_v3'); }catch(e){}
+  try{ localStorage.removeItem('utct_trend_cache_v4'); }catch(e){}
   host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="loading-msg"><div class="loading-spinner"></div></div></div>';
   var d56=new Date(Date.now()-56*86400000), dNow=new Date();
   var cFrom=ymdCompact(d56), cTo=ymdCompact(dNow);
@@ -2051,13 +2072,13 @@ function renderTrend(){
     var diag=[['Resting HR',res[0],rhrSamples],['Load',res[1],loadSamples],['HRV',res[2],hrvSamples],['Sleep',res[3],sleepSamples]]
       .map(function(d){ var raw=corosUnwrapText(d[1]); return {name:d[0], ok:d[2].length>0, why: d[1]==null?'call failed':(!raw?'empty response':(d[2].length?'':'parsed 0 of '+raw.length+' chars'))}; });
     var bad=diag.filter(function(d){ return !d.ok; });
-    var data={ rhr:trendWeekly(rhrSamples), hrv:trendWeekly(hrvSamples), sleep:trendWeekly(sleepSamples), load:trendWeekly(loadSamples) };
+    var data={ rhr:trendDaily(rhrSamples,28), hrv:trendDaily(hrvSamples,28), sleep:trendDaily(sleepSamples,28), load:trendDaily(loadSamples,28) };
     var html=trendHtml(data);
     if(bad.length){ html+='<div class="callout co-amb" style="margin-top:-6px;font-size:11px;">No data from: '+bad.map(function(d){return '<strong>'+d.name+'</strong> ('+d.why+')';}).join(' &#183; ')+'</div>'; }
     host.innerHTML=html;
     // Only cache a COMPLETE result — a partial one would be re-served all day and hide the failure.
-    if(data.rhr.length&&data.load.length&&data.sleep.length&&data.hrv.length){ try{ localStorage.setItem('utct_trend_cache_v3', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
-    else { try{ localStorage.removeItem('utct_trend_cache_v3'); }catch(e){} }
+    if(data.rhr.length&&data.load.length&&data.sleep.length&&data.hrv.length){ try{ localStorage.setItem('utct_trend_cache_v4', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
+    else { try{ localStorage.removeItem('utct_trend_cache_v4'); }catch(e){} }
     setTimeout(function(){ drawTrendChart(data); },0);
   }).catch(function(e){ host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="callout co-rd">Couldn\'t load trend: '+(e&&e.message?e.message:e)+'</div></div>'; });
 }
