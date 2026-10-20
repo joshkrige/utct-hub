@@ -1639,7 +1639,7 @@ function fmtPace(secPerKm){ var m=Math.floor(secPerKm/60), s=Math.round(secPerKm
 function loadRaceSplits(id){
   var out=document.getElementById('rm-splits'); if(!out) return;
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ out.innerHTML='<div class="rm-note">Open the hub on desktop (Cowork) to see per-km splits.</div>'; return; }
-  var skey='utct_splits_'+id, csp=null; try{ var cv=localStorage.getItem(skey); if(cv) csp=JSON.parse(cv); }catch(e){}
+  var skey='utct_splits_v2_'+id, csp=null; try{ var cv=localStorage.getItem(skey); if(cv) csp=JSON.parse(cv); }catch(e){}
   if(csp && csp.length){ out.innerHTML=splitsTableHtml(csp); setTimeout(function(){ renderSplitChart(csp); }, 0); return; }
   out.innerHTML='<div class="rm-plan"><span class="dlbl">PER-KM SPLITS</span><div class="loading-msg" style="padding:14px;"><div class="loading-spinner"></div></div></div>';
   window.__cowork_stub__.callMcpTool(STRAVA_ID+'__get_activity_streams', {activity_id:String(id), streams:['time','distance','altitude','heart_rate'], resolution:1000})
@@ -1664,6 +1664,10 @@ function streamsToSplits(d){
       var dDist=dist[i]-dist[startI];
       var dTime=time[i]-time[startI];
       var dElev = alt ? (alt[i]-alt[startI]) : 0;
+      // Elevation GAIN: sum every positive step inside the split. The net endpoint
+      // difference hides all the up-and-down — a hill-rep km nets ~0 but climbs a lot.
+      var gain=0, loss=0;
+      if(alt){ for(var g=startI+1; g<=i; g++){ var dv=alt[g]-alt[g-1]; if(dv>0) gain+=dv; else loss-=dv; } }
       var hrSum=0, hrCnt=0;
       if(hr){ for(var j=startI;j<=i;j++){ if(hr[j]!=null){ hrSum+=hr[j]; hrCnt++; } } }
       splits.push({
@@ -1672,6 +1676,8 @@ function streamsToSplits(d){
         moving_time: dTime,
         elapsed_time: dTime,
         elevation_difference: dElev,
+        elevation_gain: gain,
+        elevation_loss: loss,
         average_heartrate: hrCnt?(hrSum/hrCnt):null,
         average_speed: dTime>0?(dDist/dTime):0
       });
@@ -1700,9 +1706,12 @@ function splitsTableHtml(sp){
   var fade='';
   if(fc&&sc){ var diff=Math.round(s2/sc - f/fc);
     fade='<div class="rm-fade">'+(diff>8?('Faded late — second half ~'+diff+'s/km slower, grade-adjusted.'):(diff<-8?('Strong finish — second half ~'+Math.abs(diff)+'s/km faster, grade-adjusted.'):'Even effort front to back (grade-adjusted) — well controlled.'))+'</div>'; }
-  var rows=sp.map(function(x){ var km=(x.distance||1000)/1000, pace=km>0?(x.moving_time||x.elapsed_time)/km:0, ed=Math.round(x.elevation_difference||0), hr=x.average_heartrate?Math.round(x.average_heartrate):'';
-    return '<tr><td>'+x.split+'</td><td>'+fmtPace(pace)+'</td><td>'+(ed>0?'+':'')+ed+' m</td><td>'+(hr||'—')+'</td></tr>'; }).join('');
-  return '<div class="rm-plan"><span class="dlbl">PER-KM SPLITS</span>'+fade+'<div class="rm-chartwrap"><canvas id="rm-splitchart"></canvas></div><div class="rm-splitwrap"><table class="rm-splittable"><thead><tr><th>Km</th><th>Pace /km</th><th>Elev</th><th>HR</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  var rows=sp.map(function(x){ var km=(x.distance||1000)/1000, pace=km>0?(x.moving_time||x.elapsed_time)/km:0,
+      eg=Math.round(x.elevation_gain!=null?x.elevation_gain:Math.max(0,x.elevation_difference||0)),
+      el=Math.round(x.elevation_loss!=null?x.elevation_loss:Math.max(0,-(x.elevation_difference||0))),
+      hr=x.average_heartrate?Math.round(x.average_heartrate):'';
+    return '<tr><td>'+x.split+'</td><td>'+fmtPace(pace)+'</td><td>+'+eg+'</td><td>-'+el+'</td><td>'+(hr||'—')+'</td></tr>'; }).join('');
+  return '<div class="rm-plan"><span class="dlbl">PER-KM SPLITS</span>'+fade+'<div class="rm-chartwrap"><canvas id="rm-splitchart"></canvas></div><div class="rm-splitwrap"><table class="rm-splittable"><thead><tr><th>Km</th><th>Pace /km</th><th>Up m</th><th>Down m</th><th>HR</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 
 // ─── DAY ORDER + DRAG-AND-DROP ────────────────────────────────────────────────
