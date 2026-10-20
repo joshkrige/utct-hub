@@ -1890,6 +1890,7 @@ function buildTrackChart(){
 // ─── INIT (v3) ───
 
 // ─── TODAY / MORNING BRIEFING TAB ─────────────────────────────────────────────
+var _briefTries = 0;
 var UTCT_RACE = new Date('2026-11-21T00:00:00');
 var BRIEF_PROMPT = "You are Josh's coach writing a short, context-appropriate morning briefing for his UTCT 100km build. You get ONE JSON object with today's planned session and its type, days-to-race, recent Strava activities, HealthBridge data (sleep, resting heart rate ~48-52 baseline, HRV, recent workouts), and an optional zoneNote flagging if yesterday's easy run was run in a higher heart-rate zone than intended. Decide what actually matters TODAY and lead with that: it might be recovery (after a hard day, poor sleep, or a zoneNote), execution cues for a key/long/race session, logistics on a travel or recce week, fuelling, or simply a green light on an easy day. Do not force a recovery angle when it is not the story. Write 80-140 words of plain text, no markdown headings: open with the date, days-to-race and today's session; give one or two sentences of the single most relevant insight (use only numbers present in the data, never invent values); then a clear, decisive recommendation for today. If zoneNote is present, weigh it into today's recommendation. If physioDue is true, add a one-line reminder. Warm, direct, specific. Training guidance, not medical advice.";
 
@@ -2163,6 +2164,11 @@ function aiOn(){ try{ return localStorage.getItem('utct_ai')!=='0'; }catch(e){ r
 function toggleAI(){ try{ localStorage.setItem('utct_ai', aiOn()?'0':'1'); }catch(e){} try{ localStorage.removeItem('utct_brief_cache'); }catch(e){} renderToday(); }
 function refreshBriefing(){ try{ localStorage.removeItem('utct_brief_cache'); }catch(e){} renderToday(); }
 function briefFooter(){ return '<div class="brief-foot"><button class="brief-btn" onclick="refreshBriefing()">↻ Regenerate</button><button class="brief-btn" onclick="toggleAI()">AI insights: '+(aiOn()?'On':'Off')+'</button></div>'; }
+function actSig(){
+  if(!(ACT && ACT.length)) return '';
+  var a=ACT[0];
+  return ACT.length+':'+(a.id||a.start_date_local||a.name||'');
+}
 function renderToday(){
   var host=document.getElementById('today-body'); if(!host) return;
   var ti=todayInfo();
@@ -2178,12 +2184,12 @@ function renderToday(){
   }
   // Serve today's cached briefing — avoids a fresh Claude/HealthBridge call on every open.
   var cached=null; try{ cached=JSON.parse(localStorage.getItem('utct_brief_cache')); }catch(e){}
-  if(cached && cached.date===ymd(new Date()) && cached.html){
+  if(cached && cached.date===ymd(new Date()) && cached.html && cached.sig===actSig()){
     host.innerHTML=head+'<div id="brief-out">'+cached.html+briefFooter()+'</div>'; return;
   }
   // Wait for Strava to load before generating (so it only runs once, with real data).
   if(!(ACT && ACT.length)){
-    setTimeout(function(){ if(!(ACT&&ACT.length)) refreshBriefing(); },8000);
+    if(_briefTries<4){ _briefTries++; setTimeout(function(){ if(!(ACT&&ACT.length)) refreshBriefing(); },8000); }
     host.innerHTML=head+'<div id="brief-out"><div class="loading-msg" style="padding:18px;">Your briefing will appear once activities finish syncing…</div>'+briefFooter()+'</div>'; return;
   }
   host.innerHTML=head+'<div id="brief-out"><div class="loading-msg"><div class="loading-spinner"></div><br>Preparing your briefing…</div></div>';
@@ -2198,7 +2204,7 @@ function renderToday(){
     var data={ date:new Date().toDateString(), daysToRace:raceCountdown(), week:ti.w.n, phase:PN[phk(ti.w)], plannedToday:planLine, physioDue:physio,
       recovery:coros, zoneNote:zoneCheck(),
       recentActivities:(ACT||[]).slice(0,6).map(function(a){ return { name:a.name, date:(a.start_date_local||'').slice(0,10), km:Math.round((a.distance||0)/100)/10, vert:a.total_elevation_gain, avgHr:a.average_heartrate, type:a.sport_type }; }) };
-    function finish(t,cache){ var html=briefHtml(t); if(cache!==false){ try{ localStorage.setItem('utct_brief_cache', JSON.stringify({date:ymd(new Date()), html:html})); }catch(e){} } out.innerHTML=html+briefFooter(); }
+    function finish(t,cache){ var html=briefHtml(t); if(cache!==false){ try{ localStorage.setItem('utct_brief_cache', JSON.stringify({date:ymd(new Date()), sig:actSig(), html:html})); }catch(e){} } out.innerHTML=html+briefFooter(); }
     function badBrief(t){ if(!t) return true; var s=String(t).trim(); if(s.length<60) return true; return /no longer shown|artifact (is|was) |not available|unavailable/i.test(s); }
     if(aiOn() && window.__cowork_stub__.askClaude){
       window.__cowork_stub__.askClaude(BRIEF_PROMPT, [data]).then(function(r){ var t=(typeof r==='string')?r:(r&&r.text?r.text:(r&&r.content?r.content:JSON.stringify(r))); if(badBrief(t)){ finish(ruleBrief(data),false); } else { finish(t); } }).catch(function(){ finish(ruleBrief(data),false); });
