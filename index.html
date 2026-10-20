@@ -459,7 +459,7 @@ body{-webkit-font-smoothing:antialiased;}
 
 <div class="hdr">
  <h1>UTCT 100km &#8212; Coaching Hub</h1>
- <p>Josh Krige &#183; Somerset West &#183; Sir Lowry&#8217;s Pass &#183; live · Tredict-connected</p>
+ <p>Josh Krige &#183; Somerset West &#183; Sir Lowry&#8217;s Pass &#183; Strava + COROS connected</p>
  <div class="hstats">
  <div class="hs"><div class="hl">Race date</div><div class="hv">Sat 21 Nov 2026 &#183; 04:00</div></div>
  <div class="hs"><div class="hl">Distance</div><div class="hv">99.17km &#183; 4,676m D+</div></div>
@@ -1016,7 +1016,7 @@ function renderDetail() {
  }
  var physio = d.ph ? ('<button class="phys ' + (physioDone(sel,origIdx)?'on':'') + '" onclick="togglePhysio(' + sel + ',' + origIdx + ')">' + (physioDone(sel,origIdx)?'☑':'☐') + ' Physio</button>') : '';
  var doneCtrl = '';
- if(d.t !== 'rest'){ var isDone = done === true; doneCtrl = '<div class="donerow"><button class="donebtn' + (isDone?' on':'') + '" onclick="setDone(' + sel + ',' + origIdx + ',' + (isDone?0:1) + ')">' + (isDone?'✓ Done':'Mark done') + '</button>' + (ovv!==undefined ? '<button class="autobtn" onclick="clearDone(' + sel + ',' + origIdx + ')" title="Use Tredict auto-detection">use auto</button>' : '') + '</div>'; }
+ if(d.t !== 'rest'){ var isDone = done === true; doneCtrl = '<div class="donerow"><button class="donebtn' + (isDone?' on':'') + '" onclick="setDone(' + sel + ',' + origIdx + ',' + (isDone?0:1) + ')">' + (isDone?'✓ Done':'Mark done') + '</button>' + (ovv!==undefined ? '<button class="autobtn" onclick="clearDone(' + sel + ',' + origIdx + ')" title="Auto-detect this session from Strava">use auto</button>' : '') + '</div>'; }
  return '<div class="day ' + cls + '" data-orig="' + origIdx + '">'
  + '<div class="dname"><span class="dhandle">⋮⋮</span>' + (DAYS[pos] || '') + ' <span class="ddate">' + dateLbl + '</span>' + statusIcon + '</div>'
  + '<div class="dseg dplan"><span class="dlbl">PLAN</span><div class="dtype">' + d.s + '</div><div class="ddetail">' + d.d + '</div>' + physio + '</div>'
@@ -1250,22 +1250,6 @@ function extractActivities(res){
   var text = '';
   if(res && res.content && Array.isArray(res.content)){ text = res.content.map(function(c){ return (c && c.text)||''; }).join(''); }
   else if(typeof res === 'string'){ text = res; }
-  // Tredict returns CSV after ---- separator
-  var sep = text.indexOf('----');
-  if(sep > -1){
-    var csv = text.slice(sep+4).trim();
-    var rows = csv.split('\n').filter(function(r){ return r.trim(); });
-    if(rows.length < 2) return [];
-    var headers = rows[0].split(',');
-    var acts = [];
-    for(var ri=1; ri<rows.length; ri++){
-      var cols = rows[ri].split(',');
-      var obj = {};
-      headers.forEach(function(h,j){ obj[h.trim()] = (cols[j]||'').trim(); });
-      acts.push(obj);
-    }
-    return acts.map(normalizeTredict);
-  }
   // Parse: prefer structuredContent, else parse raw text content as JSON
   var data;
   if(res && res.structuredContent != null){ data = res.structuredContent; }
@@ -1285,27 +1269,6 @@ function extractActivities(res){
   if(!Array.isArray(data)) data = [];
   return data.map(normalizeActivity);
 }
-function normalizeTredict(row){
-  var sType = row['sportType']||'', subType = row['subSportType']||'';
-  var sportStr = sType;
-  if(subType==='strength_training') sportStr='strength_training';
-  else if(subType==='trail') sportStr='trail_running';
-  else if(subType==='hiking'||subType==='hiking_running') sportStr='hiking';
-  var dist=parseFloat(row['summary.distance'])||0, vert=parseFloat(row['summary.altitude.ascent'])||0;
-  var dur=parseFloat(row['summary.duration'])||0, spd=parseFloat(row['summary.speed'])||0;
-  var hr=parseFloat(row['summary.heartrate'])||0, hrMax=parseFloat(row['summary.heartrateMax'])||0;
-  var cad=parseFloat(row['summary.cadence'])||0, cal=parseFloat(row['summary.calories'])||0;
-  return {
-    id: row['id']||'', name: row['title']||(sType+(subType?' / '+subType:'')),
-    sport_type: sportStr, type: sportStr,
-    start_date_local: row['date']||'', start_date: row['date']||'',
-    distance: dist, moving_time: dur, elapsed_time: dur,
-    total_elevation_gain: vert, average_speed: spd,
-    average_heartrate: hr>0?hr:null, max_heartrate: hrMax>0?hrMax:null,
-    average_cadence: cad>0?cad:null, kilojoules: cal*4.184, _tredict:true
-  };
-}
-
 function normalizeActivity(a){
   if(!a || typeof a!=='object') return a;
   var s = a.summary || {};
@@ -1641,7 +1604,7 @@ function openRaceDetail(i){
   if(done){
     var a=findRaceActivity(race);
     if(a){ html+='<div id="rm-stats">'+raceStatsHtml(a)+'</div><div id="rm-insight"><div class="loading-msg"><div class="loading-spinner"></div><br>Generating insights…</div></div><div id="rm-splits"></div>'; }
-    else { html+='<div class="callout co-amb" style="margin:6px 0;">No activity found within a few days of this race yet. Once it syncs from Tredict, full stats will show here.</div>'; }
+    else { html+='<div class="callout co-amb" style="margin:6px 0;">No activity found within a few days of this race yet. Once it syncs from Strava, full stats will show here.</div>'; }
   } else {
     html+='<div class="rm-up"><div class="rm-count">'+(n===0?'TODAY':fmtCountdown(n))+'</div><div class="rm-uplbl">until race day</div></div>';
     if(w.km) html+=raceTargetHtml(w);
@@ -1670,7 +1633,7 @@ function loadRacePerformance(act, w){
   }
   if(cached){ apply(cached); return; }
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ apply(null); return; }
-  apply(null); // HR/cadence already present from Tredict extended summary
+  apply(null); // HR/cadence already present in the Strava activity summary
 }
 function fmtPace(secPerKm){ var m=Math.floor(secPerKm/60), s=Math.round(secPerKm%60); return m+':'+('0'+s).slice(-2); }
 function loadRaceSplits(id){
@@ -1679,7 +1642,16 @@ function loadRaceSplits(id){
   var skey='utct_splits_'+id, csp=null; try{ var cv=localStorage.getItem(skey); if(cv) csp=JSON.parse(cv); }catch(e){}
   if(csp && csp.length){ out.innerHTML=splitsTableHtml(csp); setTimeout(function(){ renderSplitChart(csp); }, 0); return; }
   out.innerHTML='<div class="rm-plan"><span class="dlbl">PER-KM SPLITS</span><div class="loading-msg" style="padding:14px;"><div class="loading-spinner"></div></div></div>';
-  out.innerHTML=''; // Per-km splits require Tredict full access
+  window.__cowork_stub__.callMcpTool(STRAVA_ID+'__get_activity_streams', {activity_id:String(id), streams:['time','distance','altitude','heart_rate'], resolution:1000})
+    .then(function(res){
+      var d=hbUnwrap(res);
+      var sp=streamsToSplits(d);
+      if(!sp.length){ out.innerHTML='<div class="rm-note">No per-km split data for this activity.</div>'; return; }
+      try{ localStorage.setItem(skey, JSON.stringify(sp)); }catch(e){}
+      out.innerHTML=splitsTableHtml(sp);
+      setTimeout(function(){ renderSplitChart(sp); },0);
+    })
+    .catch(function(e){ out.innerHTML='<div class="rm-note">Could not load splits: '+(e&&e.message?e.message:e)+'</div>'; });
 }
 // Builds per-km splits (in the same shape as Strava's splits_metric) from raw time/distance/altitude/heart_rate streams.
 function streamsToSplits(d){
@@ -1703,8 +1675,9 @@ function streamsToSplits(d){
         average_heartrate: hrCnt?(hrSum/hrCnt):null,
         average_speed: dTime>0?(dDist/dTime):0
       });
-      splitIdx++; startI=i+1; nextThresh=dist[i]+1000;
-      if(startI>=n) break;
+      // Start the next split AT this boundary point, not after it — otherwise the
+      // segment between samples is dropped and total distance comes up short.
+      splitIdx++; startI=i; nextThresh=dist[i]+1000;
     }
   }
   return splits;
