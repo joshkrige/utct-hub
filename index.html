@@ -1503,7 +1503,7 @@ function renderNextUp(){
     + '</div></div>';
 }
 
-function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache_v4')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache_v4');}}catch(_e){}
+function rerenderAll(){ computeMatches(); renderGrid(); markCurrentWeek(); renderDetail(); renderNextUp(); renderTracking(); try{var _tc=JSON.parse(localStorage.getItem('utct_trend_cache_v5')||'null');if(_tc&&_tc.data&&!(_tc.data.rhr&&_tc.data.rhr.length)&&!(_tc.data.load&&_tc.data.load.length)){localStorage.removeItem('utct_trend_cache_v5');}}catch(_e){}
 renderTicker(); renderToday(); renderTrend(); var _rp=document.getElementById('p45')&&document.getElementById('p45').style.display==='block'?'p45':(document.getElementById('p40')&&document.getElementById('p40').style.display==='block'?'p40':(document.getElementById('p36')&&document.getElementById('p36').style.display==='block'?'p36':'p30')); renderRaceNow(_rp); }
 
 function loadStrava(){
@@ -1975,16 +1975,33 @@ function parseCOROS_RHR(text){
 }
 // Parse COROS training load text → [{qty:stl,recordedAt}]
 function parseCOROS_TrainingLoad(text){
-  var samples=[], curDate=null;
+  // COROS blocks look like:  <date> / Comment: / Short-Term Load: / Long-Term Load: / Load Ratio:
+  // qty is the RATIO (Intensity Trend). Short-Term Load alone has no reference point.
+  var samples=[], cur=null;
   if(!text) return samples;
+  function flush(){
+    if(cur && cur.ratio!=null) samples.push({qty:cur.ratio, stl:cur.stl, ltl:cur.ltl, recordedAt:cur.d});
+    else if(cur && cur.stl!=null && cur.ltl) samples.push({qty:cur.stl/cur.ltl, stl:cur.stl, ltl:cur.ltl, recordedAt:cur.d});
+    cur=null;
+  }
   text.split('\n').forEach(function(line){
     var dm=line.match(/^(\d{4}-\d{2}-\d{2})\s*$/);
-    if(dm){ curDate=dm[1]; return; }
-    if(!curDate) return;
-    var m=line.match(/Short-Term Load:\s*(\d+)/);
-    if(m) samples.push({qty:parseInt(m[1]),recordedAt:curDate});
+    if(dm){ flush(); cur={d:dm[1], stl:null, ltl:null, ratio:null}; return; }
+    if(!cur) return;
+    var a=line.match(/Short-Term Load:\s*([\d.]+)/); if(a){ cur.stl=parseFloat(a[1]); return; }
+    var b=line.match(/Long-Term Load:\s*([\d.]+)/);  if(b){ cur.ltl=parseFloat(b[1]); return; }
+    var c=line.match(/Load Ratio:\s*([\d.]+)/);      if(c){ cur.ratio=parseFloat(c[1]); return; }
   });
+  flush();
   return samples;
+}
+// COROS Intensity Trend bands: Excessive above 1.50, Optimized 1.00-1.49.
+function loadBand(r){
+  if(r==null || isNaN(r)) return {t:'', c:'var(--t2)'};
+  if(r>=1.50) return {t:'Excessive',   c:'#C0392B'};
+  if(r>=1.00) return {t:'Optimized',   c:'#1D9E75'};
+  if(r>=0.80) return {t:'Maintaining', c:'#185FA5'};
+  return                {t:'Decreasing', c:'#68665F'};
 }
 
   // yyyyMMdd for COROS date params
@@ -2060,14 +2077,17 @@ function trendFlag(data){
 function trendHtml(data){
   var f=trendFlag(data), co=f.level>=2?'co-rd':(f.level===1?'co-amb':'co-grn');
   var rhrL=data.rhr.length?Math.round(data.rhr[data.rhr.length-1].avg)+' bpm':'—';
-  var loadL=(data.load&&data.load.length)?Math.round(data.load[data.load.length-1].avg)+' STL':'—';
+  var _lr=(data.load&&data.load.length)?data.load[data.load.length-1].avg:null;
+  var _lb=loadBand(_lr);
+  var loadL=(_lr==null)?'—':('<span style="color:'+_lb.c+'">'+(Math.round(_lr*100)/100).toFixed(2)
+    +'</span><span style="display:block;font-size:9px;font-weight:500;color:'+_lb.c+';letter-spacing:.02em;">'+_lb.t+'</span>');
   var slpL=data.sleep.length?(Math.round(data.sleep[data.sleep.length-1].avg/6)/10)+'h':'—';
   var hrvL=data.hrv.length?Math.round(data.hrv[data.hrv.length-1].avg)+' ms':'—';
   return '<div class="card"><h3>Recovery trend <span style="font-weight:400;color:var(--t2);font-size:11px;">· last 28 days · COROS</span></h3>'
     +'<div class="callout '+co+'" style="margin-bottom:11px;">'+f.text+'</div>'
-    +'<div class="trendstats"><span>Resting HR<strong>'+rhrL+'</strong></span><span>Sleep<strong>'+slpL+'</strong></span><span>HRV<strong>'+hrvL+'</strong></span><span>STL<strong>'+loadL+'</strong></span></div>'
+    +'<div class="trendstats"><span>Resting HR<strong>'+rhrL+'</strong></span><span>Sleep<strong>'+slpL+'</strong></span><span>HRV<strong>'+hrvL+'</strong></span><span>Load ratio<strong>'+loadL+'</strong></span></div>'
     +'<div style="position:relative;height:180px;margin-top:10px;"><canvas id="trendChart"></canvas></div>'
-    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Daily values. All four series from COROS. Rising resting HR, falling sleep/HRV, or a rapidly climbing load ratio are early fatigue signals.</p></div>';
+    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Daily values, all from COROS. Load ratio is COROS Intensity Trend — the last 7 days of training load divided by your 42-day base. Above <strong>1.50</strong> is Excessive, <strong>1.00\u20131.49</strong> Optimized. The dashed grey lines mark those thresholds. Rising resting HR, falling sleep or HRV, or a ratio parked above 1.50 are the early fatigue signals.</p></div>';
 }
 function drawTrendChart(data){
   var cv=document.getElementById('trendChart'); if(!cv || typeof Chart==='undefined') return;
@@ -2077,25 +2097,27 @@ function drawTrendChart(data){
   var labels=keys.map(function(k){ var d=new Date(k+'T00:00:00'); return d.getDate()+'/'+(d.getMonth()+1); });
   var rhr=keys.map(function(k){ var v=look(data.rhr,k); return v==null?null:Math.round(v*10)/10; });
   var slp=keys.map(function(k){ var v=look(data.sleep,k); return v==null?null:Math.round(v/6)/10; });
-  var load=keys.map(function(k){ var v=look(data.load||[],k); return v==null?null:Math.round(v); });
+  var load=keys.map(function(k){ var v=look(data.load||[],k); return v==null?null:Math.round(v*100)/100; });
   var hrv=keys.map(function(k){ var v=look(data.hrv||[],k); return v==null?null:Math.round(v); });
   if(window._trendChart){ try{window._trendChart.destroy();}catch(e){} }
   window._trendChart=new Chart(cv.getContext('2d'),{ data:{labels:labels, datasets:[
     {type:'line', label:'Resting HR (bpm)', data:rhr, yAxisID:'yH', borderColor:'#C0392B', backgroundColor:'rgba(192,57,43,.07)', fill:true, pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
     {type:'line', label:'Sleep (h/night)', data:slp, yAxisID:'yS', borderColor:'#185FA5', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
-    {type:'line', label:'STL (COROS)', data:load, yAxisID:'yL', borderColor:'#1D9E75', pointRadius:2, tension:.3, borderWidth:1.5, borderDash:[4,2], spanGaps:true},
+    {type:'line', label:'Load ratio', data:load, yAxisID:'yL', borderColor:'#1D9E75', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
+    {type:'line', label:'Excessive (1.50)', data:labels.map(function(){return 1.5;}), yAxisID:'yL', borderColor:'rgba(192,57,43,.45)', pointRadius:0, borderWidth:1, borderDash:[5,4], fill:false},
+    {type:'line', label:'Baseline (1.00)', data:labels.map(function(){return 1.0;}), yAxisID:'yL', borderColor:'rgba(104,102,95,.35)', pointRadius:0, borderWidth:1, borderDash:[5,4], fill:false},
     {type:'line', label:'HRV (ms)', data:hrv, yAxisID:'yV', borderColor:'#6D28D9', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true}
-  ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},scales:{yH:{position:'left',ticks:{font:{size:9}}},yS:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}},yL:{display:false},yV:{display:false},x:{ticks:{font:{size:9}}}}} });
+  ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},scales:{yH:{position:'left',ticks:{font:{size:9}}},yS:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}},yL:{display:false,min:0,suggestedMax:2.2},yV:{display:false},x:{ticks:{font:{size:9}}}}} });
 }
 function renderTrend(){
   var host=document.getElementById('trend-card'); if(!host) return;
   if(!(window.__cowork_stub__ && window.__cowork_stub__.callMcpTool)){ host.innerHTML=''; return; }
-  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v4')); }catch(e){}
+  var c=null; try{ c=JSON.parse(localStorage.getItem('utct_trend_cache_v5')); }catch(e){}
   // Serve the cache only if it is from today AND complete. A partial cache must never
   // be re-served — that hides the failure for the rest of the day.
   function _full(d){ return d && d.rhr && d.rhr.length && d.hrv && d.hrv.length && d.sleep && d.sleep.length && d.load && d.load.length; }
   if(c && c.date===ymd(new Date()) && c.html && _full(c.data)){ host.innerHTML=c.html; setTimeout(function(){ drawTrendChart(c.data); },0); return; }
-  try{ localStorage.removeItem('utct_trend_cache_v4'); }catch(e){}
+  try{ localStorage.removeItem('utct_trend_cache_v5'); }catch(e){}
   host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="loading-msg"><div class="loading-spinner"></div></div></div>';
   var d56=new Date(Date.now()-56*86400000), dNow=new Date();
   var cFrom=ymdCompact(d56), cTo=ymdCompact(dNow);
@@ -2118,8 +2140,8 @@ function renderTrend(){
     if(bad.length){ html+='<div class="callout co-amb" style="margin-top:-6px;font-size:11px;">No data from: '+bad.map(function(d){return '<strong>'+d.name+'</strong> ('+d.why+')';}).join(' &#183; ')+'</div>'; }
     host.innerHTML=html;
     // Only cache a COMPLETE result — a partial one would be re-served all day and hide the failure.
-    if(data.rhr.length&&data.load.length&&data.sleep.length&&data.hrv.length){ try{ localStorage.setItem('utct_trend_cache_v4', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
-    else { try{ localStorage.removeItem('utct_trend_cache_v4'); }catch(e){} }
+    if(data.rhr.length&&data.load.length&&data.sleep.length&&data.hrv.length){ try{ localStorage.setItem('utct_trend_cache_v5', JSON.stringify({date:ymd(new Date()), html:html, data:data})); }catch(e){} }
+    else { try{ localStorage.removeItem('utct_trend_cache_v5'); }catch(e){} }
     setTimeout(function(){ drawTrendChart(data); },0);
   }).catch(function(e){ host.innerHTML='<div class="card"><h3>Recovery trend</h3><div class="callout co-rd">Couldn\'t load trend: '+(e&&e.message?e.message:e)+'</div></div>'; });
 }
