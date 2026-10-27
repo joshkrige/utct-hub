@@ -2087,7 +2087,7 @@ function trendHtml(data){
     +'<div class="callout '+co+'" style="margin-bottom:11px;">'+f.text+'</div>'
     +'<div class="trendstats"><span>Resting HR<strong>'+rhrL+'</strong></span><span>Sleep<strong>'+slpL+'</strong></span><span>HRV<strong>'+hrvL+'</strong></span><span>Load ratio<strong>'+loadL+'</strong></span></div>'
     +'<div style="position:relative;height:180px;margin-top:10px;"><canvas id="trendChart"></canvas></div>'
-    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Daily values, all from COROS. Load ratio is COROS Intensity Trend — the last 7 days of training load divided by your 42-day base. Above <strong>1.50</strong> is Excessive, <strong>1.00\u20131.49</strong> Optimized. The dashed grey lines mark those thresholds. Rising resting HR, falling sleep or HRV, or a ratio parked above 1.50 are the early fatigue signals.</p></div>';
+    +'<p style="font-size:11px;color:var(--t2);margin-top:8px;">Daily values, all from COROS. Load ratio is COROS Intensity Trend — the last 7 days of training load divided by your 42-day base. Above <strong>1.50</strong> is Excessive, <strong>1.00\u20131.49</strong> Optimized, below 1.00 Maintaining. The two dashed lines sit at those marks \u2014 red at 1.50, grey at 1.00. Rising resting HR, falling sleep or HRV, or a ratio parked above 1.50 are the early fatigue signals.</p></div>';
 }
 function drawTrendChart(data){
   var cv=document.getElementById('trendChart'); if(!cv || typeof Chart==='undefined') return;
@@ -2104,10 +2104,10 @@ function drawTrendChart(data){
     {type:'line', label:'Resting HR (bpm)', data:rhr, yAxisID:'yH', borderColor:'#C0392B', backgroundColor:'rgba(192,57,43,.07)', fill:true, pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
     {type:'line', label:'Sleep (h/night)', data:slp, yAxisID:'yS', borderColor:'#185FA5', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
     {type:'line', label:'Load ratio', data:load, yAxisID:'yL', borderColor:'#1D9E75', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true},
-    {type:'line', label:'Excessive (1.50)', data:labels.map(function(){return 1.5;}), yAxisID:'yL', borderColor:'rgba(192,57,43,.45)', pointRadius:0, borderWidth:1, borderDash:[5,4], fill:false},
-    {type:'line', label:'Baseline (1.00)', data:labels.map(function(){return 1.0;}), yAxisID:'yL', borderColor:'rgba(104,102,95,.35)', pointRadius:0, borderWidth:1, borderDash:[5,4], fill:false},
+    {type:'line', label:'Excessive (1.50)', isRef:true, data:labels.map(function(){return 1.5;}), yAxisID:'yL', borderColor:'rgba(192,57,43,.45)', pointRadius:0, pointHitRadius:0, borderWidth:1, borderDash:[5,4], fill:false},
+    {type:'line', label:'Baseline (1.00)', isRef:true, data:labels.map(function(){return 1.0;}), yAxisID:'yL', borderColor:'rgba(104,102,95,.35)', pointRadius:0, pointHitRadius:0, borderWidth:1, borderDash:[5,4], fill:false},
     {type:'line', label:'HRV (ms)', data:hrv, yAxisID:'yV', borderColor:'#6D28D9', pointRadius:2, tension:.3, borderWidth:2, spanGaps:true}
-  ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},scales:{yH:{position:'left',ticks:{font:{size:9}}},yS:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}},yL:{display:false,min:0,suggestedMax:2.2},yV:{display:false},x:{ticks:{font:{size:9}}}}} });
+  ]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{size:10},boxWidth:12,filter:function(it,d){ return !(d.datasets[it.datasetIndex]||{}).isRef; }}},tooltip:{filter:function(c){ return !(c.dataset||{}).isRef; }}},scales:{yH:{position:'left',ticks:{font:{size:9}}},yS:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}},yL:{display:false,min:0,suggestedMax:2.2},yV:{display:false},x:{ticks:{font:{size:9}}}}} });
 }
 function renderTrend(){
   var host=document.getElementById('trend-card'); if(!host) return;
