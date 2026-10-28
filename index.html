@@ -476,6 +476,8 @@ body{-webkit-font-smoothing:antialiased;}
   <div class="tn active" onclick="showTab('plan',this)">Training Plan</div>
  <div class="tn" onclick="showTab('track',this)">Tracking</div>
  <div class="tn" onclick="showTab('pace',this)">Pacing Guide</div>
+ <div class="tn" onclick="showTab('gear',this)">Gear</div>
+ <div class="tn" onclick="showTab('wx',this)">Weather</div>
  <div class="tn" onclick="showTab('str',this)">Strength &amp; Physio</div>
  <div class="tn" onclick="showTab('nut',this)">Nutrition</div>
 </div>
@@ -518,7 +520,6 @@ body{-webkit-font-smoothing:antialiased;}
 <!-- PACE TAB -->
 <div id="t-pace" style="display:none;">
  <div id="race-now"></div>
- <div id="wx-card"></div>
  <div class="psubtabs">
  <div class="pst active" onclick="showPace('p30',this)">Sub-20h &#8212; Target</div>
  <div class="pst" onclick="showPace('p36',this)">Sub-18h &#8212; Stretch</div>
@@ -627,45 +628,6 @@ body{-webkit-font-smoothing:antialiased;}
  <tr class="kr"><td>Cape Town (FINISH) &#128230;</td><td>99.21</td><td>4731</td><td>06:00 Sun</td><td>26h00</td><td>12:11/km</td><td><strong style="color:#C0392B;">06:00 Sun</strong></td></tr>
  </tbody></table></div>
  </div>
- <details class="ptdetails" style="margin-top:12px;">
- <summary class="ptsummary">&#9888; Compulsory gear &#8212; UT100 (official list)</summary>
- <div class="callout co-rd" style="margin:8px 0 10px;"><strong>18 compulsory items, carried the whole race.</strong> Random checks on course, and penalties are <strong>15&#8211;30 minutes per missing item</strong>. The organiser states plainly: <em>this list is never changed or downgraded based on the weather forecast.</em> You carry full mountain kit in 25&#176;C regardless.</div>
- <div class="overflow">
- <table class="ptable">
- <thead><tr><th>Item</th><th>Spec</th><th>Penalty</th></tr></thead>
- <tbody>
- <tr class="kr"><td><strong>Running pack</strong></td><td>Pack and storage belts may be combined. <strong>One pack, start to finish</strong> &#8212; timing chip attached.</td><td>30 min</td></tr>
- <tr class="kr"><td><strong>Hydration</strong></td><td><strong>Minimum 2 litres capacity</strong>, of which <strong>300ml in reserve at all times</strong>. Bottles, bladder or both.</td><td>15 min</td></tr>
- <tr class="kr"><td><strong>Waterproof jacket</strong></td><td>Lightweight, waterproof, breathable. <strong>Integrated hood, seams tape-sealed.</strong> Windproofs and ponchos are explicitly NOT accepted.</td><td>30 min</td></tr>
- <tr><td>Waterproof pants</td><td>Full-length waterproof over-trousers.</td><td>30 min</td></tr>
- <tr><td>Long-sleeved thermal top</td><td>Synthetic or wool. <strong>No cotton.</strong> Keep in a dry bag.</td><td>30 min</td></tr>
- <tr><td>Thermal leggings</td><td>Synthetic or wool, no cotton. Keep in a dry bag.</td><td>30 min</td></tr>
- <tr><td>Beanie</td><td>Close-fitting, synthetic or wool, quick-drying.</td><td>30 min</td></tr>
- <tr><td>Neck scarf / Buff</td><td>Close-fitting, synthetic or wool.</td><td>30 min</td></tr>
- <tr><td>Gloves</td><td>Warm, preferably waterproof.</td><td>30 min</td></tr>
- <tr><td>Whistle</td><td>Easily accessible.</td><td>30 min</td></tr>
- <tr><td>Space blanket</td><td>Minimum 1m &#215; 2m.</td><td>30 min</td></tr>
- <tr><td>First aid kit</td><td>Minimum: adhesive bandage 5cm &#215; 100cm, antiseptic cream, two plasters 2.2cm &#215; 7.2cm, gauze.</td><td>15 min</td></tr>
- <tr class="kr"><td><strong>Headlamp</strong></td><td><strong>350 lumens minimum</strong>, working order, <strong>plus a spare set of batteries</strong>.</td><td>15 min</td></tr>
- <tr><td>Charged phone</td><td>Flight mode to save battery; signal on in an emergency. MYSOS app pre-installed.</td><td>30 min</td></tr>
- <tr class="kr"><td><strong>Food reserve</strong></td><td><strong>Minimum 250 calories in reserve at all times</strong> &#8212; you must still have it at the finish.</td><td>15 min</td></tr>
- <tr><td>Personal cup</td><td>Cupless race. All drinks go into your own cup. <strong>Bottles do not count.</strong></td><td>15 min</td></tr>
- <tr><td>Race number</td><td>Front of body, over all clothing, visible at all times. Never on your back or pack.</td><td>15 min</td></tr>
- </tbody>
- </table>
- </div>
- <div class="callout co-amb" style="margin-top:10px;"><strong>Four things most likely to catch you out:</strong><br>
- &#9654; <strong>The jacket.</strong> It must be seam-sealed with an integrated hood. A softshell or windproof fails the check, however good it is. Verify yours before race week, not at registration.<br>
- &#9654; <strong>350 lumens.</strong> Check your headtorch&#8217;s actual rating, and carry the spare batteries &#8212; they are part of the requirement, not a nicety.<br>
- &#9654; <strong>2 litres of capacity.</strong> Not 1.5 &#8212; the 1.5l line is for the shorter races. Make sure your pack genuinely carries 2l.<br>
- &#9654; <strong>The two reserves.</strong> 300ml of water and 250 calories must be on you <em>at all times</em>, including crossing the finish line. Easy to eat or drink your way into a penalty in the last 10km.</div>
- <div class="callout co-blu" style="margin-top:8px;"><strong>&#127939; Train with it.</strong> Full waterproofs, thermals, gloves, beanie, space blanket and 2l of water is a real pack weight &#8212; and you carry it for 20 hours whatever the forecast says. Every long run from here should be done with the full race pack so nothing is a surprise. The 13 Peaks day especially.</div>
- <div class="callout co-grn" style="margin-top:8px;"><strong>&#9989; Not required for UT100:</strong> a second headlamp or backup torch &#8212; that is the 100-miler only. One lamp plus spare batteries is enough.</div>
- <div style="padding:8px 2px 0;font-size:11px;color:var(--t2);line-height:1.7;">
- <strong>Recommended but not compulsory:</strong> race belt, peak cap, sunglasses, sunscreen, ziplock bags, wet wipes, anti-chafe cream, disinfectant, R400 cash or a card.<br><br>
- <strong>Other rules:</strong> crew may support you only <strong>within 100m of an aid station</strong> (30-minute penalty otherwise). No pacing or muling. No swapping packs. Take as much food and drink from aid stations as you like, but not their cups, bottles or cans. If you DNF, reach the nearest aid station and tell the station captain yourself. <strong>Accepting an IV from the medical crew is an automatic DQ.</strong> Cutoffs require you to <strong>depart</strong> before the barrier, not merely arrive.
- </div>
- </details>
  <details class="ptdetails" style="margin-top:8px;">
  <summary class="ptsummary">&#127774; Weather &#8212; the south-easter</summary>
  <div class="callout co-blu" style="margin:8px 0 10px;">Late November is peak season for the Cape Doctor, the south-easterly that funnels over Table Mountain and down the Atlantic seaboard. The organiser&#8217;s own warning is that the weather can change drastically once you are on the mountain.</div>
@@ -762,6 +724,55 @@ body{-webkit-font-smoothing:antialiased;}
  </ul>
  </div>
  </details>
+</div>
+
+
+<!-- GEAR TAB -->
+<div id="t-gear" style="display:none;">
+<div class="card">
+<h3>&#9888; Compulsory gear &#8212; UT100 (official list)</h3>
+ <div class="callout co-rd" style="margin:8px 0 10px;"><strong>18 compulsory items, carried the whole race.</strong> Random checks on course, and penalties are <strong>15&#8211;30 minutes per missing item</strong>. The organiser states plainly: <em>this list is never changed or downgraded based on the weather forecast.</em> You carry full mountain kit in 25&#176;C regardless.</div>
+ <div class="overflow">
+ <table class="ptable">
+ <thead><tr><th>Item</th><th>Spec</th><th>Penalty</th></tr></thead>
+ <tbody>
+ <tr class="kr"><td><strong>Running pack</strong></td><td>Pack and storage belts may be combined. <strong>One pack, start to finish</strong> &#8212; timing chip attached.</td><td>30 min</td></tr>
+ <tr class="kr"><td><strong>Hydration</strong></td><td><strong>Minimum 2 litres capacity</strong>, of which <strong>300ml in reserve at all times</strong>. Bottles, bladder or both.</td><td>15 min</td></tr>
+ <tr class="kr"><td><strong>Waterproof jacket</strong></td><td>Lightweight, waterproof, breathable. <strong>Integrated hood, seams tape-sealed.</strong> Windproofs and ponchos are explicitly NOT accepted.</td><td>30 min</td></tr>
+ <tr><td>Waterproof pants</td><td>Full-length waterproof over-trousers.</td><td>30 min</td></tr>
+ <tr><td>Long-sleeved thermal top</td><td>Synthetic or wool. <strong>No cotton.</strong> Keep in a dry bag.</td><td>30 min</td></tr>
+ <tr><td>Thermal leggings</td><td>Synthetic or wool, no cotton. Keep in a dry bag.</td><td>30 min</td></tr>
+ <tr><td>Beanie</td><td>Close-fitting, synthetic or wool, quick-drying.</td><td>30 min</td></tr>
+ <tr><td>Neck scarf / Buff</td><td>Close-fitting, synthetic or wool.</td><td>30 min</td></tr>
+ <tr><td>Gloves</td><td>Warm, preferably waterproof.</td><td>30 min</td></tr>
+ <tr><td>Whistle</td><td>Easily accessible.</td><td>30 min</td></tr>
+ <tr><td>Space blanket</td><td>Minimum 1m &#215; 2m.</td><td>30 min</td></tr>
+ <tr><td>First aid kit</td><td>Minimum: adhesive bandage 5cm &#215; 100cm, antiseptic cream, two plasters 2.2cm &#215; 7.2cm, gauze.</td><td>15 min</td></tr>
+ <tr class="kr"><td><strong>Headlamp</strong></td><td><strong>350 lumens minimum</strong>, working order, <strong>plus a spare set of batteries</strong>.</td><td>15 min</td></tr>
+ <tr><td>Charged phone</td><td>Flight mode to save battery; signal on in an emergency. MYSOS app pre-installed.</td><td>30 min</td></tr>
+ <tr class="kr"><td><strong>Food reserve</strong></td><td><strong>Minimum 250 calories in reserve at all times</strong> &#8212; you must still have it at the finish.</td><td>15 min</td></tr>
+ <tr><td>Personal cup</td><td>Cupless race. All drinks go into your own cup. <strong>Bottles do not count.</strong></td><td>15 min</td></tr>
+ <tr><td>Race number</td><td>Front of body, over all clothing, visible at all times. Never on your back or pack.</td><td>15 min</td></tr>
+ </tbody>
+ </table>
+ </div>
+ <div class="callout co-amb" style="margin-top:10px;"><strong>Four things most likely to catch you out:</strong><br>
+ &#9654; <strong>The jacket.</strong> It must be seam-sealed with an integrated hood. A softshell or windproof fails the check, however good it is. Verify yours before race week, not at registration.<br>
+ &#9654; <strong>350 lumens.</strong> Check your headtorch&#8217;s actual rating, and carry the spare batteries &#8212; they are part of the requirement, not a nicety.<br>
+ &#9654; <strong>2 litres of capacity.</strong> Not 1.5 &#8212; the 1.5l line is for the shorter races. Make sure your pack genuinely carries 2l.<br>
+ &#9654; <strong>The two reserves.</strong> 300ml of water and 250 calories must be on you <em>at all times</em>, including crossing the finish line. Easy to eat or drink your way into a penalty in the last 10km.</div>
+ <div class="callout co-blu" style="margin-top:8px;"><strong>&#127939; Train with it.</strong> Full waterproofs, thermals, gloves, beanie, space blanket and 2l of water is a real pack weight &#8212; and you carry it for 20 hours whatever the forecast says. Every long run from here should be done with the full race pack so nothing is a surprise. The 13 Peaks day especially.</div>
+ <div class="callout co-grn" style="margin-top:8px;"><strong>&#9989; Not required for UT100:</strong> a second headlamp or backup torch &#8212; that is the 100-miler only. One lamp plus spare batteries is enough.</div>
+ <div style="padding:8px 2px 0;font-size:11px;color:var(--t2);line-height:1.7;">
+ <strong>Recommended but not compulsory:</strong> race belt, peak cap, sunglasses, sunscreen, ziplock bags, wet wipes, anti-chafe cream, disinfectant, R400 cash or a card.<br><br>
+ <strong>Other rules:</strong> crew may support you only <strong>within 100m of an aid station</strong> (30-minute penalty otherwise). No pacing or muling. No swapping packs. Take as much food and drink from aid stations as you like, but not their cups, bottles or cans. If you DNF, reach the nearest aid station and tell the station captain yourself. <strong>Accepting an IV from the medical crew is an automatic DQ.</strong> Cutoffs require you to <strong>depart</strong> before the barrier, not merely arrive.
+ </div>
+ </div>
+</div>
+
+<!-- WEATHER TAB -->
+<div id="t-wx" style="display:none;">
+ <div id="wx-card"></div>
 </div>
 
 <!-- NUTRITION TAB -->
@@ -1202,7 +1213,7 @@ function strLastNote(){
 }
 // ─────────────────────────────────────────────────────────────────────────────
 function showTab(id, btn) {
- ['today','plan','track','pace','str','nut'].forEach(function(t){
+ ['today','plan','track','pace','gear','wx','str','nut'].forEach(function(t){
  var el=document.getElementById('t-'+t); if(el) el.style.display=(t===id)?'block':'none';
  });
  document.querySelectorAll('.tn').forEach(function(b){ b.classList.remove('active'); });
@@ -1210,7 +1221,7 @@ function showTab(id, btn) {
  if(id==='track') renderTracking();
  if(id==='today'){ renderToday(); renderTrend(); }
  if(id==='str'){ renderStrengthConfig(); renderShoes(); }
- if(id==='pace') renderWeather();
+ if(id==='wx') renderWeather();
 }
 function showPace(id, btn) {
  document.getElementById('p30').style.display = id === 'p30' ? 'block' : 'none';
