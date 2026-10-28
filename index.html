@@ -119,6 +119,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .co-pur{border-color:var(--pur);background:#EDE9FE;color:#3730A3;}
 .co-amb{border-color:var(--amb);background:#FEF3C7;color:#713F12;}
 .co-rd{border-color:#C0392B;background:#FFE4E6;color:#881337;}
+.gearsum{margin:0 0 12px;padding:11px 13px;background:var(--s2);border:1px solid var(--brd);border-radius:8px;}
+.gearsum .gsrow{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;}
+.gearsum .gsnum{font-size:19px;font-weight:700;letter-spacing:-.01em;}
+.gearsum .gslbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);display:block;}
+.gearsum .gsbar{height:5px;border-radius:3px;background:var(--brd);margin-top:6px;overflow:hidden;}
+.gearsum .gsbar i{display:block;height:100%;border-radius:3px;transition:width .25s;}
+.gearsum .gsmiss{font-size:11px;color:#881337;margin-top:9px;line-height:1.6;}
+.gearsum .gsbtn{font-size:10px;padding:4px 9px;border:1px solid var(--brd);background:#fff;border-radius:999px;cursor:pointer;color:var(--t2);margin-left:6px;}
+.gearsum .gsbtn:hover{background:var(--s2);}
+td.gchk{text-align:center;width:38px;}
+td.gchk input{width:17px;height:17px;cursor:pointer;accent-color:#1D9E75;}
+tr.gpacked td:not(.gchk){opacity:.45;}
+
 .rn-card{border:1px solid var(--brd);border-radius:8px;padding:10px 13px;margin-bottom:12px;background:var(--s2);}
 .rn-head{font-weight:700;font-size:12px;margin-bottom:6px;}
 .rn-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0;border-top:1px solid var(--brdl);}
@@ -731,28 +744,29 @@ body{-webkit-font-smoothing:antialiased;}
 <div id="t-gear" style="display:none;">
 <div class="card">
 <h3>&#9888; Compulsory gear &#8212; UT100 (official list)</h3>
- <div class="callout co-rd" style="margin:8px 0 10px;"><strong>18 compulsory items, carried the whole race.</strong> Random checks on course, and penalties are <strong>15&#8211;30 minutes per missing item</strong>. The organiser states plainly: <em>this list is never changed or downgraded based on the weather forecast.</em> You carry full mountain kit in 25&#176;C regardless.</div>
+ <div class="callout co-rd" style="margin:8px 0 10px;"><strong>17 compulsory items, carried the whole race.</strong> Random checks on course, and penalties are <strong>15&#8211;30 minutes per missing item</strong>. The organiser states plainly: <em>this list is never changed or downgraded based on the weather forecast.</em> You carry full mountain kit in 25&#176;C regardless.</div>
+ <div id="gear-sum" class="gearsum"></div>
  <div class="overflow">
  <table class="ptable">
- <thead><tr><th>Item</th><th>Spec</th><th>Penalty</th></tr></thead>
+ <thead><tr><th>Item</th><th class="gchk">Own</th><th class="gchk">Pack</th><th>Spec</th><th>Penalty</th></tr></thead>
  <tbody>
- <tr class="kr"><td><strong>Running pack</strong></td><td>Pack and storage belts may be combined. <strong>One pack, start to finish</strong> &#8212; timing chip attached.</td><td>30 min</td></tr>
- <tr class="kr"><td><strong>Hydration</strong></td><td><strong>Minimum 2 litres capacity</strong>, of which <strong>300ml in reserve at all times</strong>. Bottles, bladder or both.</td><td>15 min</td></tr>
- <tr class="kr"><td><strong>Waterproof jacket</strong></td><td>Lightweight, waterproof, breathable. <strong>Integrated hood, seams tape-sealed.</strong> Windproofs and ponchos are explicitly NOT accepted.</td><td>30 min</td></tr>
- <tr><td>Waterproof pants</td><td>Full-length waterproof over-trousers.</td><td>30 min</td></tr>
- <tr><td>Long-sleeved thermal top</td><td>Synthetic or wool. <strong>No cotton.</strong> Keep in a dry bag.</td><td>30 min</td></tr>
- <tr><td>Thermal leggings</td><td>Synthetic or wool, no cotton. Keep in a dry bag.</td><td>30 min</td></tr>
- <tr><td>Beanie</td><td>Close-fitting, synthetic or wool, quick-drying.</td><td>30 min</td></tr>
- <tr><td>Neck scarf / Buff</td><td>Close-fitting, synthetic or wool.</td><td>30 min</td></tr>
- <tr><td>Gloves</td><td>Warm, preferably waterproof.</td><td>30 min</td></tr>
- <tr><td>Whistle</td><td>Easily accessible.</td><td>30 min</td></tr>
- <tr><td>Space blanket</td><td>Minimum 1m &#215; 2m.</td><td>30 min</td></tr>
- <tr><td>First aid kit</td><td>Minimum: adhesive bandage 5cm &#215; 100cm, antiseptic cream, two plasters 2.2cm &#215; 7.2cm, gauze.</td><td>15 min</td></tr>
- <tr class="kr"><td><strong>Headlamp</strong></td><td><strong>350 lumens minimum</strong>, working order, <strong>plus a spare set of batteries</strong>.</td><td>15 min</td></tr>
- <tr><td>Charged phone</td><td>Flight mode to save battery; signal on in an emergency. MYSOS app pre-installed.</td><td>30 min</td></tr>
- <tr class="kr"><td><strong>Food reserve</strong></td><td><strong>Minimum 250 calories in reserve at all times</strong> &#8212; you must still have it at the finish.</td><td>15 min</td></tr>
- <tr><td>Personal cup</td><td>Cupless race. All drinks go into your own cup. <strong>Bottles do not count.</strong></td><td>15 min</td></tr>
- <tr><td>Race number</td><td>Front of body, over all clothing, visible at all times. Never on your back or pack.</td><td>15 min</td></tr>
+ <tr class="kr" data-gear="running-pack" data-name="Running pack"><td><strong>Running pack</strong></td><td class="gchk"><input type="checkbox" data-g="running-pack" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="running-pack" data-f="pack" onchange="gearToggle(this)"></td><td>Pack and storage belts may be combined. <strong>One pack, start to finish</strong> &#8212; timing chip attached.</td><td>30 min</td></tr>
+ <tr class="kr" data-gear="hydration" data-name="Hydration"><td><strong>Hydration</strong></td><td class="gchk"><input type="checkbox" data-g="hydration" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="hydration" data-f="pack" onchange="gearToggle(this)"></td><td><strong>Minimum 2 litres capacity</strong>, of which <strong>300ml in reserve at all times</strong>. Bottles, bladder or both.</td><td>15 min</td></tr>
+ <tr class="kr" data-gear="waterproof-jacket" data-name="Waterproof jacket"><td><strong>Waterproof jacket</strong></td><td class="gchk"><input type="checkbox" data-g="waterproof-jacket" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="waterproof-jacket" data-f="pack" onchange="gearToggle(this)"></td><td>Lightweight, waterproof, breathable. <strong>Integrated hood, seams tape-sealed.</strong> Windproofs and ponchos are explicitly NOT accepted.</td><td>30 min</td></tr>
+ <tr data-gear="waterproof-pants" data-name="Waterproof pants"><td>Waterproof pants</td><td class="gchk"><input type="checkbox" data-g="waterproof-pants" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="waterproof-pants" data-f="pack" onchange="gearToggle(this)"></td><td>Full-length waterproof over-trousers.</td><td>30 min</td></tr>
+ <tr data-gear="long-sleeved-thermal-top" data-name="Long-sleeved thermal top"><td>Long-sleeved thermal top</td><td class="gchk"><input type="checkbox" data-g="long-sleeved-thermal-top" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="long-sleeved-thermal-top" data-f="pack" onchange="gearToggle(this)"></td><td>Synthetic or wool. <strong>No cotton.</strong> Keep in a dry bag.</td><td>30 min</td></tr>
+ <tr data-gear="thermal-leggings" data-name="Thermal leggings"><td>Thermal leggings</td><td class="gchk"><input type="checkbox" data-g="thermal-leggings" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="thermal-leggings" data-f="pack" onchange="gearToggle(this)"></td><td>Synthetic or wool, no cotton. Keep in a dry bag.</td><td>30 min</td></tr>
+ <tr data-gear="beanie" data-name="Beanie"><td>Beanie</td><td class="gchk"><input type="checkbox" data-g="beanie" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="beanie" data-f="pack" onchange="gearToggle(this)"></td><td>Close-fitting, synthetic or wool, quick-drying.</td><td>30 min</td></tr>
+ <tr data-gear="neck-scarf-buff" data-name="Neck scarf / Buff"><td>Neck scarf / Buff</td><td class="gchk"><input type="checkbox" data-g="neck-scarf-buff" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="neck-scarf-buff" data-f="pack" onchange="gearToggle(this)"></td><td>Close-fitting, synthetic or wool.</td><td>30 min</td></tr>
+ <tr data-gear="gloves" data-name="Gloves"><td>Gloves</td><td class="gchk"><input type="checkbox" data-g="gloves" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="gloves" data-f="pack" onchange="gearToggle(this)"></td><td>Warm, preferably waterproof.</td><td>30 min</td></tr>
+ <tr data-gear="whistle" data-name="Whistle"><td>Whistle</td><td class="gchk"><input type="checkbox" data-g="whistle" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="whistle" data-f="pack" onchange="gearToggle(this)"></td><td>Easily accessible.</td><td>30 min</td></tr>
+ <tr data-gear="space-blanket" data-name="Space blanket"><td>Space blanket</td><td class="gchk"><input type="checkbox" data-g="space-blanket" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="space-blanket" data-f="pack" onchange="gearToggle(this)"></td><td>Minimum 1m &#215; 2m.</td><td>30 min</td></tr>
+ <tr data-gear="first-aid-kit" data-name="First aid kit"><td>First aid kit</td><td class="gchk"><input type="checkbox" data-g="first-aid-kit" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="first-aid-kit" data-f="pack" onchange="gearToggle(this)"></td><td>Minimum: adhesive bandage 5cm &#215; 100cm, antiseptic cream, two plasters 2.2cm &#215; 7.2cm, gauze.</td><td>15 min</td></tr>
+ <tr class="kr" data-gear="headlamp" data-name="Headlamp"><td><strong>Headlamp</strong></td><td class="gchk"><input type="checkbox" data-g="headlamp" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="headlamp" data-f="pack" onchange="gearToggle(this)"></td><td><strong>350 lumens minimum</strong>, working order, <strong>plus a spare set of batteries</strong>.</td><td>15 min</td></tr>
+ <tr data-gear="charged-phone" data-name="Charged phone"><td>Charged phone</td><td class="gchk"><input type="checkbox" data-g="charged-phone" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="charged-phone" data-f="pack" onchange="gearToggle(this)"></td><td>Flight mode to save battery; signal on in an emergency. MYSOS app pre-installed.</td><td>30 min</td></tr>
+ <tr class="kr" data-gear="food-reserve" data-name="Food reserve"><td><strong>Food reserve</strong></td><td class="gchk"><input type="checkbox" data-g="food-reserve" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="food-reserve" data-f="pack" onchange="gearToggle(this)"></td><td><strong>Minimum 250 calories in reserve at all times</strong> &#8212; you must still have it at the finish.</td><td>15 min</td></tr>
+ <tr data-gear="personal-cup" data-name="Personal cup"><td>Personal cup</td><td class="gchk"><input type="checkbox" data-g="personal-cup" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="personal-cup" data-f="pack" onchange="gearToggle(this)"></td><td>Cupless race. All drinks go into your own cup. <strong>Bottles do not count.</strong></td><td>15 min</td></tr>
+ <tr data-gear="race-number" data-name="Race number"><td>Race number</td><td class="gchk"><input type="checkbox" data-g="race-number" data-f="own" onchange="gearToggle(this)"></td><td class="gchk"><input type="checkbox" data-g="race-number" data-f="pack" onchange="gearToggle(this)"></td><td>Front of body, over all clothing, visible at all times. Never on your back or pack.</td><td>15 min</td></tr>
  </tbody>
  </table>
  </div>
@@ -1222,6 +1236,7 @@ function showTab(id, btn) {
  if(id==='today'){ renderToday(); renderTrend(); }
  if(id==='str'){ renderStrengthConfig(); renderShoes(); }
  if(id==='wx') renderWeather();
+ if(id==='gear') gearPaint();
 }
 function showPace(id, btn) {
  document.getElementById('p30').style.display = id === 'p30' ? 'block' : 'none';
@@ -2458,6 +2473,49 @@ function wxTrainingStrip(data){
  return h;
 }
 
+
+// --- COMPULSORY GEAR: own / packed tracking (localStorage) ----------------
+var GEAR_KEY='utct_gear_v1';
+function gearLoad(){ try{ return JSON.parse(localStorage.getItem(GEAR_KEY))||{}; }catch(e){ return {}; } }
+function gearSave(st){ try{ localStorage.setItem(GEAR_KEY, JSON.stringify(st)); }catch(e){} }
+function gearToggle(el){
+  var st=gearLoad(), k=el.getAttribute('data-g'), f=el.getAttribute('data-f');
+  if(!st[k]) st[k]={};
+  st[k][f]=!!el.checked;
+  if(f==='own' && !el.checked) st[k].pack=false;   // cannot pack what you do not own
+  gearSave(st); gearPaint();
+}
+function gearReset(field){
+  var st=gearLoad();
+  Object.keys(st).forEach(function(k){ if(st[k]) st[k][field]=false; });
+  gearSave(st); gearPaint();
+}
+function gearPaint(){
+  var st=gearLoad(), total=0, own=0, pack=0, missing=[], unpacked=[];
+  var rows=document.querySelectorAll('tr[data-gear]');
+  for(var i=0;i<rows.length;i++){
+    var tr=rows[i], k=tr.getAttribute('data-gear'), s=st[k]||{}, nm=tr.getAttribute('data-name')||k;
+    total++;
+    var oc=tr.querySelector('input[data-f="own"]'), pc=tr.querySelector('input[data-f="pack"]');
+    if(oc) oc.checked=!!s.own;
+    if(pc){ pc.checked=!!s.pack; pc.disabled=!s.own; }
+    if(s.own) own++; else missing.push(nm);
+    if(s.pack) pack++; else unpacked.push(nm);
+    if(s.pack) tr.classList.add('gpacked'); else tr.classList.remove('gpacked');
+  }
+  var host=document.getElementById('gear-sum'); if(!host) return;
+  function bar(n,t,col){ return '<div class="gsbar"><i style="width:'+(t?Math.round(100*n/t):0)+'%;background:'+col+';"></i></div>'; }
+  var h='<div class="gsrow">'
+    +'<div style="min-width:112px;"><span class="gslbl">Own</span><span class="gsnum" style="color:'+(own===total?'#1D9E75':'#B45309')+'">'+own+' / '+total+'</span>'+bar(own,total,own===total?'#1D9E75':'#B45309')+'</div>'
+    +'<div style="min-width:112px;"><span class="gslbl">Packed</span><span class="gsnum" style="color:'+(pack===total?'#1D9E75':'var(--t2)')+'">'+pack+' / '+total+'</span>'+bar(pack,total,pack===total?'#1D9E75':'#185FA5')+'</div>'
+    +'<div style="align-self:center;"><button class="gsbtn" onclick="gearReset(\'pack\')">Clear packed</button>'
+    +'<button class="gsbtn" onclick="gearReset(\'own\')">Clear all</button></div></div>';
+  if(missing.length) h+='<div class="gsmiss"><strong>Still to get ('+missing.length+'):</strong> '+missing.join(' &middot; ')+'</div>';
+  else if(unpacked.length) h+='<div class="gsmiss" style="color:#185FA5;"><strong>Not yet packed ('+unpacked.length+'):</strong> '+unpacked.join(' &middot; ')+'</div>';
+  else h+='<div class="gsmiss" style="color:#14532D;"><strong>&#10003; All '+total+' items owned and packed.</strong></div>';
+  host.innerHTML=h;
+}
+
 renderTicker();
 renderGrid();
 markCurrentWeek();
@@ -2467,6 +2525,7 @@ renderToday();
 renderTrend();
 renderStrengthConfig();
 renderWeather();
+gearPaint();
 loadStrava();
 </script>
 </body>
