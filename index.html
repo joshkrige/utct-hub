@@ -1481,29 +1481,52 @@ function weekActBox(w){
 // ─── LOAD CHECK ──────────────────────────────────────────────────────────────
 // Compares actual vs planned km for the current week (pro-rated to today) and flags
 // meaningful over/under-load with a concrete suggestion.
+function dayKm(d){
+  if(!d || d.t==='rest' || d.t==='race') return 0;
+  var txt=(d.s||'')+' '+(d.d||'');
+  var m=txt.match(/(\d+(?:\.\d+)?)\s*(?:-|\u2013|to)\s*(\d+(?:\.\d+)?)\s*km/i);
+  if(m) return (parseFloat(m[1])+parseFloat(m[2]))/2;
+  m=txt.match(/(\d+(?:\.\d+)?)\s*km/i);
+  return m?parseFloat(m[1]):0;
+}
+// cumulative planned km for days 0..idx, normalised so the week sums to w.km
+function plannedThrough(w, idx){
+  if(!w || !w.dy) return 0;
+  var per=[], tot=0, i;
+  for(i=0;i<w.dy.length;i++){ var k=dayKm(w.dy[i]); per.push(k); tot+=k; }
+  var scale=(tot>0 && w.km)?(w.km/tot):1, c=0;
+  for(i=0;i<=idx && i<per.length;i++) c+=per[i]*scale;
+  return c;
+}
 function loadCheckHtml(){
-  var wi=currentWeekIdx(), w=W[wi], m=MATCH[wi]; if(!w || !m || !w.km) return '';
+  var wi=currentWeekIdx(), w=W[wi], m=MATCH[wi]; if(!w || !m || !w.km || !w.dy) return '';
   var start=weekStartDate(w), today=new Date(); today.setHours(0,0,0,0);
-  var daysElapsed=Math.min(7, Math.max(1, Math.round((today-start)/86400000)+1));
-  var expectedKm=w.km*(daysElapsed/7);
-  var actKm=m.actKm, diff=actKm-expectedKm, pct=expectedKm>0?Math.round((actKm/expectedKm)*100):100;
-  // Only flag once meaningfully into the week, and only for a real gap (>20%, >4km).
-  if(daysElapsed<2 || Math.abs(diff)<4 || Math.abs(pct-100)<20) return '';
-  var remainKm=Math.max(0, w.km-actKm), remainDays=7-daysElapsed;
+  var dayIdx=Math.round((today-start)/86400000);     // 0 = Monday
+  if(dayIdx<1 || dayIdx>6) return '';                // nothing to judge on day one, or outside the week
+  if(w.p==='race') return '';                        // race week judges nothing
+  // Judge only on days that have finished. Today is not a miss until it is over.
+  var expectedKm=plannedThrough(w, dayIdx-1);
+  if(expectedKm<4) return '';                        // the week has not asked for much yet
+  var actKm=m.actKm||0, diff=actKm-expectedKm;
+  var pct=Math.round((actKm/expectedKm)*100);
+  if(Math.abs(diff)<8 || Math.abs(pct-100)<25) return '';
+  var DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  var through=DAYS[dayIdx-1];
+  var remainKm=Math.max(0, w.km-expectedKm), daysLeft=7-dayIdx;
   if(diff<0){
-    var perDay=remainDays>0?(remainKm/remainDays).toFixed(1):remainKm.toFixed(1);
-    return '<div class="callout co-amb" style="margin-bottom:10px;"><strong>⚠ Behind plan:</strong> '+actKm.toFixed(1)+' km logged vs ~'+expectedKm.toFixed(1)+' km expected by now ('+pct+'%). '
-      +(remainDays>0
-        ? ('To hit '+w.km+' km this week, remaining sessions average ~'+perDay+' km/day &#8212; or extend the next long run and let a smaller session slide.')
-        : ('Week is closing '+remainKm.toFixed(1)+' km short. Not worth chasing now &#8212; note it and move on; consistency over the block matters more than one week.'))
-      +'</div>';
-  } else {
-    return '<div class="callout co-blu" style="margin-bottom:10px;"><strong>ℹ Ahead of plan:</strong> '+actKm.toFixed(1)+' km logged vs ~'+expectedKm.toFixed(1)+' km expected ('+pct+'%). '
-      +(remainDays>0
-        ? 'Good buffer &#8212; no need to add extra volume. If legs feel heavy, treat an upcoming session as easy/optional recovery.'
-        : 'Strong week. Make sure tomorrow starts the next week fresh rather than carrying fatigue in.')
+    return '<div class="callout co-amb" style="margin-bottom:10px;"><strong>&#9888; Behind plan:</strong> '
+      +actKm.toFixed(1)+' km logged against '+expectedKm.toFixed(1)+' km scheduled through '+through+' ('+pct+'%). '
+      +(daysLeft>0
+        ? ('Still '+remainKm.toFixed(0)+' km on the plan across the remaining '+daysLeft+' day'+(daysLeft===1?'':'s')+'. Extend the next long run and let a smaller session slide rather than cramming.')
+        : ('Week is closing '+Math.abs(diff).toFixed(1)+' km short. Not worth chasing &#8212; note it and move on; consistency over the block matters more than one week.'))
       +'</div>';
   }
+  return '<div class="callout co-blu" style="margin-bottom:10px;"><strong>&#8505; Ahead of plan:</strong> '
+    +actKm.toFixed(1)+' km logged against '+expectedKm.toFixed(1)+' km scheduled through '+through+' ('+pct+'%). '
+    +(daysLeft>0
+      ? 'Good buffer &#8212; no need to add volume. If the legs feel heavy, treat an upcoming session as optional.'
+      : 'Strong week. Make sure tomorrow starts the next one fresh rather than carrying fatigue in.')
+    +'</div>';
 }
 
 function currentWeekIdx(){
