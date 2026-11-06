@@ -1068,8 +1068,8 @@ const API = "api.php";                                // used when self-hosted
 const CPS = [
   { n:"Start · Gardens RFC", s:"Start",          km:0.00,  v:0,    cut:null, crew:true,  stop:0,
     map:"https://goo.gl/maps/oFZCWrCUzffLjhG67" },
-  { n:"Signal Hill",         s:"Signal Hill",    km:11.91, v:506,  cut:null, crew:true,  stop:1,
-    drive:10, map:"https://share.google/xCrXngGwnnQfoB8my" },
+  { n:"Signal Hill",         s:"Signal Hill",    km:11.91, v:506,  cut:null, crew:false, stop:1,
+    skip:true, map:"https://share.google/xCrXngGwnnQfoB8my" },
   { n:"Kloof Nek",           s:"Kloof Nek",      km:20.20, v:757,  cut:4.0,  crew:true,  stop:3,
     drive:5, driveNote:"small car park, fills fast", map:"https://goo.gl/maps/BJc5YX2gFt8XyLru7" },
   { n:"Table Mountain",      s:"Table Mtn",      km:31.07, v:1771, cut:null, crew:false, stop:3 },
@@ -1097,12 +1097,6 @@ const JOBS = {
           "Anything he wants at the finish goes into bag service now.",
           "Then get out of the way."],
       watch:"A missed drop-bag check-in is the one irreversible job of the morning." },
-  1:{ lead:"Under two hours in, still dark, and he needs nothing. A wave and a photograph.",
-      do:["<b>Charge his phone.</b>",
-          "Hold out a bottle but don't insist. If he takes food, good; if not, leave it.",
-          "Sixty seconds. Don't let him stand around in the wind.",
-          "Pack his phone back."],
-      watch:"Ignore the clock here — it is far too early to read anything into a split at km 12. No sunscreen, no massage gun, no admin — it's dark, he's 12 km in, and the full routine starts at Kloof Nek." },
   2:{ lead:"The most important early stop — next time you see him is <b>over four hours later</b>, via Platteklip Gorge (876 m in 4.83 km) and the exposed plateau.",
       do:["<b>Charge his phone.</b>",
           "Refill to the full 2L — <b>Tailwind, 2.5 scoops a bottle</b>. He gets nothing from you until Llandudno.",
@@ -1183,6 +1177,15 @@ const RULES = [
   ["A DNF is his to call","He must reach an aid station and tell the station captain himself. Accepting an IV from medical is an <b>automatic DQ</b> — never push him toward one."],
 ];
 const LAST = CPS.length - 1;
+/* The button only stops where someone is certain to be standing. Table Mountain,
+   Rocket Road and Constantia Glen are volunteer-only; Signal Hill has nothing for
+   the crew to do, so it is skipped too — but anyone who happens to be there can
+   still log it from "Wrong station?". All of them keep their row and their
+   projected time on the board. */
+CPS.forEach((c,i) => { c.log = c.crew || i === 0 || i === LAST; });
+const LOGGABLE = CPS.map((c,i) => i).filter(i => CPS[i].log);
+const nextLog = i => { for(const j of LOGGABLE) if(j > i) return j; return LAST; };
+const prevLog = i => { let p = 0; for(const j of LOGGABLE) if(j <= i) p = j; return p; };
 const NEEDS = ["Ice","Coke","Water","Food","Salt","Headlamp","Dry shirt","Socks","Shoes","Sunscreen","Vaseline","Painkillers","Chair","Nothing"];
 const FADE = 0.35;   // how much the plan slows across the race
 
@@ -1282,13 +1285,19 @@ function project(state){
     if(inT[i]!=null){ pos = { phase:i===LAST ? "finished" : "aid", cp:i }; break; }
   }
 
-  // measured leg + stop ratios
+  /* A measured span runs from one tapped point to the next, which may cross
+     checkpoints nobody stands at — so compare the elapsed time with the planned
+     time for every leg in between, not just one. */
   const legRatios = [], stopRatios = [];
-  for(let i=1; i<CPS.length; i++){
-    const from = outT[i-1] ?? (i===1 ? outT[0] : null);
-    if(from!=null && inT[i]!=null && plan.legs[i-1].t>0){
-      legRatios.push({ i, r:(inT[i]-from)/1000 / plan.legs[i-1].t });
-    }
+  const tapped = [];
+  for(let i=0; i<=LAST; i++) if(inT[i] != null || outT[i] != null) tapped.push(i);
+  for(let n=0; n<tapped.length-1; n++){
+    const a = tapped[n], b = tapped[n+1];
+    const from = outT[a];
+    if(from == null || inT[b] == null) continue;
+    let planned = 0;
+    for(let k=a; k<b; k++) planned += plan.legs[k].t;
+    if(planned > 0) legRatios.push({ i:b, r:(inT[b]-from)/1000 / planned });
   }
   for(let i=1; i<LAST; i++){
     if(inT[i]!=null && outT[i]!=null && CPS[i].stop>0){
@@ -1320,6 +1329,7 @@ function project(state){
   } else { // finished
     eta[LAST] = inT[LAST]; cursor = inT[LAST]; startIdx = CPS.length;
   }
+  if(eta[0] == null) eta[0] = outT[0] ?? start;
   for(let i=0; i<startIdx && i<CPS.length; i++){
     if(eta[i]==null && inT[i]!=null) eta[i] = inT[i];
     if(etd[i]==null && outT[i]!=null) etd[i] = outT[i];
@@ -1330,10 +1340,25 @@ function project(state){
     if(i<LAST){ cursor += CPS[i].stop*60*sRatio*1000; etd[i] = cursor; }
   }
 
+  /* Points nobody taps at still deserve a time on the board — interpolate when
+     he went through, between the taps either side of them. */
+  for(let i=1; i<CPS.length; i++){
+    if(eta[i] != null) continue;
+    let a = i-1; while(a >= 0 && etd[a] == null && eta[a] == null) a--;
+    let b = i+1; while(b < CPS.length && eta[b] == null) b++;
+    if(a < 0 || b >= CPS.length) continue;
+    const ta = etd[a] ?? eta[a], tb = eta[b];
+    const pa = plan.depart[a], pb = plan.arrive[b], pi = plan.arrive[i];
+    eta[i] = pb > pa ? ta + ((pi - pa) / (pb - pa)) * (tb - ta) : ta;
+  }
+
   // overdue check: is he late on the current leg beyond tolerance?
   let overdue = 0;
   if(pos.phase==="leg"){
-    const expected = plan.legs[pos.cp].t * ratio * 1000;
+    const target = nextLog(pos.cp);
+    let span = 0;
+    for(let k=pos.cp; k<target; k++) span += plan.legs[k].t + (k>pos.cp ? CPS[k].stop*60*sRatio : 0);
+    const expected = span * ratio * 1000;
     const slack = Math.max(12*60*1000, expected*0.25);
     const late = Date.now() - (outT[pos.cp] + expected + slack);
     if(late > 0) overdue = late;
@@ -1686,10 +1711,10 @@ function buildMap(){
   CPS.forEach((c,i) => {
     const p = pointAtEffort(CP_E[i]);
     const [x,y] = xy(p);
-    marks += `<circle class="cp${c.crew?" crew":""}" data-cp="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${c.crew?11:7}"/>`;
+    marks += `<circle class="cp${c.log?" crew":""}" data-cp="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${c.crew?11:7}"/>`;
     // start and finish are the same patch of grass — one label for both
     if(i === LAST) return;
-    if(!c.crew) return;
+    if(!c.log) return;
     const right = x > SW*0.55;
     labels.push({ x: x + (right?-17:17), y: y+8, right,
                   t: i === 0 ? "Start / Finish" : c.s });
@@ -1871,7 +1896,7 @@ function updateMap(st, P){
     e = CP_E[pos.cp]; where = "At " + CPS[pos.cp].s;
     sub = CPS[pos.cp].km.toFixed(1) + " km · in there " + mins((Date.now()-P.inT[pos.cp])/1000);
   } else {
-    const i = pos.cp, j = i + 1;
+    const i = pos.cp, j = nextLog(i);
     const span = P.eta[j] - P.outT[i];
     const f = clamp(span > 0 ? (Date.now() - P.outT[i]) / span : 0, 0, 1);
     e = CP_E[i] + f * (CP_E[j] - CP_E[i]);
@@ -1979,8 +2004,8 @@ function renderLog(st, P){
     meta = "Tap when Josh"; verb = "LEAVES"; place = CPS[pos.cp].s;
     sub = "in there " + mins((Date.now()-P.inT[pos.cp])/1000);
     cls = "depart"; action = { cp:pos.cp, type:"out" };
-  } else { // on a leg -> next arrival
-    const nx = pos.cp + 1;
+  } else { // on a leg -> the next point anyone is standing at
+    const nx = nextLog(pos.cp);
     meta = "Tap when Josh";
     verb = nx===LAST ? "FINISHES" : "ARRIVES";
     place = (nx===LAST ? "at " : "at ") + CPS[nx].s;
@@ -2042,14 +2067,14 @@ function renderBoard(st, P){
         + " · arrived " + clk(P.inT[pos.cp])
         + (CPS[pos.cp].crew ? " · crew point" : " · no crew access");
   } else {
-    const nx = pos.cp + 1;
+    const nx = nextLog(pos.cp);
     status = "On the way to " + CPS[nx].s;
     sub = "Left " + CPS[pos.cp].s + " at " + clk(P.outT[pos.cp])
         + " · " + (CPS[nx].km - CPS[pos.cp].km).toFixed(1) + " km / "
         + (CPS[nx].v - CPS[pos.cp].v) + " m to go";
   }
   if(P.overdue > 0){
-    status = "⚠ Overdue into " + CPS[pos.cp+1].s;
+    status = "⚠ Overdue into " + CPS[nextLog(pos.cp)].s;
     sub = mins(P.overdue) + " past the projection · last seen leaving "
         + CPS[pos.cp].s + " at " + clk(P.outT[pos.cp]);
   }
@@ -2059,9 +2084,8 @@ function renderBoard(st, P){
 
   // next crew-accessible point
   let nxi = -1;
-  for(let i=1; i<CPS.length; i++){
-    if(!CPS[i].crew) continue;
-    if(P.inT[i]!=null) continue;
+  for(const i of LOGGABLE){
+    if(i === 0 || P.inT[i] != null) continue;
     nxi = i; break;
   }
   if(nxi>0){
@@ -2124,7 +2148,7 @@ function renderBoard(st, P){
     rows.push(
       '<tr class="'+(isNow?'now':past?'past':'')+'">'+
       '<td><span class="nm">'+c.s+
-        '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.crew?(c.bag?'CREW + BACKUP BAG':'CREW'):'NO CREW')+'</span>'+
+        '<span class="crewtag '+(c.log?'':'notag')+'">'+(c.log?(c.bag?'CREW + BACKUP BAG':'CREW'):(c.skip?'NOTHING TO DO':'NO CREW'))+'</span>'+
       '</span><span class="d2">'+c.km.toFixed(1)+' km · '+c.v+' m'+'</span>'+cutCell+'</td>'+
       '<td class="mono d2">'+clk(planA)+'</td>'+
       '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+'</td>'+
@@ -2205,9 +2229,12 @@ $("undoBtn").addEventListener("click", () => {
 
 $("fixBtn").addEventListener("click", () => {
   const sel = $("fixCp");
-  sel.innerHTML = CPS.map((c,i)=>'<option value="'+i+'">'+(i===0?'Start':i===LAST?'Finish':'CP '+i+' · ')+c.s+'</option>').join("");
+  sel.innerHTML = CPS.map((c,i) => (c.log || c.skip)
+      ? '<option value="'+i+'">' + (i===0?'Start':i===LAST?'Finish':c.s)
+        + (c.skip ? ' (optional)' : '') + '</option>'
+      : '').join("");
   const P = project(state());
-  sel.value = String(Math.min(LAST, P.pos.phase==="leg" ? P.pos.cp+1 : P.pos.cp));
+  sel.value = String(P.pos.phase==="leg" ? nextLog(P.pos.cp) : prevLog(P.pos.cp));
   $("dlgFix").showModal();
 });
 $("fixGo").addEventListener("click", () => {
@@ -2253,7 +2280,7 @@ $("cogBtn").addEventListener("click", () => {
   $("cfgStart").value = clk(st.config.gunMs);
   const P = project(st);
   let nxi = -1;
-  for(let i=1;i<CPS.length;i++){ if(CPS[i].crew && P.inT[i]==null){ nxi=i; break; } }
+  for(const i of LOGGABLE){ if(i>0 && P.inT[i]==null){ nxi=i; break; } }
   $("cfgDrive").value = nxi>0 ? (Pref.get("drive_"+nxi, CPS[nxi].drive || "")||"") : "";
   $("cfgDrive").dataset.cp = nxi;
   $("cfgBeep").checked = !!Pref.get("beep",false);
