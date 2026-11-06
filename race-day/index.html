@@ -831,6 +831,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
     border:0; color:var(--dim); font-size:11px; text-align:center;
     text-decoration:underline; cursor:pointer; padding:6px}
 
+  /* How old is what you are looking at. Between Kloof Nek and Llandudno the
+     screen does not change for four hours; without this, silence and a broken
+     tracker look identical. */
+  .fresh{font-size:12px; line-height:1.45; color:var(--dim); margin-top:6px;
+    padding-top:6px; border-top:1px solid var(--line)}
+  .fresh.cold{color:var(--hold)}
+  .fresh b{color:var(--ink); font-weight:700}
+
+  /* Night stops: the crew work these in the dark too. */
+  .moon{opacity:.75; margin-left:4px}
+  .duskrow{font-size:11px; color:var(--dim); padding:7px 8px;
+    background:color-mix(in srgb, var(--info) 9%, transparent)}
+
   .hero{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:10px}
   .hero.alert{border-color:var(--bad); background:color-mix(in srgb, var(--bad) 9%, var(--panel))}
   .hero .lab{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:800}
@@ -967,6 +980,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div class="lab">Where he is</div>
       <div class="status" id="cStatus">Waiting for the start</div>
       <div class="sub" id="cSub">—</div>
+      <div class="fresh" id="cFresh"></div>
       <div class="nxt">
         <div>
           <div class="lab2" id="cNextLab">Next crew point</div>
@@ -1125,7 +1139,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v29";
+const VERSION = "v30";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2136,6 +2150,42 @@ function renderLog(st, P){
 /* ---- Board tab: everything, at a glance ---- */
 let lastSeenEvent = null;
 /* ---------------------------------------------------------------
+   Daylight.
+
+   Cape Town, race weekend: sunset 19:33 Saturday, usable light gone by about
+   20:00; first light 05:03 Sunday, sunrise 05:31. The start at 04:00 is in the
+   dark. On the 22h00 plan everything from Hout Bay onwards is run at night, and
+   the crew are working those stops in the dark as well — which is worth saying
+   on the screen rather than discovering at Constantia Nek.
+   --------------------------------------------------------------- */
+const SUN = { dawn: "05:03", sunrise: "05:31", sunset: "19:33", dusk: "20:01" };
+
+function sunAt(ms, hhmm){
+  const d = new Date(ms);
+  const [h, m] = hhmm.split(":").map(Number);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, m, 0, 0).getTime();
+}
+
+/* Dark enough to need a headtorch: before first light, or after dusk. */
+function isDark(ms){
+  if(ms == null || !isFinite(ms)) return false;
+  return ms < sunAt(ms, SUN.dawn) || ms >= sunAt(ms, SUN.dusk);
+}
+
+/* The last stop he reaches while it is still properly light — where the torch,
+   the batteries and the warm layer have to go on. */
+function lastLightStop(P, crewOnly){
+  let best = -1;
+  for(let i=1; i<CPS.length; i++){
+    if(crewOnly && (!CPS[i].crew || CPS[i].skip)) continue;
+    const t = P.inT[i] != null ? P.inT[i] : P.eta[i];
+    if(t == null) continue;
+    if(!isDark(t) && t >= sunAt(t, SUN.sunrise)) best = i;
+  }
+  return best;
+}
+
+/* ---------------------------------------------------------------
    Self-update.
 
    Every poll carries the version the server has live. If it differs from the
@@ -2210,6 +2260,30 @@ function renderBoard(st, P){
   $("cStatus").textContent = status;
   $("cSub").textContent = sub;
 
+  /* How old the picture is, and when it should next change. Long gaps are
+     normal here — Kloof Nek to Llandudno is over four hours out of reach — so
+     the line explains the silence instead of leaving people to guess. */
+  const fr = $("cFresh");
+  let lastEv = null;
+  for(const e of st.events) if(lastEv === null || e.t > lastEv.t) lastEv = e;
+  if(!lastEv){
+    fr.classList.remove("cold");
+    fr.innerHTML = pos.phase === "pre"
+      ? "No taps yet · race starts " + clk(P.gun)
+      : "";
+  } else {
+    const age = (Date.now() - lastEv.t) / 1000;
+    const what = (lastEv.type === "in" ? "arriving at " : "leaving ") + CPS[lastEv.cp].s;
+    let t = "Last tap <b>" + mins(age) + " ago</b>, " + what;
+    const nx = nextLog(pos.cp);
+    if(pos.phase !== "finished" && nx > pos.cp && P.eta[nx] != null){
+      t += " · next expected around <b>" + clk(P.eta[nx]) + "</b>";
+    }
+    fr.innerHTML = t;
+    /* Only call it cold once it is late, not merely quiet. */
+    fr.classList.toggle("cold", P.overdue > 0);
+  }
+
   // next crew-accessible point
   let nxi = -1;
   for(let i=1; i<CPS.length; i++){
@@ -2234,8 +2308,18 @@ function renderBoard(st, P){
     $("cNextSub").textContent = pos.phase==="finished" ? "he's home" : "none left";
   }
   $("cFinish").textContent = P.finish ? clk(P.finish) : "—";
-  $("cFinishSub").textContent = (P.finish ? hm((P.finish-P.start)/1000) : "—")
-    + (P.conf==="live" ? " · live pace" : P.conf==="early" ? " · early read" : " · on plan");
+  /* The model already measures how he is running against plan — that is what
+     moves the finish time. Saying "live pace" throws the number away; a crew
+     deciding whether to push him out of a stop wants the number. */
+  let paceTxt = " · on plan";
+  if(P.conf === "live" || P.conf === "early"){
+    const pct = Math.round((P.ratio - 1) * 100);
+    paceTxt = Math.abs(pct) < 2
+      ? " · on plan pace"
+      : " · " + Math.abs(pct) + "% " + (pct > 0 ? "slower" : "faster") + " than plan";
+    if(P.conf === "early") paceTxt += " (early read)";
+  }
+  $("cFinishSub").textContent = (P.finish ? hm((P.finish-P.start)/1000) : "—") + paceTxt;
 
   $("planLab").textContent = hm(st.config.targetSec) + " plan";
 
@@ -2287,6 +2371,7 @@ function renderBoard(st, P){
     rows.push(
       '<tr class="'+(isNow?'now':past?'past':'')+'">'+
       '<td><span class="nm">'+c.s+
+        (isDark(inn!=null?inn:P.eta[i]) ? '<span class="moon" title="after dark">\u263D</span>' : '')+
         '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.skip?'NOTHING TO DO':c.crew?(c.bag?'CREW + BACKUP BAG':'CREW'):'NO CREW')+'</span>'+
       '</span><span class="d2">'+c.km.toFixed(1)+' km · '+c.v+' m'+'</span>'+cutCell+'</td>'+
       '<td class="mono d2">'+clk(planA)+'</td>'+
@@ -2336,7 +2421,21 @@ function renderBoard(st, P){
         ? "He's here now · your jobs at " + CPS[ji].s
         : "Your jobs at " + CPS[ji].s)
       + '<span class="jobcount">' + done + "/" + J.do.length + "</span>";
-    $("jobsLead").innerHTML = J.lead;
+    /* The stop where the light runs out. Said here rather than left to whoever
+       is holding the torch at Constantia Nek in the dark. */
+    const lastLight = lastLightStop(P, true);
+    let lead = J.lead;
+    const jt = P.inT[ji] != null ? P.inT[ji] : P.eta[ji];
+    if(ji === lastLight && ji > 0){
+      lead = '<b>Last stop in daylight — dark by '
+           + SUN.dusk.replace(":", "h") + '.</b> Headtorch on him here, spare '
+           + 'batteries in his pack, warm layer out of the car. You will be '
+           + 'working the rest of the stops in the dark too — bring a lamp. '
+           + lead;
+    } else if(isDark(jt) && ji > 0){
+      lead = '<b>This one is in the dark.</b> ' + lead;
+    }
+    $("jobsLead").innerHTML = lead;
     $("jobsList").innerHTML = J.do.map((x,i) =>
       '<li class="' + (ticks[ji+":"+i] ? "done" : "") + '" data-k="' + ji + ':' + i + '">'
       + '<span class="box">✓</span><span class="txt">' + x + "</span></li>").join("");
