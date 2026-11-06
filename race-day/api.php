@@ -64,10 +64,38 @@ function save_state(string $file, array $state): bool {
    running an older build learns about the new one within seconds instead of
    waiting for someone to notice a stale footer. */
 function deployed_version(): string {
-    $f = __DIR__ . '/version.txt';
-    if (!is_file($f)) return '';
-    $v = trim((string) @file_get_contents($f));
-    return preg_match('/^v[0-9]+$/', $v) ? $v : '';
+    $idx = __DIR__ . '/index.html';
+    $cache = __DIR__ . '/version.txt';
+    if (!is_file($idx)) return '';
+    $mt = (int) @filemtime($idx);
+
+    /* Derived from index.html rather than written by the deployer, so this
+       works whatever put the file there — a deploy, the cron, or a manual
+       upload. The cache is keyed on the file's mtime; reading 260 KB on every
+       poll from every phone would not be. */
+    if (is_file($cache)) {
+        $c = trim((string) @file_get_contents($cache));
+        if (preg_match('/^(v[0-9]+):([0-9]+)$/', $c, $m) && (int) $m[2] === $mt) {
+            return $m[1];
+        }
+    }
+
+    $ver = '';
+    $fh = @fopen($idx, 'rb');
+    if ($fh) {
+        /* VERSION sits a little way in, after the bundled map library. Scan a
+           bounded slice rather than the whole file. */
+        $buf = (string) @fread($fh, 400000);
+        @fclose($fh);
+        if (preg_match('/const VERSION = "(v[0-9]+)"/', $buf, $m)) $ver = $m[1];
+    }
+    if ($ver !== '') {
+        $tmp = $cache . '.' . getmypid() . '.tmp';
+        if (@file_put_contents($tmp, $ver . ':' . $mt, LOCK_EX) !== false) {
+            if (!@rename($tmp, $cache)) @unlink($tmp);
+        }
+    }
+    return $ver;
 }
 
 function out(array $state, int $code = 200): void {
