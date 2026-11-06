@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b0d10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>UTCT 100 — Tracker</title>
+<title>Josh, UTCT 100K</title>
 <link rel="manifest" href="manifest.webmanifest">
 <style>
 /* ---- Leaflet 1.9.4 (BSD-2-Clause), bundled so the topo map needs no CDN ---- */
@@ -709,6 +709,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .bar h1{font-size:13px; margin:0; letter-spacing:.12em; text-transform:uppercase;
     color:var(--dim); font-weight:700; white-space:nowrap; overflow:hidden;
     text-overflow:ellipsis; min-width:0}
+  /* Small phones: tighten rather than truncate the title. */
+  @media (max-width:360px){
+    .bar h1{font-size:12px; letter-spacing:.03em}
+  }
   .bar .sp{flex:1}
   .chip{font-size:11px; padding:4px 9px; border-radius:999px; border:1px solid var(--line);
     background:var(--panel); color:var(--dim); letter-spacing:.06em; text-transform:uppercase;
@@ -913,7 +917,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 <body>
 <div class="wrap">
   <div class="bar">
-    <h1 id="title">UTCT 100</h1>
+    <h1 id="title">Josh, UTCT 100K</h1>
     <span class="sp"></span>
     <span class="chip" id="syncChip">…</span>
     <button class="iconbtn" id="rulesBtn" title="Rules &amp; emergency">⚠</button>
@@ -1121,7 +1125,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v28";
+const VERSION = "v29";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2550,7 +2554,6 @@ $("nightBtn").addEventListener("click", () => {
    BOOT
    ============================================================ */
 (function boot(){
-  $("title").textContent = "UTCT 100";
   showPane(CAN_LOG ? Pref.get("pane", "paneLog") : "paneBoard");
   buildMap();
   if(Pref.get("mapMode","simple") === "topo") setMapMode("topo");
