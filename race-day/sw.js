@@ -5,7 +5,7 @@
    phone on the next open rather than being pinned to a stale cache; the cached
    copy is the fallback when there's no signal. Race data (api.php) never caches. */
 
-const CACHE = 'utct-shell-v2';
+const CACHE = 'utct-shell-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {
@@ -28,8 +28,11 @@ self.addEventListener('fetch', e => {
   const isPage = e.request.mode === 'navigate' || url.pathname.endsWith('/index.html');
 
   if (isPage) {
+    /* no-store: a plain fetch() inside a worker still consults the browser's
+       HTTP cache, which is how a phone can sit on an old build even though this
+       is network-first. Going straight to the network is the whole point here. */
     e.respondWith(
-      fetch(e.request)
+      fetch(e.request, { cache: 'no-store' })
         .then(res => {
           if (res && res.ok && url.origin === location.origin) {
             const copy = res.clone();

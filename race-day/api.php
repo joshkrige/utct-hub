@@ -60,6 +60,16 @@ function save_state(string $file, array $state): bool {
     return @rename($tmp, $file);          // atomic swap: a reader never sees a half file
 }
 
+/* The version string deploy.php wrote. Every poll carries it, so a phone
+   running an older build learns about the new one within seconds instead of
+   waiting for someone to notice a stale footer. */
+function deployed_version(): string {
+    $f = __DIR__ . '/version.txt';
+    if (!is_file($f)) return '';
+    $v = trim((string) @file_get_contents($f));
+    return preg_match('/^v[0-9]+$/', $v) ? $v : '';
+}
+
 function out(array $state, int $code = 200): void {
     http_response_code($code);
     $cfg = $state['config'];
@@ -67,6 +77,7 @@ function out(array $state, int $code = 200): void {
         'events' => array_values($state['events']),
         'config' => (is_array($cfg) && count($cfg)) ? $cfg : new stdClass(),
         'now'    => round(microtime(true) * 1000),
+        'ver'    => deployed_version(),
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 }
 
@@ -162,6 +173,10 @@ if ($kind === 'event' && is_array($p) && isset($p['id'])) {
         $cfg['ticks'] = $t;
     }
     if (isset($p['targetSec'])) $cfg['targetSec'] = max(28800, min(93600, (int) $p['targetSec']));
+    /* gunMs is the official gun time and anchors every cut-off. The client has
+       always written it; the server used to whitelist only the old startMs name,
+       so a correction made in Settings never reached the other phones. */
+    if (isset($p['gunMs']) && is_numeric($p['gunMs'])) $cfg['gunMs'] = (float) $p['gunMs'];
     if (isset($p['startMs']))   $cfg['startMs']   = (float) $p['startMs'];
     if (isset($p['needs']) && is_array($p['needs'])) {
         $items = [];

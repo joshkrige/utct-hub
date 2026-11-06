@@ -13,7 +13,7 @@
    ============================================================= */
 
 const RAW  = 'https://raw.githubusercontent.com/joshkrige/utct-hub/main/race-day/';
-const FILES = ['index.html', 'api.php', 'sw.js', 'manifest.webmanifest'];
+const FILES = ['index.html', 'api.php', 'sw.js', 'manifest.webmanifest', '.htaccess'];
 
 header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: no-store');
@@ -60,7 +60,7 @@ $failed  = 0;
 $bodies = [];
 foreach (FILES as $f) {
     $body = fetch_url(RAW . $f . '?t=' . time());
-    if ($body === null || strlen($body) < 200) {
+    if ($body === null || strlen($body) < 40) {
         $results[] = sprintf('%-24s FETCH FAILED', $f);
         $failed++;
         continue;
@@ -90,6 +90,23 @@ foreach ($bodies as $f => $body) {
         continue;
     }
     $results[] = sprintf('%-24s updated    (%d bytes)', $f, strlen($body));
+}
+
+/* Record what is now live. Every api.php poll returns this, which is how a
+   phone still running an older build finds out and offers to update itself. */
+$ver = '';
+if (isset($bodies['index.html']) &&
+    preg_match('/const VERSION = "(v[0-9]+)"/', $bodies['index.html'], $m)) {
+    $ver = $m[1];
+    $vf  = __DIR__ . '/version.txt';
+    $tmp = $vf . '.' . getmypid() . '.tmp';
+    if (@file_put_contents($tmp, $ver, LOCK_EX) !== false && @rename($tmp, $vf)) {
+        $results[] = sprintf('%-24s %s', 'version.txt', $ver);
+    } else {
+        @unlink($tmp);
+        $results[] = sprintf('%-24s WRITE FAILED', 'version.txt');
+        $failed++;
+    }
 }
 
 http_response_code($failed ? 500 : 200);

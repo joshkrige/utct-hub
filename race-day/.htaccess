@@ -1,0 +1,16 @@
+# The app shell must never be served stale. index.html is only ~260 KB and is
+# fetched once per open, so revalidating every time costs nothing and removes
+# the whole class of "my phone still shows the old version" problems.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|webmanifest|txt)$">
+    Header set Cache-Control "no-cache, must-revalidate, max-age=0"
+  </FilesMatch>
+  # A stale service worker would keep serving a stale shell, so it is the one
+  # file that must always come from the network.
+  <FilesMatch "^sw\.js$">
+    Header set Cache-Control "no-store"
+  </FilesMatch>
+  <FilesMatch "^api\.php$">
+    Header set Cache-Control "no-store"
+  </FilesMatch>
+</IfModule>

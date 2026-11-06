@@ -791,6 +791,27 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mini.danger{color:var(--bad); border-color:color-mix(in srgb,var(--bad) 35%, var(--line))}
 
   /* ---- crew ---- */
+  /* Update banner: a stale phone on the mountain is a silent failure, so say it loudly. */
+  .updbar{display:flex; align-items:center; gap:10px; margin-bottom:10px;
+    background:#1d4ed8; color:#fff; border-radius:var(--radius); padding:11px 12px;
+    font-size:13px; line-height:1.35}
+  .updbar>div{flex:1 1 auto}
+  .updbar button{flex:0 0 auto; border:0; border-radius:9px; padding:9px 13px;
+    background:#fff; color:#1d4ed8; font-weight:800; font-size:13px; cursor:pointer}
+  #updWhich{opacity:.85}
+
+  /* Cut-off warning: must be readable at a glance, at 3am, by someone tired. */
+  .cutwarn{border-radius:var(--radius); padding:14px; margin-bottom:10px;
+    border:2px solid var(--hold); background:color-mix(in srgb, var(--hold) 16%, var(--panel))}
+  .cutwarn.over{border-color:#dc2626; background:color-mix(in srgb, #dc2626 20%, var(--panel));
+    animation:cwPulse 1.4s ease-in-out infinite}
+  @keyframes cwPulse{0%,100%{opacity:1} 50%{opacity:.72}}
+  @media (prefers-reduced-motion:reduce){ .cutwarn.over{animation:none} }
+  .cwhead{font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:800;
+    opacity:.9}
+  .cwbody{font-size:25px; font-weight:900; line-height:1.15; margin:4px 0 3px}
+  .cwfoot{font-size:12px; color:var(--dim); line-height:1.4}
+
   .hero{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:10px}
   .hero.alert{border-color:var(--bad); background:color-mix(in srgb, var(--bad) 9%, var(--panel))}
   .hero .lab{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:800}
@@ -886,6 +907,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
   </div>
 
   <div id="app">
+    <div class="updbar hide" id="updBar">
+      <div>
+        <b>A newer version is ready.</b>
+        <span id="updWhich"></span>
+      </div>
+      <button id="updBtn">Update now</button>
+    </div>
     <div class="tabs">
       <button class="tab on" data-pane="paneLog">Log in / out</button>
       <button class="tab" data-pane="paneBoard">Status<span class="dot hide" id="tabDot"></span></button>
@@ -932,6 +960,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
           <div class="sub" id="cFinishSub">—</div>
         </div>
       </div>
+    </div>
+    <div class="cutwarn hide" id="cutWarn">
+      <div class="cwhead" id="cwHead">—</div>
+      <div class="cwbody" id="cwBody">—</div>
+      <div class="cwfoot" id="cwFoot">—</div>
     </div>
     <div class="hero hide" id="needsCard" style="border-color:var(--hold)">
       <div class="lab">He asked for — have it ready</div>
@@ -1072,7 +1105,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v23";
+const VERSION = "v25";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1404,7 +1437,8 @@ const Store = {
       }catch(_){ this.setStatus("err"); }
     } else {
       this.mode = "http"; this.pull();
-      setInterval(()=>this.pull(), 12000);
+      this.schedule();
+      document.addEventListener("visibilitychange", ()=>this.schedule());
       window.addEventListener("online", ()=>{ this.drain(); this.pull(); });
     }
     this.emit();
@@ -1500,6 +1534,19 @@ const Store = {
     if(j && j.events) this.merge(j.events, j.config);
   },
 
+  /* A flat 12s poll was the reason this never felt live: a tap on one phone
+     could sit for twelve seconds before the rest of the crew saw it. Poll hard
+     while someone is looking at the screen, back right off when nobody is —
+     a phone in a pocket all night still has a battery to last 26 hours. */
+  schedule(){
+    const want = document.hidden ? 30000 : 3000;
+    if(this.pollMs === want) return;
+    this.pollMs = want;
+    clearInterval(this.pollTimer);
+    this.pollTimer = setInterval(()=>this.pull(), want);
+    if(!document.hidden) this.pull();
+  },
+
   async pull(){
     if(this.mode!=="http") return;
     try{
@@ -1507,6 +1554,7 @@ const Store = {
       if(!r.ok) throw new Error("http " + r.status);
       const j = await r.json();
       this.merge(j.events||[], j.config||null);
+      if(j.ver) noteVersion(j.ver);
       if(!this.queue().length) this.setStatus("ok");
     }catch(_){ this.setStatus(navigator.onLine ? "err" : "off"); }
   },
@@ -2062,6 +2110,48 @@ function renderLog(st, P){
 
 /* ---- Board tab: everything, at a glance ---- */
 let lastSeenEvent = null;
+/* ---------------------------------------------------------------
+   Self-update.
+
+   Every poll carries the version the server has live. If it differs from the
+   build running in this tab, the shell is stale: offer the update rather than
+   hoping someone notices the footer. Pull-to-refresh is not enough on its own
+   because an installed PWA has no pull-to-refresh and its shell can be held by
+   both the service worker and the HTTP cache.
+   --------------------------------------------------------------- */
+let LIVE_VER = "";
+
+function noteVersion(v){
+  if(!/^v[0-9]+$/.test(v) || v === LIVE_VER) return;
+  LIVE_VER = v;
+  const stale = v !== VERSION;
+  $("updBar").classList.toggle("hide", !stale);
+  if(stale) $("updWhich").textContent = "You have " + VERSION + ", " + v + " is live.";
+}
+
+async function applyUpdate(){
+  const btn = $("updBtn");
+  btn.disabled = true;
+  btn.textContent = "Updating…";
+  /* Drop every cached copy and the worker holding them, then reload past the
+     HTTP cache. Queued taps live in localStorage, which none of this clears. */
+  try{
+    if(window.caches){
+      const ks = await caches.keys();
+      await Promise.all(ks.map(k => caches.delete(k)));
+    }
+  }catch(_){ }
+  try{
+    if(navigator.serviceWorker){
+      const rs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map(r => r.unregister()));
+    }
+  }catch(_){ }
+  const u = new URL(location.href);
+  u.searchParams.set("v", Date.now());
+  location.replace(u.toString());
+}
+
 function renderBoard(st, P){
   const pos = P.pos;
   const hero = $("hero");
@@ -2132,12 +2222,18 @@ function renderBoard(st, P){
     $("needsWhen").textContent = "asked at " + clk(needs.t);
   } else $("needsCard").classList.add("hide");
 
-  // who logged each arrival, where anyone said
-  const byIn = [];
-  for(const e of st.events) if(e.type==="in" && e.by) byIn[e.cp] = e.by;
+  // who logged each tap — arrivals and departures both, since the crew tap both
+  const byIn = [], byOut = [];
+  for(const e of st.events){
+    if(!e.by) continue;
+    if(e.type==="in") byIn[e.cp] = e.by; else byOut[e.cp] = e.by;
+  }
 
   // table
   const rows = [];
+  /* Worst upcoming cut-off, by projected arrival. Only ones he hasn't reached
+     yet can still be missed, so a cleared cut-off never raises the alarm. */
+  let worst = null;
   for(let i=1; i<CPS.length; i++){
     const c = CPS[i];
     const planA = P.start + P.plan.arrive[i]*1000;
@@ -2161,6 +2257,7 @@ function renderBoard(st, P){
       const buf = (limit - ref)/1000;
       const k = buf<0 ? "over" : buf<25*60 ? "tight" : "";
       cutCell = '<div class="cut '+k+'">cut '+clk(limit)+' · '+hm(buf,true)+'</div>';
+      if(!past && k && (worst===null || buf < worst.buf)) worst = { i, buf, limit };
     }
     rows.push(
       '<tr class="'+(isNow?'now':past?'past':'')+'">'+
@@ -2171,11 +2268,35 @@ function renderBoard(st, P){
       '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+
         (byIn[i]?'<br><span class="d2">'+byIn[i]+'</span>':'')+'</td>'+
       '<td class="mono">'+(out!=null?clk(out):'<span class="d2">–</span>')+
-        (inn!=null&&out!=null?'<br><span class="d2">'+mins((out-inn)/1000)+'</span>':'')+'</td>'+
+        (inn!=null&&out!=null?'<br><span class="d2">'+mins((out-inn)/1000)+'</span>':'')+
+        (byOut[i]?'<br><span class="d2">'+byOut[i]+'</span>':'')+'</td>'+
       '<td class="mono">'+etaCell+'</td></tr>'
     );
   }
   $("cpBody").innerHTML = rows.join("");
+
+  /* The cut-off banner. The table already carries every margin, but a number in
+     a row is easy to miss; a missed cut-off ends the race, so it gets its own
+     loud card and the tab dot. */
+  const cw = $("cutWarn");
+  if(worst && pos.phase!=="finished"){
+    const c  = CPS[worst.i];
+    const ov = worst.buf < 0;
+    cw.classList.remove("hide");
+    cw.classList.toggle("over", ov);
+    $("cwHead").textContent = ov ? "⚠ Behind the cut-off" : "⚠ Cut-off is tight";
+    $("cwBody").textContent = ov
+      ? hm(-worst.buf) + " behind at " + c.n
+      : hm(worst.buf) + " spare at " + c.n;
+    $("cwFoot").textContent =
+      "Cut-off " + clk(worst.limit) + " · projected in " + clk(P.eta[worst.i])
+      + " · " + c.km.toFixed(1) + " km"
+      + (ov ? " — he needs to move or he's out. Tell him."
+            : " — don't let the stop run long.");
+  } else {
+    cw.classList.add("hide");
+    cw.classList.remove("over");
+  }
   $("crewFoot").textContent =
     "Times " + TZ_LABEL + " · 99.17 km · 4,676 m D+ · 26 h limit · "
     + VERSION + " (" + VERSION_DATE + ")";
@@ -2295,7 +2416,7 @@ $("cogBtn").addEventListener("click", () => {
     + "<br>Target time is shared with everyone. "
     + "Drive time and sound stay on this phone only.";
   $("cfgTarget").value = hm(st.config.targetSec);
-  $("cfgStart").value = clk(st.config.gunMs);
+  $("cfgStart").value = clk(st.config.gunMs || Date.parse(RACE_START_ISO));
   const P = project(st);
   let nxi = -1;
   for(let i=1;i<CPS.length;i++){ if(CPS[i].crew && P.inT[i]==null){ nxi=i; break; } }
@@ -2331,7 +2452,7 @@ function showPane(id){
 }
 $("cfgSave").addEventListener("click", () => {
   const t = parseHM($("cfgTarget").value, state().config.targetSec);
-  const base = new Date(state().config.gunMs);
+  const base = new Date(state().config.gunMs || Date.parse(RACE_START_ISO));
   const s = parseHM($("cfgStart").value, null);
   const patch = { targetSec: clamp(t, 8*3600, 26*3600) };
   if(s!=null){ base.setHours(Math.floor(s/3600), Math.floor((s%3600)/60), 0, 0); patch.gunMs = base.getTime(); }
@@ -2392,6 +2513,7 @@ function askForKey(){
 }
 $("syncChip").addEventListener("click", askForKey);
 $("noKey").addEventListener("click", askForKey);
+$("updBtn").addEventListener("click", applyUpdate);
 
 $("rulesBtn").addEventListener("click", () => {
   $("rulesBody").innerHTML = RULES.map(([h,b]) => "<h4>"+h+"</h4><p>"+b+"</p>").join("");
@@ -2426,7 +2548,7 @@ $("nightBtn").addEventListener("click", () => {
   }
   document.addEventListener("visibilitychange", () => {
     if(document.hidden) return;
-    if(Store.mode === "artifact") Store.refreshDb(); else Store.pull();
+    if(Store.mode === "artifact") Store.refreshDb();   // http polling: Store.schedule()
     Store.drain(); render();
   });
 })();
