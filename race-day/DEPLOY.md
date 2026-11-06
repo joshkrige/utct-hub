@@ -37,7 +37,23 @@ Check it worked: open `https://singa.studio/utct2026/api.php`. You should see
 
 ---
 
-## The cron job
+## Instant deploys (preferred)
+
+Upload `deploy.php` into `utct2026` once. After that, opening
+
+```
+https://singa.studio/utct2026/deploy.php?key=c737-3c40-1d89-b36e
+```
+
+pulls the current files straight from GitHub and writes them, in about a second.
+It prints what it changed. I can hit that URL myself as soon as I push, so a
+change here is live on your site immediately — no waiting for cron.
+
+It fetches everything before writing anything, so a half-finished download can
+never leave the site broken. `secret.php` and `data/` are never touched, and
+without the key it returns 403.
+
+## The cron job (backup)
 
 **cPanel → Cron Jobs**, every 15 minutes (`*/15 * * * *`):
 
