@@ -812,6 +812,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .cwbody{font-size:25px; font-weight:900; line-height:1.15; margin:4px 0 3px}
   .cwfoot{font-size:12px; color:var(--dim); line-height:1.4}
 
+  /* Public view: anyone with the plain link can follow along, but the crew's
+     own tools and checklists are not theirs to read. */
+  html[data-view="public"] .tab[data-pane="paneLog"],
+  html[data-view="public"] #paneLog,
+  html[data-view="public"] #jobsCard,
+  html[data-view="public"] #needsCard,
+  html[data-view="public"] .crewtag,
+  html[data-view="public"] #tabDot{ display:none !important }
+  html[data-view="public"] .tabs{ grid-template-columns:1fr 1fr }
+  .crewlink{display:block; width:100%; margin-top:10px; background:none;
+    border:0; color:var(--dim); font-size:11px; text-align:center;
+    text-decoration:underline; cursor:pointer; padding:6px}
+
   .hero{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:10px}
   .hero.alert{border-color:var(--bad); background:color-mix(in srgb, var(--bad) 9%, var(--panel))}
   .hero .lab{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:800}
@@ -987,6 +1000,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       </table>
     </div>
       <div class="foot" id="crewFoot"></div>
+      <button class="crewlink hide" id="crewLink">I'm on the crew — enter my code</button>
     </div>
 
     <div id="paneMap" class="hide">
@@ -1105,7 +1119,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v26";
+const VERSION = "v27";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1659,11 +1673,18 @@ const HASH = new URLSearchParams(location.hash.replace(/^#/,""));
 /* Added to the home screen, iOS launches the app at the manifest's start_url —
    which carries no #r= — so a token seen once has to be remembered, or every
    write is refused and the outbox fills up with nothing to show for it. */
+/* Writing needs the crew code; reading never has. That is already true of the
+   server, so "public view" is only a question of what the page offers: without
+   a code it becomes a follow-along screen, with no tap button to press in vain
+   and none of the crew's private checklists. */
 const RUNNER_TOKEN = (() => {
   const t = HASH.get("r");
   if(t){ try{ Pref.set("token", t); }catch(_){ } return t; }
   return Pref.get("token", "") || "";
 })();
+
+const CAN_LOG = !!RUNNER_TOKEN;
+document.documentElement.dataset.view = CAN_LOG ? "crew" : "public";
 const ARTIFACT = !!(window.claude && typeof window.claude.use === "function");
 /* One link for the whole team. Everyone can log him in and out, everyone sees the
    board; the two tabs just decide which you're looking at. The token in the hash
@@ -2028,9 +2049,9 @@ function render(){
 
 function renderChip(){
   const c = $("syncChip"); const q = Store.queue().length;
-  if(Store.mode === "http" && !RUNNER_TOKEN){
-    c.textContent = "No key"; c.className = "chip err";
-    $("noKey").classList.remove("hide");
+  if(Store.mode === "http" && !CAN_LOG){
+    /* Not an error — this is the ordinary state for everyone following along. */
+    c.textContent = "Following"; c.className = "chip";
     return;
   }
   $("noKey").classList.add("hide");
@@ -2191,15 +2212,15 @@ function renderBoard(st, P){
   }
   if(nxi>0){
     const t = P.eta[nxi], away = (t-Date.now())/1000;
-    const drive = +Pref.get("drive_"+nxi, CPS[nxi].drive || 0);
-    $("cNextLab").textContent = "Next crew point · " + CPS[nxi].s;
+    const drive = CAN_LOG ? +Pref.get("drive_"+nxi, CPS[nxi].drive || 0) : 0;
+    $("cNextLab").textContent = (CAN_LOG ? "Next crew point · " : "Next stop · ") + CPS[nxi].s;
     $("cNextEta").textContent = clk(t);
     let s = "in " + mins(away) + " · " + CPS[nxi].km.toFixed(1) + " km";
     if(drive>0){
       const leave = away - drive*60;
       s += leave <= 0 ? " · LEAVE NOW" : " · " + drive + " min drive, leave in " + mins(leave);
     }
-    if(CPS[nxi].driveNote) s += " · " + CPS[nxi].driveNote;
+    if(CAN_LOG && CPS[nxi].driveNote) s += " · " + CPS[nxi].driveNote;
     $("cNextSub").textContent = s;
   } else {
     $("cNextLab").textContent = "Next crew point";
@@ -2499,7 +2520,7 @@ $("mapModeBtn").addEventListener("click", () => {
    let whoever is holding it paste the crew link in rather than be stuck. */
 function askForKey(){
   if(Store.mode !== "http" || RUNNER_TOKEN) return;
-  const v = prompt("Paste the crew link (or just the code after the #r=)");
+  const v = prompt("Paste the crew link, or just the code after the #r=");
   if(!v) return;
   const m = /r=([A-Za-z0-9\-]+)/.exec(v) || /^([A-Za-z0-9\-]{8,})$/.exec(v.trim());
   if(!m){ toast("That doesn't look like the link"); return; }
@@ -2509,6 +2530,8 @@ function askForKey(){
 }
 $("syncChip").addEventListener("click", askForKey);
 $("noKey").addEventListener("click", askForKey);
+$("crewLink").addEventListener("click", askForKey);
+if(!CAN_LOG) $("crewLink").classList.remove("hide");
 $("updBtn").addEventListener("click", applyUpdate);
 
 $("rulesBtn").addEventListener("click", () => {
@@ -2526,7 +2549,7 @@ $("nightBtn").addEventListener("click", () => {
    ============================================================ */
 (function boot(){
   $("title").textContent = "UTCT 100";
-  showPane(Pref.get("pane", "paneLog"));
+  showPane(CAN_LOG ? Pref.get("pane", "paneLog") : "paneBoard");
   buildMap();
   if(Pref.get("mapMode","simple") === "topo") setMapMode("topo");
 
