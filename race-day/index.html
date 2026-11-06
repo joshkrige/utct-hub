@@ -932,7 +932,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span class="sub2" id="bbSub">CP 1 · 11.9 km</span>
       </button>
       <div class="row" style="margin:10px 0">
-        <button class="mini" id="needsBtn">He asked for…</button>
+        <button class="mini" id="needsBtn">Needs…</button>
         <button class="mini" id="fixBtn">Wrong station?</button>
         <button class="mini danger" id="undoBtn">Undo</button>
       </div>
@@ -967,7 +967,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div class="cwfoot" id="cwFoot">—</div>
     </div>
     <div class="hero hide" id="needsCard" style="border-color:var(--hold)">
-      <div class="lab">He asked for — have it ready</div>
+      <div class="lab">Needs at the next stop — have it ready</div>
       <div class="status" id="needsTxt" style="font-size:20px">—</div>
       <div class="sub" id="needsWhen">—</div>
     </div>
@@ -1028,7 +1028,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 </dialog>
 
 <dialog id="dlgNeeds">
-  <h3>What did he ask for?</h3>
+  <h3>What does he need?</h3>
   <p>Tap any. The crew at the next stop see it immediately.</p>
   <div id="needsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px"></div>
   <div class="btns"><button class="b" id="needsClear">Clear</button><button class="b pri" data-close>Done</button></div>
@@ -1105,7 +1105,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v25";
+const VERSION = "v26";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2103,9 +2103,7 @@ function renderLog(st, P){
   if(!done){ $("rCut").textContent = "clear"; $("rCutWhere").textContent = "no cutoffs left"; cell.className="cell"; }
 
   $("undoBtn").disabled = !Store.events.length;
-  $("logFoot").textContent = VERSION + " · " + (pos.phase==="finished" ? "He's home. Nothing left to tap."
-    : "Whoever is at the aid station taps. One tap as he comes in, one as he leaves. "
-    + "If two of you tap the same thing it counts once.");
+  $("logFoot").textContent = VERSION;
 }
 
 /* ---- Board tab: everything, at a glance ---- */
@@ -2219,7 +2217,7 @@ function renderBoard(st, P){
   if(needs && needs.items && needs.items.length){
     $("needsCard").classList.remove("hide");
     $("needsTxt").textContent = needs.items.join(" · ");
-    $("needsWhen").textContent = "asked at " + clk(needs.t);
+    $("needsWhen").textContent = "added at " + clk(needs.t);
   } else $("needsCard").classList.add("hide");
 
   // who logged each tap — arrivals and departures both, since the crew tap both
@@ -2297,9 +2295,7 @@ function renderBoard(st, P){
     cw.classList.add("hide");
     cw.classList.remove("over");
   }
-  $("crewFoot").textContent =
-    "Times " + TZ_LABEL + " · 99.17 km · 4,676 m D+ · 26 h limit · "
-    + VERSION + " (" + VERSION_DATE + ")";
+  $("crewFoot").textContent = "Times " + TZ_LABEL + " · " + VERSION;
 
   // jobs for the stop he's standing in, else the next crew stop
   const ji = (pos.phase==="aid" && CPS[pos.cp].crew) ? pos.cp
