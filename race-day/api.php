@@ -120,9 +120,12 @@ if ($kind === 'event' && is_array($p) && isset($p['id'])) {
         foreach ($byId as $k => $e) {
             if ((int) ($e['cp'] ?? -1) === $cp && ($e['type'] ?? '') === $type && $k !== $id) unset($byId[$k]);
         }
+        $by = trim((string) ($p['by'] ?? ''));
+        $by = preg_replace('/[^\p{L}\p{N} \.\-]/u', '', $by);
         $byId[$id] = [
             'id' => $id, 'cp' => $cp, 'type' => $type, 't' => $t,
             'src' => preg_replace('/[^a-z]/', '', (string) ($p['src'] ?? 'runner')),
+            'by'  => mb_substr($by, 0, 20),
         ];
     }
     $events = array_values($byId);

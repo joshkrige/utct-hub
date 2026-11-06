@@ -705,16 +705,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .mono{font-variant-numeric:tabular-nums; font-feature-settings:"tnum"}
 
   /* ---- top bar ---- */
-  .bar{display:flex; align-items:center; gap:8px; padding:6px 2px 10px}
-  .bar h1{font-size:14px; margin:0; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); font-weight:700}
+  .bar{display:flex; align-items:center; gap:7px; padding:6px 2px 10px; flex-wrap:nowrap}
+  .bar h1{font-size:13px; margin:0; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--dim); font-weight:700; white-space:nowrap; overflow:hidden;
+    text-overflow:ellipsis; min-width:0}
   .bar .sp{flex:1}
   .chip{font-size:11px; padding:4px 9px; border-radius:999px; border:1px solid var(--line);
-    background:var(--panel); color:var(--dim); letter-spacing:.06em; text-transform:uppercase; font-weight:700}
+    background:var(--panel); color:var(--dim); letter-spacing:.06em; text-transform:uppercase;
+    font-weight:700; white-space:nowrap; flex:0 0 auto}
   .chip.ok{color:var(--good); border-color:color-mix(in srgb, var(--good) 40%, var(--line))}
   .chip.warn{color:var(--hold); border-color:color-mix(in srgb, var(--hold) 40%, var(--line))}
   .chip.err{color:var(--bad); border-color:color-mix(in srgb, var(--bad) 45%, var(--line))}
   .iconbtn{background:var(--panel); border:1px solid var(--line); color:var(--dim);
-    width:34px; height:30px; border-radius:9px; font-size:14px; cursor:pointer; display:grid; place-items:center}
+    flex:0 0 auto; width:32px; height:30px; border-radius:9px; font-size:14px; cursor:pointer; display:grid; place-items:center}
 
   /* ---- runner ---- */
   .mapwrap{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
@@ -890,6 +893,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
 
     <div id="paneLog">
+      <div class="watch hide" id="noKey" style="margin-bottom:10px; cursor:pointer">
+        <b>This phone can't log yet.</b> Tap here and paste the crew link to fix it —
+        you only do this once.
+      </div>
       <button class="bigbtn arrive" id="bigBtn">
         <span class="meta" id="bbMeta">Tap when Josh</span>
         <span class="verb" id="bbVerb">ARRIVES</span>
@@ -1005,6 +1012,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <button class="b red" id="cfgReset" style="width:100%;margin-top:4px">Clear all times — start fresh</button>
   </div>
   <div id="cfgCrewOnly">
+    <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Your name — shown next to anything you log</label>
+    <input id="cfgWho2" type="text" maxlength="20" placeholder="e.g. Helena">
     <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Your drive time to the next crew point (min)</label>
     <input id="cfgDrive" type="number" inputmode="numeric" placeholder="25">
     <label style="display:flex;gap:9px;align-items:center;font-size:13px;color:var(--dim);margin:2px 0 10px">
@@ -1543,7 +1552,8 @@ const Store = {
 
   /* ---- public writes ---- */
   log(cp, type){
-    const ev = { id:uid(), cp, type, t:Date.now(), src:"runner" };
+    const ev = { id:uid(), cp, type, t:Date.now(), src:"runner",
+                 by: (Pref.get("who","") || "").slice(0,20) };
     this.events = [...this.events.filter(e=>!(e.cp===cp && e.type===type)), ev].sort((a,b)=>a.t-b.t);
     this.emit();
     this.enqueue({ kind:"event", payload:ev });
@@ -1971,13 +1981,11 @@ function render(){
 function renderChip(){
   const c = $("syncChip"); const q = Store.queue().length;
   if(Store.mode === "http" && !RUNNER_TOKEN){
-    c.textContent = "No access"; c.className = "chip err";
-    if(!renderChip.warned){
-      renderChip.warned = true;
-      toast("Open the full link your crew was sent, including the part after #");
-    }
+    c.textContent = "No key"; c.className = "chip err";
+    $("noKey").classList.remove("hide");
     return;
   }
+  $("noKey").classList.add("hide");
   const map = {
     ok:    ["Live","ok"],
     sync:  ["Syncing…",""],
@@ -2124,6 +2132,10 @@ function renderBoard(st, P){
     $("needsWhen").textContent = "asked at " + clk(needs.t);
   } else $("needsCard").classList.add("hide");
 
+  // who logged each arrival, where anyone said
+  const byIn = [];
+  for(const e of st.events) if(e.type==="in" && e.by) byIn[e.cp] = e.by;
+
   // table
   const rows = [];
   for(let i=1; i<CPS.length; i++){
@@ -2156,7 +2168,8 @@ function renderBoard(st, P){
         '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.skip?'NOTHING TO DO':c.crew?(c.bag?'CREW + BACKUP BAG':'CREW'):'NO CREW')+'</span>'+
       '</span><span class="d2">'+c.km.toFixed(1)+' km · '+c.v+' m'+'</span>'+cutCell+'</td>'+
       '<td class="mono d2">'+clk(planA)+'</td>'+
-      '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+'</td>'+
+      '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+
+        (byIn[i]?'<br><span class="d2">'+byIn[i]+'</span>':'')+'</td>'+
       '<td class="mono">'+(out!=null?clk(out):'<span class="d2">–</span>')+
         (inn!=null&&out!=null?'<br><span class="d2">'+mins((out-inn)/1000)+'</span>':'')+'</td>'+
       '<td class="mono">'+etaCell+'</td></tr>'
@@ -2289,6 +2302,7 @@ $("cogBtn").addEventListener("click", () => {
   $("cfgDrive").value = nxi>0 ? (Pref.get("drive_"+nxi, CPS[nxi].drive || "")||"") : "";
   $("cfgDrive").dataset.cp = nxi;
   $("cfgBeep").checked = !!Pref.get("beep",false);
+  $("cfgWho2").value = Pref.get("who","") || "";
   $("dlgCfg").showModal();
 });
 $("cfgReset").addEventListener("click", () => {
@@ -2323,6 +2337,7 @@ $("cfgSave").addEventListener("click", () => {
   if(s!=null){ base.setHours(Math.floor(s/3600), Math.floor((s%3600)/60), 0, 0); patch.gunMs = base.getTime(); }
   Store.saveConfig(patch);
 
+  Pref.set("who", ($("cfgWho2").value || "").trim().slice(0,20));
   const cp = $("cfgDrive").dataset.cp;
   if(cp && cp!=="-1") Pref.set("drive_"+cp, +$("cfgDrive").value || 0);
   Pref.set("beep", $("cfgBeep").checked);
@@ -2363,6 +2378,21 @@ $("mapModeBtn").addEventListener("click", () => {
   setMapMode(Pref.get("mapMode","simple") === "topo" ? "simple" : "topo");
 });
 
+/* Belt and braces for the installed app: if a device somehow has no token,
+   let whoever is holding it paste the crew link in rather than be stuck. */
+function askForKey(){
+  if(Store.mode !== "http" || RUNNER_TOKEN) return;
+  const v = prompt("Paste the crew link (or just the code after the #r=)");
+  if(!v) return;
+  const m = /r=([A-Za-z0-9\-]+)/.exec(v) || /^([A-Za-z0-9\-]{8,})$/.exec(v.trim());
+  if(!m){ toast("That doesn't look like the link"); return; }
+  Pref.set("token", m[1]);
+  location.hash = "r=" + m[1];
+  location.reload();
+}
+$("syncChip").addEventListener("click", askForKey);
+$("noKey").addEventListener("click", askForKey);
+
 $("rulesBtn").addEventListener("click", () => {
   $("rulesBody").innerHTML = RULES.map(([h,b]) => "<h4>"+h+"</h4><p>"+b+"</p>").join("");
   $("dlgRules").showModal();
@@ -2377,7 +2407,7 @@ $("nightBtn").addEventListener("click", () => {
    BOOT
    ============================================================ */
 (function boot(){
-  $("title").textContent = "JOSH · UTCT 100";
+  $("title").textContent = "UTCT 100";
   showPane(Pref.get("pane", "paneLog"));
   buildMap();
   if(Pref.get("mapMode","simple") === "topo") setMapMode("topo");
