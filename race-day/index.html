@@ -1060,6 +1060,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
    taps at a real aid station, so there is nothing to get wrong.
    ============================================================ */
 
+/* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
+   check at a glance that their phone is running the current app and not a
+   cached copy. */
+const VERSION = "v23";
+const VERSION_DATE = "6 Nov 2026";
+
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
 const TZ_LABEL = "SAST";
 const API = "api.php";                                // used when self-hosted
@@ -1130,7 +1136,7 @@ const JOBS = {
           "Magnesium and the massage gun on his legs.",
           "Chafe check. Sunscreen face, arms, legs and neck.",
           "Dry buff on, clean his glasses.",
-          "Windproof or warm layer into the pack for the night. Caffeine stock into a reachable pocket.",
+          "Windproof or warm layer into the pack for the night. Red Bull into a reachable pocket.",
           "Next stage is the hardest of the race: 945 m of climb, three hours or more.",
           "Pack his phone back."],
       watch:"<b>Keep the stop under ten minutes.</b> This is where races get lost to a chair — set a timer out loud. If you genuinely can't get here, phone him: his backup bag is at this station and he collects it himself." },
@@ -1140,7 +1146,7 @@ const JOBS = {
           "Hot, sweet and liquid — tea, broth, Coke. Assume solids are getting difficult.",
           "Pasta meal if he'll take it.",
           "Tailwind refill, 2.5 scoops a bottle — <b>warm, not iced</b>. It's night now.",
-          "Caffeine.",
+          "Red Bull.",
           "Fresh blue shirt. Fresh socks.",
           "Magnesium and the massage gun on his legs. Chafe check.",
           "Dry buff on.",
@@ -1152,7 +1158,7 @@ const JOBS = {
   9:{ lead:"Last crew point. 10.8 km to go, but <b>Dead Man's Tree adds 487 m</b> before km 96 — one real climb left.",
       do:["<b>Charge his phone.</b>",
           "Confirm the torch will last another two to three hours. Swap batteries if there's any doubt.",
-          "<b>CAFFEINE Tailwind refill</b> — last caffeine of the race.",
+          "<b>Red Bull</b> — the last one of the race.",
           "Woolies wrap, or anything warm and sweet he'll actually eat.",
           "Magnesium and the massage gun on his legs. Chafe check.",
           "Dry buff on.",
@@ -1177,12 +1183,11 @@ const RULES = [
   ["A DNF is his to call","He must reach an aid station and tell the station captain himself. Accepting an IV from medical is an <b>automatic DQ</b> — never push him toward one."],
 ];
 const LAST = CPS.length - 1;
-/* The button only stops where someone is certain to be standing. Table Mountain,
-   Rocket Road and Constantia Glen are volunteer-only; Signal Hill has nothing for
-   the crew to do, so it is skipped too — but anyone who happens to be there can
-   still log it from "Wrong station?". All of them keep their row and their
-   projected time on the board. */
-CPS.forEach((c,i) => { c.log = c.crew || i === 0 || i === LAST; });
+/* Every checkpoint is tappable, manned or not: Josh taps the volunteer-only ones
+   himself, and each extra tap is another fix on where he is, which is what makes
+   the projections worth reading. `crew` stays separate — it decides where anyone
+   drives to and whose jobs list shows, not what can be logged. */
+CPS.forEach(c => { c.log = true; });
 const LOGGABLE = CPS.map((c,i) => i).filter(i => CPS[i].log);
 const nextLog = i => { for(const j of LOGGABLE) if(j > i) return j; return LAST; };
 const prevLog = i => { let p = 0; for(const j of LOGGABLE) if(j <= i) p = j; return p; };
@@ -1711,10 +1716,10 @@ function buildMap(){
   CPS.forEach((c,i) => {
     const p = pointAtEffort(CP_E[i]);
     const [x,y] = xy(p);
-    marks += `<circle class="cp${c.log?" crew":""}" data-cp="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${c.crew?11:7}"/>`;
+    marks += `<circle class="cp${c.crew?" crew":""}" data-cp="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${c.crew?11:7}"/>`;
     // start and finish are the same patch of grass — one label for both
     if(i === LAST) return;
-    if(!c.log) return;
+    if(!c.crew) return;
     const right = x > SW*0.55;
     labels.push({ x: x + (right?-17:17), y: y+8, right,
                   t: i === 0 ? "Start / Finish" : c.s });
@@ -2042,9 +2047,9 @@ function renderLog(st, P){
   if(!done){ $("rCut").textContent = "clear"; $("rCutWhere").textContent = "no cutoffs left"; cell.className="cell"; }
 
   $("undoBtn").disabled = !Store.events.length;
-  $("logFoot").textContent = pos.phase==="finished" ? "He's home. Nothing left to tap."
+  $("logFoot").textContent = VERSION + " · " + (pos.phase==="finished" ? "He's home. Nothing left to tap."
     : "Whoever is at the aid station taps. One tap as he comes in, one as he leaves. "
-    + "If two of you tap the same thing it counts once.";
+    + "If two of you tap the same thing it counts once.");
 }
 
 /* ---- Board tab: everything, at a glance ---- */
@@ -2084,8 +2089,8 @@ function renderBoard(st, P){
 
   // next crew-accessible point
   let nxi = -1;
-  for(const i of LOGGABLE){
-    if(i === 0 || P.inT[i] != null) continue;
+  for(let i=1; i<CPS.length; i++){
+    if(!CPS[i].crew || P.inT[i] != null) continue;
     nxi = i; break;
   }
   if(nxi>0){
@@ -2148,7 +2153,7 @@ function renderBoard(st, P){
     rows.push(
       '<tr class="'+(isNow?'now':past?'past':'')+'">'+
       '<td><span class="nm">'+c.s+
-        '<span class="crewtag '+(c.log?'':'notag')+'">'+(c.log?(c.bag?'CREW + BACKUP BAG':'CREW'):(c.skip?'NOTHING TO DO':'NO CREW'))+'</span>'+
+        '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.skip?'NOTHING TO DO':c.crew?(c.bag?'CREW + BACKUP BAG':'CREW'):'NO CREW')+'</span>'+
       '</span><span class="d2">'+c.km.toFixed(1)+' km · '+c.v+' m'+'</span>'+cutCell+'</td>'+
       '<td class="mono d2">'+clk(planA)+'</td>'+
       '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+'</td>'+
@@ -2159,7 +2164,8 @@ function renderBoard(st, P){
   }
   $("cpBody").innerHTML = rows.join("");
   $("crewFoot").textContent =
-    "Times " + TZ_LABEL + " · 99.17 km · 4,676 m D+ · 26 h limit";
+    "Times " + TZ_LABEL + " · 99.17 km · 4,676 m D+ · 26 h limit · "
+    + VERSION + " (" + VERSION_DATE + ")";
 
   // jobs for the stop he's standing in, else the next crew stop
   const ji = (pos.phase==="aid" && CPS[pos.cp].crew) ? pos.cp
@@ -2229,10 +2235,8 @@ $("undoBtn").addEventListener("click", () => {
 
 $("fixBtn").addEventListener("click", () => {
   const sel = $("fixCp");
-  sel.innerHTML = CPS.map((c,i) => (c.log || c.skip)
-      ? '<option value="'+i+'">' + (i===0?'Start':i===LAST?'Finish':c.s)
-        + (c.skip ? ' (optional)' : '') + '</option>'
-      : '').join("");
+  sel.innerHTML = CPS.map((c,i) => '<option value="'+i+'">'
+    + (i===0?'Start':i===LAST?'Finish':'CP '+i+' · '+c.s) + '</option>').join("");
   const P = project(state());
   sel.value = String(P.pos.phase==="leg" ? nextLog(P.pos.cp) : prevLog(P.pos.cp));
   $("dlgFix").showModal();
@@ -2274,13 +2278,14 @@ $("needsClear").addEventListener("click", () => {
 
 $("cogBtn").addEventListener("click", () => {
   const st = state();
-  $("cfgWho").textContent = "Target time is shared with everyone. "
+  $("cfgWho").innerHTML = "<b>" + VERSION + "</b> · " + VERSION_DATE
+    + "<br>Target time is shared with everyone. "
     + "Drive time and sound stay on this phone only.";
   $("cfgTarget").value = hm(st.config.targetSec);
   $("cfgStart").value = clk(st.config.gunMs);
   const P = project(st);
   let nxi = -1;
-  for(const i of LOGGABLE){ if(i>0 && P.inT[i]==null){ nxi=i; break; } }
+  for(let i=1;i<CPS.length;i++){ if(CPS[i].crew && P.inT[i]==null){ nxi=i; break; } }
   $("cfgDrive").value = nxi>0 ? (Pref.get("drive_"+nxi, CPS[nxi].drive || "")||"") : "";
   $("cfgDrive").dataset.cp = nxi;
   $("cfgBeep").checked = !!Pref.get("beep",false);
