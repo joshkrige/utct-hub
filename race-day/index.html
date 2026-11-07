@@ -849,10 +849,21 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .hero .lab{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:800}
   .hero .status{font-size:26px; font-weight:900; line-height:1.15; margin:4px 0 2px}
   .hero .sub{font-size:13px; color:var(--dim)}
-  .nxt{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end;
+  /* Two short numbers side by side; anything wordy goes full width underneath,
+     or the right-hand column squeezes the left into a four-word-wide ribbon. */
+  .nxt{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start;
     margin-top:12px; padding-top:12px; border-top:1px solid var(--line)}
   .nxt .big{font-size:30px; font-weight:900; line-height:1}
-  .nxt .lab2{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-weight:800}
+  .nxt .lab2{font-size:10px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--faint); font-weight:800; line-height:1.3}
+  .nxt .sub{font-size:12px; line-height:1.35}
+  /* The stop name on its own line keeps the two big times on one baseline;
+     inside the uppercase label it wrapped and shunted the left column down. */
+  .nxtname{font-size:14px; font-weight:800; color:var(--ink); line-height:1.25;
+    margin:2px 0 1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .nxtsub{font-size:13px; color:var(--dim); margin-top:9px; line-height:1.45}
+  .nxtnote{font-size:12px; color:var(--faint); margin-top:3px; line-height:1.4}
+  .nxtsub b{color:var(--ink); font-weight:700}
   .nxt .r{text-align:right}
 
   table{width:100%; border-collapse:collapse; font-size:13px}
@@ -984,15 +995,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div class="nxt">
         <div>
           <div class="lab2" id="cNextLab">Next crew point</div>
+          <div class="nxtname" id="cNextName">—</div>
           <div class="big mono" id="cNextEta">—</div>
-          <div class="sub" id="cNextSub">—</div>
         </div>
         <div class="r">
           <div class="lab2">Proj. finish</div>
+          <div class="nxtname">&nbsp;</div>
           <div class="big mono" id="cFinish">—</div>
           <div class="sub" id="cFinishSub">—</div>
         </div>
       </div>
+      <div class="nxtsub" id="cNextSub">—</div>
+      <div class="nxtnote" id="cNextNote"></div>
     </div>
     <div class="cutwarn hide" id="cutWarn">
       <div class="cwhead" id="cwHead">—</div>
@@ -1139,7 +1153,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v30";
+const VERSION = "v31";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2293,31 +2307,43 @@ function renderBoard(st, P){
   if(nxi>0){
     const t = P.eta[nxi], away = (t-Date.now())/1000;
     const drive = CAN_LOG ? +Pref.get("drive_"+nxi, CPS[nxi].drive || 0) : 0;
-    $("cNextLab").textContent = (CAN_LOG ? "Next crew point · " : "Next stop · ") + CPS[nxi].s;
+    $("cNextLab").textContent = CAN_LOG ? "Next crew point" : "Next stop";
+    $("cNextName").textContent = CPS[nxi].s;
     $("cNextEta").textContent = clk(t);
     let s = "in " + mins(away) + " · " + CPS[nxi].km.toFixed(1) + " km";
     if(drive>0){
       const leave = away - drive*60;
-      s += leave <= 0 ? " · LEAVE NOW" : " · " + drive + " min drive, leave in " + mins(leave);
+      /* The only deadline on this screen that belongs to the crew rather than
+         to him, so it is the one thing set in the body colour. */
+      s += leave <= 0
+        ? " · <b>LEAVE NOW</b>"
+        : " · " + drive + " min drive, <b>leave in " + mins(leave) + "</b>";
     }
-    if(CAN_LOG && CPS[nxi].driveNote) s += " · " + CPS[nxi].driveNote;
-    $("cNextSub").textContent = s;
+    $("cNextSub").innerHTML = s;
+    $("cNextNote").textContent =
+      (CAN_LOG && CPS[nxi].driveNote) ? CPS[nxi].driveNote : "";
   } else {
-    $("cNextLab").textContent = "Next crew point";
+    $("cNextLab").textContent = CAN_LOG ? "Next crew point" : "Next stop";
+    $("cNextName").textContent = pos.phase==="finished" ? "Finished" : "—";
     $("cNextEta").textContent = "—";
-    $("cNextSub").textContent = pos.phase==="finished" ? "he's home" : "none left";
+    $("cNextSub").textContent = pos.phase==="finished" ? "He's home." : "None left.";
+    $("cNextNote").textContent = "";
   }
   $("cFinish").textContent = P.finish ? clk(P.finish) : "—";
   /* The model already measures how he is running against plan — that is what
      moves the finish time. Saying "live pace" throws the number away; a crew
      deciding whether to push him out of a stop wants the number. */
+  /* One short leg can read 40% fast — the first few kilometres are downhill and
+     fresh, and the ratio is clamped besides. A number that silly undermines the
+     ones that matter, so the percentage waits until there is a real measurement
+     behind it. */
   let paceTxt = " · on plan";
-  if(P.conf === "live" || P.conf === "early"){
+  if(P.conf === "early") paceTxt = " · early read";
+  else if(P.conf === "live"){
     const pct = Math.round((P.ratio - 1) * 100);
     paceTxt = Math.abs(pct) < 2
       ? " · on plan pace"
       : " · " + Math.abs(pct) + "% " + (pct > 0 ? "slower" : "faster") + " than plan";
-    if(P.conf === "early") paceTxt += " (early read)";
   }
   $("cFinishSub").textContent = (P.finish ? hm((P.finish-P.start)/1000) : "—") + paceTxt;
 
@@ -2426,6 +2452,13 @@ function renderBoard(st, P){
     const lastLight = lastLightStop(P, true);
     let lead = J.lead;
     const jt = P.inT[ji] != null ? P.inT[ji] : P.eta[ji];
+    /* He can be standing at a checkpoint the crew cannot reach, and the jobs on
+       screen then belong to a different stop entirely. Say so, or it reads like
+       the wrong list. */
+    if(ji !== pos.cp && pos.phase === "aid" && !CPS[pos.cp].crew){
+      lead = "<b>He's at " + CPS[pos.cp].s + " — you can't reach him there.</b> "
+           + "Nothing to do until " + CPS[ji].s + ". " + lead;
+    }
     if(ji === lastLight && ji > 0){
       lead = '<b>Last stop in daylight — dark by '
            + SUN.dusk.replace(":", "h") + '.</b> Headtorch on him here, spare '
