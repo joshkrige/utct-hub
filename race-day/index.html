@@ -1106,7 +1106,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Your name — shown next to anything you log</label>
     <input id="cfgWho2" type="text" maxlength="20" placeholder="e.g. Helena">
     <label style="display:flex;gap:9px;align-items:center;font-size:13px;color:var(--dim);margin:2px 0 10px">
-      <input type="checkbox" id="cfgBeep" style="width:auto;margin:0"> Sound + vibrate when he logs in or out
+      <input type="checkbox" id="cfgBeep" style="width:auto;margin:0"> Sound + vibrate on new taps, and when it's time to leave
     </label>
   </div>
   <div class="btns"><button class="b" data-close>Close</button><button class="b pri" id="cfgSave">Save</button></div>
@@ -1161,7 +1161,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v32";
+const VERSION = "v33";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1186,7 +1186,7 @@ const CPS = [
   { n:"Llandudno",           s:"Llandudno",      km:41.52, v:1882, cut:10.5, crew:true,  stop:5,
     drive:20, driveNote:"new location for 2026", map:"https://maps.app.goo.gl/shNx12LcYnS38vC49" },
   { n:"Rocket Road",         s:"Rocket Rd",      km:47.33, v:2123, cut:null, crew:false, stop:2 },
-  { n:"Hout Bay",            s:"Hout Bay",       km:57.35, v:2654, cut:14.5, crew:true,  stop:8,
+  { n:"Hout Bay",            s:"Hout Bay",       km:57.35, v:2654, cut:14.5, crew:true,  stop:8, bag:true,
     drive:15, map:"https://goo.gl/maps/Hb7PauXSjvNFhFRd7" },
   { n:"Constantia Glen",     s:"Constantia",     km:71.02, v:3599, cut:null, crew:false, stop:3 },
   { n:"Alphen Trail",        s:"Alphen",         km:76.35, v:3709, cut:19.0, crew:true,  stop:5,
@@ -2415,6 +2415,8 @@ function renderBoard(st, P){
   /* The cut-off banner. The table already carries every margin, but a number in
      a row is easy to miss; a missed cut-off ends the race, so it gets its own
      loud card and the tab dot. */
+  checkLeaveNow(P, pos);
+
   const cw = $("cutWarn");
   if(worst && pos.phase!=="finished"){
     const c  = CPS[worst.i];
@@ -2485,6 +2487,33 @@ function renderBoard(st, P){
   const last = Store.events.length ? Store.events[Store.events.length-1].id : null;
   if(lastSeenEvent && last && last!==lastSeenEvent && Pref.get("beep",false)) ping();
   lastSeenEvent = last;
+}
+
+/* Leave-now alert.
+
+   Deliberately not "he's 20 minutes out": that rests on a tap that may be four
+   hours old, and a prediction that is wrong often enough stops being believed.
+   This fires on the one number here that is arithmetic rather than forecast —
+   drive time subtracted from a projected arrival — and it fires once per crew
+   point, on the toggle the crew already have, so it is not a second thing to
+   set up or a second thing to learn to ignore. */
+let leaveWarned = {};
+
+function checkLeaveNow(P, pos){
+  if(!CAN_LOG || !Pref.get("beep", false)) return;
+  if(pos.phase === "finished") return;
+  let nxi = -1;
+  for(let i=1; i<CPS.length; i++){ if(CPS[i].crew && !CPS[i].skip && P.inT[i]==null){ nxi=i; break; } }
+  if(nxi < 0 || leaveWarned[nxi]) return;
+  const drive = CPS[nxi].drive || 0;
+  if(!drive || P.eta[nxi] == null) return;
+  const leaveIn = (P.eta[nxi] - Date.now())/1000 - drive*60;
+  /* Only once he is genuinely on his way there — not at the gun, when every
+     stop is notionally "soon". */
+  if(leaveIn <= 0 && leaveIn > -20*60){
+    leaveWarned[nxi] = true;
+    ping();
+  }
 }
 
 function ping(){
