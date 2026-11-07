@@ -209,7 +209,9 @@ if ($kind === 'event' && is_array($p) && isset($p['id'])) {
     if (isset($p['needs']) && is_array($p['needs'])) {
         $items = [];
         foreach ((array) ($p['needs']['items'] ?? []) as $it) {
-            $it = trim(mb_substr((string) $it, 0, 24));
+            /* 24 was sized for the fixed list ('Dry shirt'); the crew can now
+               type their own, and a note cut mid-word is worse than no note. */
+            $it = trim(mb_substr((string) $it, 0, 60));
             if ($it !== '' && count($items) < 20) $items[] = $it;
         }
         $cfg['needs'] = ['items' => $items, 't' => (float) ($p['needs']['t'] ?? round(microtime(true) * 1000))];

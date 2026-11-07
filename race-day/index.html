@@ -1088,7 +1088,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
 <dialog id="dlgNeeds">
   <h3>What does he need?</h3>
   <p>Tap any. The crew at the next stop see it immediately.</p>
-  <div id="needsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px"></div>
+  <div id="needsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px"></div>
+  <div style="display:flex;gap:7px;margin-bottom:12px">
+    <input id="needsOther" type="text" maxlength="60" placeholder="Something else…"
+           style="flex:1 1 auto;margin:0">
+    <button class="b" id="needsAdd" style="flex:0 0 auto">Add</button>
+  </div>
   <div class="btns"><button class="b" id="needsClear">Clear</button><button class="b pri" data-close>Done</button></div>
 </dialog>
 
@@ -1161,7 +1166,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v33";
+const VERSION = "v34";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2574,13 +2579,47 @@ $("fixGo").addEventListener("click", () => {
   $("dlgFix").close(); toast("Set to " + CPS[cp].s); render();
 });
 
-$("needsBtn").addEventListener("click", () => {
-  const cur = new Set((state().config.needs && state().config.needs.items) || []);
-  $("needsGrid").innerHTML = NEEDS.map(n =>
-    '<button class="b'+(cur.has(n)?' pri':'')+'" data-need="'+n+'" style="padding:13px 6px;font-size:13px">'+n+'</button>'
+/* First user-typed text to reach innerHTML anywhere in the app. Escape it:
+   the value round-trips through the server and back to every crew phone. */
+function esc(v){
+  return String(v).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+/* The fixed list covers the common asks; the one he actually needs at 4am will
+   be none of them. Anything typed joins the grid as a button of its own, so it
+   can be cleared the same way as the rest. */
+function needItems(){
+  return (state().config.needs && state().config.needs.items) || [];
+}
+
+function renderNeeds(){
+  const cur = new Set(needItems());
+  const extra = [...cur].filter(n => !NEEDS.includes(n));
+  $("needsGrid").innerHTML = NEEDS.concat(extra).map(n =>
+    '<button class="b'+(cur.has(n)?' pri':'')+'" data-need="'+esc(n)+'" style="padding:13px 6px;font-size:13px">'+esc(n)+'</button>'
   ).join("");
+}
+
+$("needsBtn").addEventListener("click", () => {
+  renderNeeds();
+  $("needsOther").value = "";
   $("dlgNeeds").showModal();
 });
+
+function addOtherNeed(){
+  const v = ($("needsOther").value || "").trim().slice(0,60);
+  if(!v) return;
+  const cur = new Set(needItems());
+  cur.delete("Nothing");
+  cur.add(v);
+  Store.saveConfig({ needs:{ items:[...cur], t:Date.now() } });
+  $("needsOther").value = "";
+  renderNeeds();
+  toast(v);
+}
+$("needsAdd").addEventListener("click", addOtherNeed);
+$("needsOther").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); addOtherNeed(); } });
 $("needsGrid").addEventListener("click", e => {
   const b = e.target.closest("[data-need]"); if(!b) return;
   const n = b.dataset.need;
@@ -2588,13 +2627,12 @@ $("needsGrid").addEventListener("click", e => {
   if(n==="Nothing"){ cur.clear(); cur.add("Nothing"); }
   else { cur.delete("Nothing"); cur.has(n) ? cur.delete(n) : cur.add(n); }
   Store.saveConfig({ needs:{ items:[...cur], t:Date.now() } });
-  [...$("needsGrid").children].forEach(el =>
-    el.className = "b" + (cur.has(el.dataset.need) ? " pri" : ""));
+  renderNeeds();
   toast(cur.size ? [...cur].join(", ") : "Cleared");
 });
 $("needsClear").addEventListener("click", () => {
   Store.saveConfig({ needs:{ items:[], t:Date.now() } });
-  [...$("needsGrid").children].forEach(el => el.className = "b");
+  renderNeeds();
   toast("Cleared");
 });
 
