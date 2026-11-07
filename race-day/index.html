@@ -1166,7 +1166,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v34";
+const VERSION = "v35";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2355,9 +2355,27 @@ function renderBoard(st, P){
 
   $("planLab").textContent = hm(st.config.targetSec) + " plan";
 
-  // needs
+  /* Needs, which clear themselves once he has left the stop they were for.
+
+     A request that lingers is worse than none: two stops later the crew cannot
+     tell whether "Ice" is live or something nobody got round to clearing, and
+     at 3am that judgement is the wrong thing to ask of them. Leaving a stop is
+     the moment the request has either been met or missed, so that is when it
+     goes. Derived, not written: no extra write to fail, and the record itself
+     survives for the timestamp below.
+
+     Only a crew point clears it: leaving Table Mountain or Rocket Road proves
+     nothing, because nobody could have met the request there.
+
+     It clears on departure rather than arrival so it stays on screen while
+     they are actually working on it. If a departure is never tapped it never
+     expires, which is why "added at" stays — that is the fallback. */
   const needs = st.config.needs;
-  if(needs && needs.items && needs.items.length){
+  const servedAfter = needs && needs.t
+    ? st.events.some(e => e.type === "out" && e.t > needs.t
+                          && CPS[e.cp] && CPS[e.cp].crew)
+    : false;
+  if(needs && needs.items && needs.items.length && !servedAfter){
     $("needsCard").classList.remove("hide");
     $("needsTxt").textContent = needs.items.join(" · ");
     $("needsWhen").textContent = "added at " + clk(needs.t);
