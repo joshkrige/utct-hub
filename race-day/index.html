@@ -875,8 +875,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
   td:first-child{text-align:left}
   tr:last-child td{border-bottom:none}
   tr.now{background:color-mix(in srgb, var(--info) 11%, transparent)}
-  tr.past{color:var(--dim)}
-  tr.past .nm{color:var(--fg)}
+  /* The crew only ever look forward. Passed stops stay on the page — they are
+     the evidence for the projections — but they stop competing for attention. */
+  tr.past{color:var(--dim); opacity:.6; font-size:12px}
+  tr.past td{padding-top:5px; padding-bottom:5px}
+  tr.past .nm{color:var(--fg); font-weight:600}
+  tr.past .d2{display:none}
+  /* Who logged a stop survives the dimming: it is the reason anyone scrolls
+     back to a passed row. */
+  .by{color:var(--faint); font-size:11px}
+  tr.past .by{display:inline}
+  /* Pass-through timing points: he does not stop, so they sit quieter still. */
+  tr.tp .nm{font-weight:600; opacity:.85}
   .nm{font-weight:700; display:block}
   .d2{font-size:10.5px; color:var(--faint); letter-spacing:.04em}
   .crewtag{display:inline-block; font-size:8.5px; font-weight:900; letter-spacing:.08em;
@@ -1095,8 +1105,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <div id="cfgCrewOnly">
     <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Your name — shown next to anything you log</label>
     <input id="cfgWho2" type="text" maxlength="20" placeholder="e.g. Helena">
-    <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Your drive time to the next crew point (min)</label>
-    <input id="cfgDrive" type="number" inputmode="numeric" placeholder="25">
     <label style="display:flex;gap:9px;align-items:center;font-size:13px;color:var(--dim);margin:2px 0 10px">
       <input type="checkbox" id="cfgBeep" style="width:auto;margin:0"> Sound + vibrate when he logs in or out
     </label>
@@ -1153,7 +1161,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v31";
+const VERSION = "v32";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1161,6 +1169,11 @@ const TZ_LABEL = "SAST";
 const API = "api.php";                                // used when self-hosted
 
 /* name, km (cumulative), vert (cumulative D+), cutoff in race-hours, crew access, planned stop (min) */
+/* Every figure below is from the official RMB UTCT 2026 Route Timing Schedule
+   (printed 14/10/2026), not from the GPX — the GPX's barometric trace sums to
+   7.7 km of climbing, which is noise. Distances and D+ are cumulative.
+   Timing points (tp) are mandatory passes he runs straight through: one tap,
+   no stop. They exist here because each one sharpens every projection after it. */
 const CPS = [
   { n:"Start · Gardens RFC", s:"Start",          km:0.00,  v:0,    cut:null, crew:true,  stop:0,
     map:"https://goo.gl/maps/oFZCWrCUzffLjhG67" },
@@ -1168,18 +1181,21 @@ const CPS = [
     skip:true, map:"https://share.google/xCrXngGwnnQfoB8my" },
   { n:"Kloof Nek",           s:"Kloof Nek",      km:20.20, v:757,  cut:4.0,  crew:true,  stop:3,
     drive:5, driveNote:"small car park, fills fast", map:"https://goo.gl/maps/BJc5YX2gFt8XyLru7" },
+  { n:"Platteklip Gorge",    s:"Platteklip",     km:25.03, v:1633, cut:null, crew:false, stop:0, tp:true },
   { n:"Table Mountain",      s:"Table Mtn",      km:31.07, v:1771, cut:null, crew:false, stop:3 },
-  { n:"Llandudno",           s:"Llandudno",      km:41.52, v:1882, cut:null, crew:true,  stop:5,
+  { n:"Llandudno",           s:"Llandudno",      km:41.52, v:1882, cut:10.5, crew:true,  stop:5,
     drive:20, driveNote:"new location for 2026", map:"https://maps.app.goo.gl/shNx12LcYnS38vC49" },
   { n:"Rocket Road",         s:"Rocket Rd",      km:47.33, v:2123, cut:null, crew:false, stop:2 },
-  { n:"Hout Bay",            s:"Hout Bay",       km:57.35, v:2654, cut:14.5, crew:true,  stop:8, bag:true,
+  { n:"Hout Bay",            s:"Hout Bay",       km:57.35, v:2654, cut:14.5, crew:true,  stop:8,
     drive:15, map:"https://goo.gl/maps/Hb7PauXSjvNFhFRd7" },
-  { n:"Constantia Glen",     s:"Constantia",     km:72.31, v:3599, cut:null, crew:false, stop:3 },
-  { n:"Alphen Trail",        s:"Alphen",         km:76.72, v:3654, cut:19.0, crew:true,  stop:5,
+  { n:"Constantia Glen",     s:"Constantia",     km:71.02, v:3599, cut:null, crew:false, stop:3 },
+  { n:"Alphen Trail",        s:"Alphen",         km:76.35, v:3709, cut:19.0, crew:true,  stop:5,
     drive:25, driveNote:"new location for 2026", map:"https://maps.app.goo.gl/cUDFwYUYiRgqafSg6" },
-  { n:"Newlands Picnic",     s:"Newlands",       km:88.36, v:4178, cut:23.0, crew:true,  stop:5,
+  { n:"Nursery Ravine",      s:"Nursery Rav",    km:81.35, v:4011, cut:null, crew:false, stop:0, tp:true },
+  { n:"Newlands Picnic",     s:"Newlands",       km:88.40, v:4233, cut:23.0, crew:true,  stop:5,
     drive:10, map:"https://maps.app.goo.gl/ZaSBvHAZKKM7Qj5D7" },
-  { n:"Finish · Gardens RFC",s:"FINISH",         km:99.17, v:4676, cut:26.0, crew:true,  stop:0,
+  { n:"Dead Man's Tree",     s:"Dead Man's",     km:96.34, v:4720, cut:null, crew:false, stop:0, tp:true },
+  { n:"Finish · Gardens RFC",s:"FINISH",         km:99.21, v:4731, cut:26.0, crew:true,  stop:0,
     drive:15, map:"https://goo.gl/maps/oFZCWrCUzffLjhG67" },
 ];
 
@@ -1204,7 +1220,7 @@ const JOBS = {
           "Jacket on at the top of the climb, not once he's cold.",
           "Pack his phone back."],
       watch:"Tightest cutoff of the race, 08:00. <b>If he arrives after 07:40, cut everything except bottles and food and push him out.</b>" },
-  4:{ lead:"Heat stop. From here he's in full sun through the hottest hours.",
+  5:{ lead:"Heat stop. From here he's in full sun through the hottest hours.",
       do:["<b>Charge his phone.</b>",
           "<b>Ice.</b> In the cap, down the shirt, in the bottles. Worth more than anything else in the car.",
           "Refill cold — <b>Tailwind, 2.5 scoops a bottle</b>. Salt: sodium toward 1,000 mg/h from here to Hout Bay.",
@@ -1215,7 +1231,7 @@ const JOBS = {
           "Check the next two legs' fuel: Tailwind jungle bar, dates, Bioplus, Farbar.",
           "Pack his phone back."],
       watch:"Behind on fluid or salt looks like: salt crust on his face, not needing the toilet, snappy answers. Fix it here, not at Hout Bay." },
-  6:{ lead:"The big one. <b>44% of the climbing is still ahead</b> and next is the hardest stage of the race. Everything comes out of the car — the drop bag here is backup only, so leave it sealed unless something has gone wrong.",
+  7:{ lead:"The big one. <b>44% of the climbing is still ahead</b> and next is the hardest stage of the race. Everything comes out of the car — the drop bag here is backup only, so leave it sealed unless something has gone wrong.",
       do:["<b>Charge his phone.</b>",
           "<b>Headtorch and spare batteries onto him</b>, switched on or in a pocket he can reach without stopping. Next crew point is Alphen and it will be dark long before then.",
           "Second half of his nutrition into his pack pockets — roughly 630 g of carbs for the last 42 km.",
@@ -1230,7 +1246,7 @@ const JOBS = {
           "Next stage is the hardest of the race: 945 m of climb, three hours or more.",
           "Pack his phone back."],
       watch:"<b>Keep the stop under ten minutes.</b> This is where races get lost to a chair — set a timer out loud. If you genuinely can't get here, phone him: his backup bag is at this station and he collects it himself." },
-  8:{ lead:"Straight off the hardest stage of the day, probably already on his headtorch. Expect him flat and quiet.",
+  9:{ lead:"Straight off the hardest stage of the day, probably already on his headtorch. Expect him flat and quiet.",
       do:["<b>Charge his phone.</b>",
           "<b>Torch first: check the beam and swap the batteries</b> rather than assume. No bag left, and the rest is dark.",
           "Hot, sweet and liquid — tea, broth, Coke. Assume solids are getting difficult.",
@@ -1245,7 +1261,7 @@ const JOBS = {
           "Refill. Only 5 km to Nursery Ravine, but 302 m of climb in it.",
           "Pack his phone back."],
       watch:"Keep it to what happens next: eat, torch on, 5 km to Nursery Ravine." },
-  9:{ lead:"Last crew point. 10.8 km to go, but <b>Dead Man's Tree adds 487 m</b> before km 96 — one real climb left.",
+  11:{ lead:"Last crew point. 10.8 km to go, but <b>Dead Man's Tree adds 487 m</b> before km 96 — one real climb left.",
       do:["<b>Charge his phone.</b>",
           "Confirm the torch will last another two to three hours. Swap batteries if there's any doubt.",
           "<b>Red Bull</b> — the last one of the race.",
@@ -1256,7 +1272,7 @@ const JOBS = {
           "One real climb left, then home. Projected finish is on the Status tab.",
           "Pack his phone back."],
       watch:"Dead Man's Tree puts 487 m of climb between here and km 96. He should not be ambushed by it." },
-  10:{ lead:"Be parked and set up before his earliest realistic arrival, and bring everything.",
+  13:{ lead:"Be parked and set up before his earliest realistic arrival, and bring everything.",
       do:["Warm clothes, dry shoes, towel, a chair, something salty and something sweet.",
           "Water and a hot drink. Don't let him sit still in the cold.",
           "Magnesium and the massage gun on his legs once he's warm and sitting.",
@@ -1772,38 +1788,23 @@ const FEAT_E = FEATURES.map(f => effortAtMetres(f.km * 1000 * KM_SCALE));
 
 /* Every climb top and valley bottom on the course worth more than 120 m of
    vertical, read straight off the GPX rather than guessed at. */
+/* The four climbs worth bracing for, down from ten. */
 const POI = [
-  { km:15.1, el:155, top:false, lab:"Bottom · 919 m climb to Maclear's Beacon starts here" },
-  { km:33.12, el:614, top:false, lab:"Bottom · 134 m climb to Grootkop starts here" },
-  { km:43.99, el:6, top:false, lab:"Bottom · 598 m climb to Suther Peak starts here" },
-  { km:56.39, el:0, top:false, lab:"Bottom · 431 m climb starts here" },
-  { km:61.21, el:431, top:true, lab:"Top of the 431 m climb from Hout Bay" },
-  { km:62.61, el:300, top:false, lab:"Bottom · 222 m climb starts here" },
-  { km:65.64, el:522, top:true, lab:"Top of the 222 m climb" },
-  { km:75.53, el:51, top:false, lab:"Bottom · 409 m climb to Nursery Ravine starts here" },
-  { km:81.9, el:460, top:true, lab:"Top of the 409 m climb from Alphen" },
-  { km:87.81, el:100, top:false, lab:"Bottom · 424 m climb to Oppelskop starts here" }
+  { km:15.1, el:155, top:false, lab:"Bottom \u00b7 919 m climb to Maclear's Beacon starts here" },
+  { km:43.99, el:6, top:false, lab:"Bottom \u00b7 598 m climb to Suther Peak starts here" },
+  { km:75.53, el:51, top:false, lab:"Bottom \u00b7 409 m climb to Nursery Ravine starts here" },
+  { km:87.81, el:100, top:false, lab:"Bottom \u00b7 424 m climb to Oppelskop starts here" }
 ];
 const POI_E = POI.map(p => effortAtMetres(p.km * 1000 * KM_SCALE));
 
 /* Real named features, taken from OpenStreetMap and snapped to the course —
    every one of these sits within 250 m of the line he actually runs. */
+/* Trimmed from eighteen. On a phone at night the map is for orientation, not
+   for a gazetteer: the summits you actually navigate by, and nothing else. */
 const LAND = [
   { n:"Lion's Head", km:8.75, el:669, k:"peak" },
-  { n:"Fountain Peak", km:25.15, el:1051, k:"peak" },
   { n:"Maclear's Beacon", km:27.09, el:1086, k:"peak" },
-  { n:"Waaikoppie", km:28.34, el:933, k:"peak" },
-  { n:"St Michael Peak", km:28.9, el:917, k:"peak" },
-  { n:"Blinkwater Peak", km:29.81, el:989, k:"peak" },
-  { n:"Ark Valley", km:30.01, el:null, k:"valley" },
-  { n:"Valley of Isolation", km:31.16, el:null, k:"valley" },
   { n:"Grootkop", km:35.21, el:857, k:"peak" },
-  { n:"Separation Buttress", km:36.6, el:757, k:"peak" },
-  { n:"Judas Peak", km:37.0, el:758, k:"peak" },
-  { n:"Houtbaai Corner", km:38.92, el:null, k:"pass" },
-  { n:"Houtbaainek", km:40.22, el:154, k:"pass" },
-  { n:"Sunset Rocks", km:42.2, el:null, k:"beach" },
-  { n:"Suther Peak", km:49.22, el:615, k:"peak" },
   { n:"Karbonkelberg", km:50.17, el:653, k:"peak" },
   { n:"Constantia Nek", km:69.58, el:null, k:"pass" },
   { n:"Oppelskop", km:92.75, el:null, k:"peak" }
@@ -2306,7 +2307,7 @@ function renderBoard(st, P){
   }
   if(nxi>0){
     const t = P.eta[nxi], away = (t-Date.now())/1000;
-    const drive = CAN_LOG ? +Pref.get("drive_"+nxi, CPS[nxi].drive || 0) : 0;
+    const drive = CAN_LOG ? (CPS[nxi].drive || 0) : 0;
     $("cNextLab").textContent = CAN_LOG ? "Next crew point" : "Next stop";
     $("cNextName").textContent = CPS[nxi].s;
     $("cNextEta").textContent = clk(t);
@@ -2395,17 +2396,17 @@ function renderBoard(st, P){
       if(!past && k && (worst===null || buf < worst.buf)) worst = { i, buf, limit };
     }
     rows.push(
-      '<tr class="'+(isNow?'now':past?'past':'')+'">'+
+      '<tr class="'+(isNow?'now':past?'past':'')+(c.tp?' tp':'')+'">'+
       '<td><span class="nm">'+c.s+
         (isDark(inn!=null?inn:P.eta[i]) ? '<span class="moon" title="after dark">\u263D</span>' : '')+
         '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.skip?'NOTHING TO DO':c.crew?(c.bag?'CREW + BACKUP BAG':'CREW'):'NO CREW')+'</span>'+
       '</span><span class="d2">'+c.km.toFixed(1)+' km · '+c.v+' m'+'</span>'+cutCell+'</td>'+
       '<td class="mono d2">'+clk(planA)+'</td>'+
       '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+
-        (byIn[i]?'<br><span class="d2">'+byIn[i]+'</span>':'')+'</td>'+
+        (byIn[i]?'<br><span class="by">'+byIn[i]+'</span>':'')+'</td>'+
       '<td class="mono">'+(out!=null?clk(out):'<span class="d2">–</span>')+
         (inn!=null&&out!=null?'<br><span class="d2">'+mins((out-inn)/1000)+'</span>':'')+
-        (byOut[i]?'<br><span class="d2">'+byOut[i]+'</span>':'')+'</td>'+
+        (byOut[i]?'<br><span class="by">'+byOut[i]+'</span>':'')+'</td>'+
       '<td class="mono">'+etaCell+'</td></tr>'
     );
   }
@@ -2507,6 +2508,9 @@ $("bigBtn").addEventListener("click", e => {
   if(b.disabled || !b.dataset.type) return;
   const cp = +b.dataset.cp, type = b.dataset.type;
   Store.log(cp, type);
+  /* He runs straight through a timing point; making him tap in and then out
+     at a place he does not stop is two taps for one moment. */
+  if(type === "in" && CPS[cp] && CPS[cp].tp) Store.log(cp, "out");
   lockUntil = Date.now() + 2500;                     // no accidental double tap
   try{ if(navigator.vibrate) navigator.vibrate(45); }catch(_){}
   toast(type==="in" ? ("Logged IN · " + CPS[cp].s) : (cp===0 ? "Race started" : "Logged OUT · " + CPS[cp].s));
@@ -2573,10 +2577,6 @@ $("cogBtn").addEventListener("click", () => {
   $("cfgTarget").value = hm(st.config.targetSec);
   $("cfgStart").value = clk(st.config.gunMs || Date.parse(RACE_START_ISO));
   const P = project(st);
-  let nxi = -1;
-  for(let i=1;i<CPS.length;i++){ if(CPS[i].crew && P.inT[i]==null){ nxi=i; break; } }
-  $("cfgDrive").value = nxi>0 ? (Pref.get("drive_"+nxi, CPS[nxi].drive || "")||"") : "";
-  $("cfgDrive").dataset.cp = nxi;
   $("cfgBeep").checked = !!Pref.get("beep",false);
   $("cfgWho2").value = Pref.get("who","") || "";
   $("dlgCfg").showModal();
@@ -2614,8 +2614,6 @@ $("cfgSave").addEventListener("click", () => {
   Store.saveConfig(patch);
 
   Pref.set("who", ($("cfgWho2").value || "").trim().slice(0,20));
-  const cp = $("cfgDrive").dataset.cp;
-  if(cp && cp!=="-1") Pref.set("drive_"+cp, +$("cfgDrive").value || 0);
   Pref.set("beep", $("cfgBeep").checked);
   if($("cfgBeep").checked) ping();
 
