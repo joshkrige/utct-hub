@@ -1196,7 +1196,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v54";
+const VERSION = "v55";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2557,7 +2557,7 @@ function renderBoard(st, P){
                : (pos.phase==="pre" ? 0 : nxi);
   /* Someone planning ahead can open any crew stop's list. It changes nothing
      that has been logged, and the live stop is one tap away. */
-  if(jobsView === liveJi) jobsView = null;
+  if(jobsView === liveJi || (jobsView != null && Date.now() - jobsViewAt > AHEAD_MS)) jobsView = null;
   const ahead = jobsView != null;
   const ji = ahead ? jobsView : liveJi;
   const J = JOBS[ji];
@@ -2574,7 +2574,7 @@ function renderBoard(st, P){
                : ji === 0 ? "race start " + clk(P.gun)
                : "expected about " + clk(P.eta[ji]);
       $("aheadTxt").innerHTML = "<b>Looking ahead</b> · " + CPS[ji].s + " · " + at
-        + (pos.phase==="finished" ? "" : ". Ticks open when it's the live stop.");
+        + (pos.phase==="finished" ? "" : ". Ticks are off here; it goes back to the live stop on its own.");
     }
     const ticks = st.config.ticks || {};
     const done = J.do.filter((_,i) => ticks[ji+":"+i]).length;
@@ -2619,11 +2619,19 @@ function renderBoard(st, P){
 
   // beep on new activity
   const last = Store.events.length ? Store.events[Store.events.length-1].id : null;
+  if(lastSeenEvent && last && last!==lastSeenEvent) jobsView = null;   // someone tapped: back to now
   if(lastSeenEvent && last && last!==lastSeenEvent && Pref.get("beep",false)) ping();
   lastSeenEvent = last;
 }
 
 let jobsView = null;          // a crew stop opened for planning; null = follow the race
+let jobsViewAt = 0;
+/* Looking ahead is only ever a glance. Anything that suggests attention has
+   moved on puts the card back on the live stop: a reload (nothing is saved),
+   two minutes, the phone locked or switched away from, another tab, or a new
+   tap from anyone. A phone picked up at Kloof Nek must show Kloof Nek. */
+const AHEAD_MS = 2 * 60 * 1000;
+function backToNow(){ if(jobsView != null){ jobsView = null; render(); } }
 
 /* Leave-now alert.
 
@@ -2833,6 +2841,7 @@ function showPane(id){
       if(follow() && lastPinLL) LEAF.setView(lastPinLL, Math.max(LEAF.getZoom(), 14));
       else if(LEAF_BOUNDS) LEAF.fitBounds(LEAF_BOUNDS, { padding:[24,24] }); }, 80);
   }
+  jobsView = null;              // any tab tap, Status included, shows the live stop
   window.scrollTo(0,0);
 }
 $("cfgSave").addEventListener("click", () => {
@@ -2880,6 +2889,7 @@ $("jobsList").addEventListener("click", e => {
 $("stopPick").addEventListener("click", e => {
   const b = e.target.closest("button[data-stop]"); if(!b) return;
   jobsView = +b.dataset.stop;
+  jobsViewAt = Date.now();
   render();
 });
 $("aheadBack").addEventListener("click", () => { jobsView = null; render(); });
@@ -2944,7 +2954,7 @@ $("nightBtn").addEventListener("click", () => {
     navigator.serviceWorker.register("sw.js").catch(()=>{});
   }
   document.addEventListener("visibilitychange", () => {
-    if(document.hidden) return;
+    if(document.hidden){ jobsView = null; return; }
     Store.drain(); render();
   });
 })();
