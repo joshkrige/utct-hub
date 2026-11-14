@@ -868,6 +868,17 @@ svg.leaflet-image-layer.leaflet-interactive path {
   ul.jobs.ro li{cursor:default}
   ul.jobs.ro li .box{opacity:.35}
 
+  /* Race overview: the at-a-glance numbers anyone following wants first. */
+  .ovprog{margin:4px 0 12px}
+  .ovbar{height:8px; border-radius:99px; background:var(--line); overflow:hidden}
+  .ovbar>div{height:100%; width:0; border-radius:99px; background:var(--go); transition:width .6s}
+  .ovkm{font-size:13px; color:var(--dim); margin-top:6px}
+  .ovkm b{color:var(--fg); font-size:15px}
+  .ovkm span{float:right}
+  .ovgrid{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .ovgrid .cell{background:transparent}
+  .ovgrid .v{font-size:22px}
+
   .hero{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:10px}
   .hero.alert{border-color:var(--bad); background:color-mix(in srgb, var(--bad) 9%, var(--panel))}
   .hero .lab{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:800}
@@ -1023,6 +1034,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
 
     <div id="paneBoard" class="hide">
+    <div class="hero ovw" id="ovw">
+      <div class="lab">Race overview</div>
+      <div class="ovprog">
+        <div class="ovbar"><div id="ovBar"></div></div>
+        <div class="ovkm"><b id="ovKm">0.0 km</b> of 99.2 km<span id="ovPct"></span></div>
+      </div>
+      <div class="ovgrid">
+        <div class="cell"><div class="k">Elapsed</div><div class="v mono" id="ovEl">–</div><div class="s" id="ovElS">&nbsp;</div></div>
+        <div class="cell"><div class="k">Climbed</div><div class="v mono" id="ovUp">–</div><div class="s">of 4,731 m</div></div>
+        <div class="cell"><div class="k">Pace</div><div class="v" id="ovPace">–</div><div class="s" id="ovPaceS">&nbsp;</div></div>
+        <div class="cell"><div class="k">Checkpoints</div><div class="v mono" id="ovCp">–</div><div class="s" id="ovCpS">&nbsp;</div></div>
+      </div>
+    </div>
     <div class="hero" id="hero">
       <div class="lab">Where he is</div>
       <div class="status" id="cStatus">Waiting for the start</div>
@@ -1196,7 +1220,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v55";
+const VERSION = "v56";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2404,7 +2428,7 @@ function renderBoard(st, P){
   if(nxi>0){
     const t = P.eta[nxi], away = (t-Date.now())/1000;
     const drive = CAN_LOG ? (CPS[nxi].drive || 0) : 0;
-    $("cNextLab").textContent = CAN_LOG ? "Next crew point" : "Next stop";
+    $("cNextLab").textContent = CAN_LOG ? "Next crew point" : "Next major stop";
     $("cNextName").textContent = CPS[nxi].s;
     $("cNextEta").textContent = clk(t);
     let s = "in " + mins(away) + " · " + CPS[nxi].km.toFixed(1) + " km";
@@ -2420,7 +2444,7 @@ function renderBoard(st, P){
     $("cNextNote").textContent =
       (CAN_LOG && CPS[nxi].driveNote) ? CPS[nxi].driveNote : "";
   } else {
-    $("cNextLab").textContent = CAN_LOG ? "Next crew point" : "Next stop";
+    $("cNextLab").textContent = CAN_LOG ? "Next crew point" : "Next major stop";
     $("cNextName").textContent = pos.phase==="finished" ? "Finished" : "—";
     $("cNextEta").textContent = "—";
     $("cNextSub").textContent = pos.phase==="finished" ? "He's home." : "None left.";
@@ -2434,6 +2458,8 @@ function renderBoard(st, P){
      fresh, and the ratio is clamped besides. A number that silly undermines the
      ones that matter, so the percentage waits until there is a real measurement
      behind it. */
+  renderOverview(st, P);
+
   let paceTxt = " · on plan";
   if(P.conf === "early") paceTxt = " · early read";
   else if(P.conf === "live"){
@@ -2622,6 +2648,53 @@ function renderBoard(st, P){
   if(lastSeenEvent && last && last!==lastSeenEvent) jobsView = null;   // someone tapped: back to now
   if(lastSeenEvent && last && last!==lastSeenEvent && Pref.get("beep",false)) ping();
   lastSeenEvent = last;
+}
+
+/* Where he is along the course, by distance and by climb. Between taps it is
+   an estimate: the share of the leg he should have covered by now, given the
+   projection, never quite reaching the next point until it is tapped. */
+function progressNow(P){
+  const pos = P.pos;
+  if(pos.phase === "pre") return { km:0, v:0, est:false };
+  if(pos.phase === "finished") return { km:CPS[LAST].km, v:CPS[LAST].v, est:false };
+  if(pos.phase === "aid") return { km:CPS[pos.cp].km, v:CPS[pos.cp].v, est:false };
+  const i = pos.cp, j = nextLog(i);
+  const span = P.eta[j] - P.outT[i];
+  const f = clamp(span > 0 ? (Date.now() - P.outT[i]) / span : 0, 0, 0.97);
+  return { km: CPS[i].km + f*(CPS[j].km - CPS[i].km),
+           v:  CPS[i].v  + f*(CPS[j].v  - CPS[i].v), est:true };
+}
+
+function renderOverview(st, P){
+  const pos = P.pos, g = progressNow(P);
+  const pct = g.km / CPS[LAST].km * 100;
+  $("ovBar").style.width = pct.toFixed(1) + "%";
+  $("ovKm").textContent = (g.est ? "≈ " : "") + g.km.toFixed(1) + " km";
+  $("ovPct").textContent = Math.round(pct) + "%";
+
+  const started = pos.phase !== "pre";
+  const end = pos.phase === "finished" ? P.inT[LAST] : Date.now();
+  $("ovEl").textContent = started ? hm((end - P.start)/1000) : "–";
+  $("ovElS").textContent = started ? "since " + clk(P.start) : "starts " + clk(P.gun);
+
+  $("ovUp").textContent = (g.est ? "≈ " : "") + Math.round(g.v).toLocaleString("en-ZA").replace(/\s/g, ",") + " m";
+
+  let pace = "On plan", paceS = "22h00 plan";
+  if(P.conf === "early"){ pace = "Early read"; paceS = "needs a few more taps"; }
+  else if(P.conf === "live"){
+    const d = Math.round((P.ratio - 1) * 100);
+    pace = Math.abs(d) < 2 ? "On plan" : Math.abs(d) + "% " + (d > 0 ? "slower" : "faster");
+    paceS = "finish about " + clkDay(P.finish || P.eta[LAST]);
+  } else if(!started) paceS = "finish about " + clkDay(P.eta[LAST]);
+  $("ovPace").textContent = pace;
+  $("ovPaceS").textContent = paceS;
+
+  const passed = CPS.filter((c,i) => i > 0 && (P.inT[i] != null || i <= (pos.phase==="pre" ? -1 : pos.cp))).length;
+  $("ovCp").textContent = passed + " / " + (CPS.length - 1);
+  const nx = pos.phase === "finished" ? -1 : pos.phase === "aid" ? nextLog(pos.cp) : nextLog(pos.cp);
+  $("ovCpS").textContent = pos.phase === "finished" ? "finished"
+    : pos.phase === "pre" ? "first: " + CPS[1].s
+    : "next: " + CPS[nx].s;
 }
 
 let jobsView = null;          // a crew stop opened for planning; null = follow the race
