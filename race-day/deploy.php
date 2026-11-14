@@ -9,10 +9,18 @@
 
        https://singa.studio/utct2026/deploy.php?key=YOUR-TOKEN
 
+   It deploys an exact commit, never "whatever main looks like right now".
+   GitHub caches its main-branch files for about five minutes after a push, so
+   asking for main straight after a push quietly hands back the old version.
+   A file at a specific commit can never change, so it is never served stale.
+   With &ref=<commit> it deploys that commit; without, it asks GitHub's API
+   which commit main is on and deploys that.
+
    secret.php and data/ are never touched.
    ============================================================= */
 
-const RAW  = 'https://raw.githubusercontent.com/joshkrige/utct-hub/main/race-day/';
+const REPO = 'joshkrige/utct-hub';
+const DIR  = 'race-day/';
 const FILES = ['index.html', 'api.php', 'sw.js', 'manifest.webmanifest', '.htaccess', 'deploy.php'];
 
 header('Content-Type: text/plain; charset=utf-8');
@@ -29,7 +37,7 @@ if ($token === '' || !isset($_GET['key']) || !hash_equals($token, (string) $_GET
     exit;
 }
 
-function fetch_url(string $url): ?string {
+function fetch_url(string $url, array $headers = []): ?string {
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -37,6 +45,7 @@ function fetch_url(string $url): ?string {
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_TIMEOUT        => 30,
             CURLOPT_USERAGENT      => 'utct-deploy',
+            CURLOPT_HTTPHEADER     => $headers,
         ]);
         $body = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -45,12 +54,30 @@ function fetch_url(string $url): ?string {
         return null;
     }
     if (ini_get('allow_url_fopen')) {
-        $ctx = stream_context_create(['http' => ['timeout' => 30, 'user_agent' => 'utct-deploy']]);
+        $ctx = stream_context_create(['http' => ['timeout' => 30, 'user_agent' => 'utct-deploy',
+                                                 'header' => implode("\r\n", $headers)]]);
         $body = @file_get_contents($url, false, $ctx);
         return $body === false ? null : $body;
     }
     return null;
 }
+
+/* Which commit to deploy. */
+$ref = isset($_GET['ref']) ? strtolower(trim((string) $_GET['ref'])) : '';
+if ($ref !== '' && !preg_match('/^[0-9a-f]{7,40}$/', $ref)) {
+    http_response_code(400);
+    echo "bad ref\n";
+    exit;
+}
+$source = 'pinned';
+if ($ref === '') {
+    $sha = fetch_url('https://api.github.com/repos/' . REPO . '/commits/main',
+                     ['Accept: application/vnd.github.sha']);
+    $sha = $sha === null ? '' : strtolower(trim($sha));
+    if (preg_match('/^[0-9a-f]{40}$/', $sha)) { $ref = $sha; $source = 'latest main'; }
+    else { $ref = 'main'; $source = 'main (API unavailable, may be up to 5 min stale)'; }
+}
+$raw = 'https://raw.githubusercontent.com/' . REPO . '/' . $ref . '/' . DIR;
 
 $results = [];
 $failed  = 0;
@@ -59,7 +86,7 @@ $failed  = 0;
    nothing is written unless every file came down intact. */
 $bodies = [];
 foreach (FILES as $f) {
-    $body = fetch_url(RAW . $f . '?t=' . time());
+    $body = fetch_url($raw . $f . '?t=' . time());
     if ($body === null || strlen($body) < 40) {
         $results[] = sprintf('%-24s FETCH FAILED', $f);
         $failed++;
@@ -97,5 +124,6 @@ foreach ($bodies as $f => $body) {
 
 http_response_code($failed ? 500 : 200);
 echo ($failed ? "deploy finished with errors" : "deploy ok"), "  ",
-     gmdate('Y-m-d H:i:s'), " UTC\n\n";
+     gmdate('Y-m-d H:i:s'), " UTC\n";
+echo "commit  ", substr($ref, 0, 7), "  (", $source, ")\n\n";
 echo implode("\n", $results), "\n";
