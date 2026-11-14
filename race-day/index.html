@@ -1166,7 +1166,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v35";
+const VERSION = "v37";
 const VERSION_DATE = "6 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1206,83 +1206,100 @@ const CPS = [
 
 /* What to actually do at each crew stop. Shown only for the stop that is next
    (or the one he's standing in) — never as a document to scroll through. */
+/* One job per line, so every line is a thing you can tick.
+
+   The same job is written the same way at every stop, in the same order:
+   phone, bottles, food, body, kit, layers, phone back. The crew should be able
+   to learn the rhythm once and then stop reading carefully at 3am. Only the
+   things that genuinely differ between stops are phrased differently. */
 const JOBS = {
-  0:{ lead:"He wakes about 02:15 and eats by 02:30 — that's rehearsed, leave him to it.",
-      do:["<b>Backup drop bag into the main marquee by 03:15.</b> Headtorch, spare batteries, a warm layer and a few hours of food — insurance in case the crew can't reach Hout Bay. It goes to Hout Bay and it will not wait for him.",
-          "Number pinned to the <b>front</b>. Timing chip on the pack and visible.",
-          "Headtorch on and tested before the start, not at the start line.",
-          "Anything he wants at the finish goes into bag service now.",
+  0:{ lead:"He wakes about 02:15 and eats by 02:30 \u2014 that's rehearsed, leave him to it.",
+      do:["<b>Backup drop bag into the main marquee by 03:15.</b> It goes to Hout Bay and will not wait for him.",
+          "Check the bag holds: headtorch, spare batteries, warm layer, a few hours of food.",
+          "Number pinned to the <b>front</b>.",
+          "Timing chip on his pack, visible.",
+          "Headtorch on and tested.",
+          "Anything he wants at the finish into bag service.",
           "Then get out of the way."],
-      watch:"A missed drop-bag check-in is the one irreversible job of the morning." },
-  2:{ lead:"The most important early stop — next time you see him is <b>over four hours later</b>, via Platteklip Gorge (876 m in 4.83 km) and the exposed plateau.",
+      watch:"The drop-bag check-in is the one thing this morning that cannot be undone." },
+
+  2:{ lead:"Next time you see him is <b>over four hours later</b> \u2014 Platteklip Gorge (876 m in 4.83 km), then the exposed plateau.",
       do:["<b>Charge his phone.</b>",
-          "Refill to the full 2L — <b>Tailwind, 2.5 scoops a bottle</b>. He gets nothing from you until Llandudno.",
-          "Load <b>four to six hours of food</b> into his pack pockets, not his hands: Tailwind jungle bar, dates, Bioplus, Farbar.",
-          "Sunscreen on face, ears, neck and arms now — the sun arrives on the plateau.",
-          "Cap and clean sunglasses out of the box and onto him.",
-          "Chafe check — it's over four hours until the next one.",
-          "Check what he has eaten in the last hour. If it is vague, make him eat in front of you.",
-          "Jacket on at the top of the climb, not once he's cold.",
-          "Pack his phone back."],
-      watch:"Tightest cutoff of the race, 08:00. <b>If he arrives after 07:40, cut everything except bottles and food and push him out.</b>" },
-  5:{ lead:"Heat stop. From here he's in full sun through the hottest hours.",
+          "Bottles: <b>Tailwind, 2.5 scoops each</b>, filled to 2L.",
+          "Food into his pack pockets: Tailwind bar, dates, Bioplus, Farbar. <b>Four to six hours' worth.</b>",
+          "Make him eat something in front of you.",
+          "Chafe check.",
+          "Sunscreen: face, ears, neck, arms.",
+          "Cap on. Clean his glasses.",
+          "Jacket into his pack for the top of the climb.",
+          "<b>Phone back in his pack.</b>"],
+      watch:"Tightest cut-off of the race, 08h00. <b>If he arrives after 07h40, do bottles and food only and push him out.</b>" },
+
+  5:{ lead:"Heat stop. Full sun from here through the hottest hours.",
       do:["<b>Charge his phone.</b>",
-          "<b>Ice.</b> In the cap, down the shirt, in the bottles. Worth more than anything else in the car.",
-          "Refill cold — <b>Tailwind, 2.5 scoops a bottle</b>. Salt: sodium toward 1,000 mg/h from here to Hout Bay.",
-          "Sunscreen again, properly. Lips and nose too.",
-          "Soaked buff on the neck. Dry buff on, clean his glasses.",
-          "Real food while his stomach still wants it — potatoes, a sandwich, something savoury.",
-          "Chafe check. Magnesium and the massage gun on his legs.",
-          "Check the next two legs' fuel: Tailwind jungle bar, dates, Bioplus, Farbar.",
-          "Pack his phone back."],
-      watch:"Behind on fluid or salt looks like: salt crust on his face, not needing the toilet, snappy answers. Fix it here, not at Hout Bay." },
-  7:{ lead:"The big one. <b>44% of the climbing is still ahead</b> and next is the hardest stage of the race. Everything comes out of the car — the drop bag here is backup only, so leave it sealed unless something has gone wrong.",
+          "<b>Ice</b> \u2014 in the cap, down his shirt, in the bottles. Worth more than anything else in the car.",
+          "Bottles: <b>Tailwind, 2.5 scoops each</b>, cold. Salt toward 1,000 mg an hour from here.",
+          "Food into his pack pockets: Tailwind bar, dates, Bioplus, Farbar.",
+          "Real food now, while his stomach still wants it \u2014 potatoes, a sandwich, something savoury.",
+          "Chafe check.",
+          "Magnesium and massage gun on his legs.",
+          "Sunscreen: face, ears, neck, arms. Lips and nose too.",
+          "Soaked buff on his neck. Clean his glasses.",
+          "<b>Phone back in his pack.</b>"],
+      watch:"Behind on fluid or salt looks like: salt crust on his face, no toilet stops, snappy answers. Fix it here, not at Hout Bay." },
+
+  7:{ lead:"The big one. <b>44% of the climbing is still ahead</b>, and the next stage is the hardest of the race \u2014 945 m, three hours or more. The drop bag here is backup only; leave it sealed unless something has gone wrong.",
       do:["<b>Charge his phone.</b>",
-          "<b>Headtorch and spare batteries onto him</b>, switched on or in a pocket he can reach without stopping. Next crew point is Alphen and it will be dark long before then.",
-          "Second half of his nutrition into his pack pockets — roughly 630 g of carbs for the last 42 km.",
-          "Check the next two legs' fuel: Tailwind jungle bar, dates, Bioplus, Farbar.",
-          "Ice in the bottles, <b>Tailwind refill at 2.5 scoops a bottle</b>.",
-          "<b>Fresh shoes</b> and dry socks. Deal with blisters now — the one stop where feet are worth the minutes.",
+          "<b>Headtorch and spare batteries onto him.</b> Alphen is the next crew point and it will be dark long before then.",
+          "Bottles: <b>Tailwind, 2.5 scoops each</b>, with ice.",
+          "Food into his pack pockets: Tailwind bar, dates, Bioplus, Farbar. <b>Second half of his nutrition \u2014 about 630 g of carbs for the last 42 km.</b>",
+          "<b>Fresh shoes and dry socks.</b> Blisters now \u2014 the one stop where feet are worth the minutes.",
           "Toasted sarmie.",
-          "Magnesium and the massage gun on his legs.",
-          "Chafe check. Sunscreen face, arms, legs and neck.",
-          "Dry buff on, clean his glasses.",
-          "Windproof or warm layer into the pack for the night. Red Bull into a reachable pocket.",
-          "Next stage is the hardest of the race: 945 m of climb, three hours or more.",
-          "Pack his phone back."],
-      watch:"<b>Keep the stop under ten minutes.</b> This is where races get lost to a chair — set a timer out loud. If you genuinely can't get here, phone him: his backup bag is at this station and he collects it himself." },
-  9:{ lead:"Straight off the hardest stage of the day, probably already on his headtorch. Expect him flat and quiet.",
+          "Chafe check.",
+          "Magnesium and massage gun on his legs.",
+          "Sunscreen: face, ears, neck, arms, legs.",
+          "Dry buff on. Clean his glasses.",
+          "Warm layer into his pack. Red Bull into a reachable pocket.",
+          "<b>Phone back in his pack.</b>"],
+      watch:"<b>Keep the stop under ten minutes.</b> This is where races get lost to a chair \u2014 set a timer out loud. If you genuinely can't get here, phone him: his backup bag is at this station and he collects it himself." },
+
+  9:{ lead:"Straight off the hardest stage of the day, on his headtorch, probably flat and quiet.",
       do:["<b>Charge his phone.</b>",
-          "<b>Torch first: check the beam and swap the batteries</b> rather than assume. No bag left, and the rest is dark.",
-          "Hot, sweet and liquid — tea, broth, Coke. Assume solids are getting difficult.",
+          "<b>Torch: check the beam, swap the batteries.</b> No drop bag left, and the rest is dark.",
+          "Bottles: <b>Tailwind, 2.5 scoops each</b> \u2014 warm, not iced.",
+          "Food into his pack pockets: Tailwind bar, dates, Bioplus, Farbar.",
+          "Hot, sweet and liquid \u2014 tea, broth, Coke. Assume solids are getting difficult.",
           "Pasta meal if he'll take it.",
-          "Tailwind refill, 2.5 scoops a bottle — <b>warm, not iced</b>. It's night now.",
           "Red Bull.",
           "Fresh blue shirt. Fresh socks.",
-          "Magnesium and the massage gun on his legs. Chafe check.",
+          "Chafe check.",
+          "Magnesium and massage gun on his legs.",
           "Dry buff on.",
-          "Warm layer on before he leaves, not when he gets cold.",
-          "Check the next two legs' fuel: Tailwind jungle bar, dates, Bioplus, Farbar.",
-          "Refill. Only 5 km to Nursery Ravine, but 302 m of climb in it.",
-          "Pack his phone back."],
-      watch:"Keep it to what happens next: eat, torch on, 5 km to Nursery Ravine." },
-  11:{ lead:"Last crew point. 10.8 km to go, but <b>Dead Man's Tree adds 487 m</b> before km 96 — one real climb left.",
+          "Warm layer on before he leaves, not once he's cold.",
+          "<b>Phone back in his pack.</b>"],
+      watch:"Keep it to what happens next: eat, torch on, 5 km to Nursery Ravine \u2014 302 m of climb in it." },
+
+  11:{ lead:"Last crew point. 10.8 km to go, with one real climb left \u2014 <b>Dead Man's Tree, 487 m</b> before km 96.",
       do:["<b>Charge his phone.</b>",
-          "Confirm the torch will last another two to three hours. Swap batteries if there's any doubt.",
-          "<b>Red Bull</b> — the last one of the race.",
+          "<b>Torch: confirm it will last another two to three hours.</b> Swap the batteries if there's any doubt.",
+          "Bottles: <b>Tailwind, 2.5 scoops each</b> \u2014 a top-up, he doesn't need the weight now.",
+          "<b>Red Bull</b> \u2014 the last one of the race.",
           "Woolies wrap, or anything warm and sweet he'll actually eat.",
-          "Magnesium and the massage gun on his legs. Chafe check.",
+          "Chafe check.",
+          "Magnesium and massage gun on his legs.",
           "Dry buff on.",
-          "Top up, but he doesn't need weight now. The 300 ml and 250 kcal reserves stay on him regardless.",
-          "One real climb left, then home. Projected finish is on the Status tab.",
-          "Pack his phone back."],
-      watch:"Dead Man's Tree puts 487 m of climb between here and km 96. He should not be ambushed by it." },
+          "Tell him: one real climb left, then home.",
+          "<b>Phone back in his pack.</b>"],
+      watch:"The 300 ml and 250 kcal reserves stay on him. Dead Man's Tree puts 487 m of climb between here and km 96 \u2014 he should not be ambushed by it." },
+
   13:{ lead:"Be parked and set up before his earliest realistic arrival, and bring everything.",
-      do:["Warm clothes, dry shoes, towel, a chair, something salty and something sweet.",
-          "Water and a hot drink. Don't let him sit still in the cold.",
-          "Magnesium and the massage gun on his legs once he's warm and sitting.",
-          "Collect the backup drop bag — it comes back here from Hout Bay."],
-      watch:"All compulsory kit and both reserves must still be on him as he crosses the line — don't meet him early and relieve him of anything." },
+      do:["Warm clothes, dry shoes, towel, a chair.",
+          "Something salty and something sweet.",
+          "Water and a hot drink.",
+          "Don't let him sit still in the cold.",
+          "Magnesium and massage gun on his legs, once he's warm and sitting.",
+          "Collect the backup drop bag \u2014 it comes back here from Hout Bay."],
+      watch:"All compulsory kit and both reserves must still be on him as he crosses the line \u2014 don't meet him early and relieve him of anything." },
 };
 
 const RULES = [
@@ -1477,7 +1494,10 @@ function project(state){
     const expected = span * ratio * 1000;
     const slack = Math.max(12*60*1000, expected*0.25);
     const late = Date.now() - (outT[pos.cp] + expected + slack);
-    if(late > 0) overdue = late;
+    /* Seconds, not milliseconds: every formatter in this file takes seconds,
+       and handing them a millisecond figure reads a thousand times too big and
+       climbs an hour every three and a half seconds. */
+    if(late > 0) overdue = late / 1000;
   }
 
   return { plan, start, gun, inT, outT, eta, etd, pos, ratio, sRatio, conf, overdue,
