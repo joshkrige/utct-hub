@@ -895,6 +895,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .notag{background:var(--panel2); color:var(--faint)}
   .pill{font-weight:800}
   .up{color:var(--bad)} .dn{color:var(--good)}
+  /* Night mode shifts the palette toward red to protect night vision, which
+     left "ahead" and "behind" as two shades of the same colour. A dim green on
+     a few characters costs nothing and the difference is the whole point. */
+  html[data-night="1"] .dn{color:#7fbf8e}
+  html[data-night="1"] .up{color:#ff6b5e}
   .cut{font-size:10.5px; margin-top:2px}
   .cut.tight{color:var(--hold); font-weight:800} .cut.over{color:var(--bad); font-weight:800}
   .jobslead{font-size:13px; color:var(--dim); margin:6px 0 12px; line-height:1.5}
@@ -974,10 +979,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
 
     <div id="paneLog">
-      <div class="watch hide" id="noKey" style="margin-bottom:10px; cursor:pointer">
-        <b>This phone can't log yet.</b> Tap here and paste the crew link to fix it —
-        you only do this once.
-      </div>
       <button class="bigbtn arrive" id="bigBtn">
         <span class="meta" id="bbMeta">Tap when Josh</span>
         <span class="verb" id="bbVerb">ARRIVES</span>
@@ -1165,7 +1166,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v38";
+const VERSION = "v39";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1511,31 +1512,22 @@ function project(state){
 }
 
 /* ============================================================
-   STORAGE — three interchangeable backends behind one interface.
+   STORAGE — the server is the shared record; this is the phone's side of it.
    Writes always land in localStorage first so a tap can never be
    lost to a dead signal; the queue drains whenever the net returns.
    ============================================================ */
 const LS_STATE = "utct.state.v1", LS_QUEUE = "utct.queue.v1", LS_PREF = "utct.pref.v1";
 
 const Store = {
-  mode:"local", status:"local", events:[], config:{}, onChange:null, db:null,
+  mode:"http", status:"sync", events:[], config:{}, onChange:null,
 
   async init(){
     const cached = JSON.parse(localStorage.getItem(LS_STATE) || "null");
     if(cached){ this.events = cached.events||[]; this.config = cached.config||{}; }
-    if(window.claude && typeof window.claude.use === "function"){
-      this.mode = "artifact"; this.setStatus("sync");
-      try{
-        const db = await window.claude.use("db");
-        if(db){ this.db = db; this.wireDb(); }
-        else { this.setStatus("err"); }
-      }catch(_){ this.setStatus("err"); }
-    } else {
-      this.mode = "http"; this.pull();
-      this.schedule();
-      document.addEventListener("visibilitychange", ()=>this.schedule());
-      window.addEventListener("online", ()=>{ this.drain(); this.pull(); });
-    }
+    this.pull();
+    this.schedule();
+    document.addEventListener("visibilitychange", ()=>this.schedule());
+    window.addEventListener("online", ()=>{ this.drain(); this.pull(); });
     this.emit();
     this.drain();
   },
@@ -1605,13 +1597,11 @@ const Store = {
         }catch(err){
           const fresh = this.queue();
           const mine = fresh.find(x => x.qid === item.qid);
-          const hopeless = err && err.permanent;                 // the server refused this item
-          const flaky = this.mode === "artifact";                // no status codes to go on there
-          if(mine && (hopeless || flaky)){
+          if(mine && err && err.permanent){                      // the server refused this item
             mine.tries = (mine.tries || 0) + 1;
-            if(mine.tries >= (hopeless ? 3 : 5)){ this.unqueue(item.qid); continue; }
+            if(mine.tries >= 3){ this.unqueue(item.qid); continue; }
             this.setQueue(fresh);
-            if(hopeless) continue;
+            continue;
           }
           blocked = true;                                        // no signal: keep everything, in order
           break;
@@ -1620,30 +1610,11 @@ const Store = {
     } finally { this.draining = false; }
     const left = this.queue().length;
     if(left) this.setStatus(blocked && !navigator.onLine ? "off" : "queued");
-    else { if(this.status !== "err") this.setStatus(this.mode==="local" ? "local" : "ok"); this.pull(); }
+    else { if(this.status !== "err") this.setStatus("ok"); this.pull(); }
     if(this.drainAgain){ this.drainAgain = false; if(!blocked) this.drain(); }
   },
 
   async push(item){
-    if(this.mode==="artifact"){
-      if(!this.db) throw new Error("no db");
-      if(item.kind==="tick"){
-        const d = this.db.doc("meta/config");
-        const body = { ticks: { [item.payload.key]: item.payload.on ? true : null } };
-        try{ await d.update(body); }                 // merges, so other ticks survive
-        catch(_){ await d.set(Object.assign({}, this.config)); }
-        return;
-      }
-      if(item.kind!=="event") { await this.db.doc("meta/config").set(Object.assign({}, this.config, item.payload)); return; }
-      const d = this.db.collection("events").doc(item.payload.id);
-      if(!item.payload.deleted){ await d.set(item.payload); return; }
-      /* If the store won't delete the row, write a tombstone instead — readers
-         drop it either way, and the outbox clears. */
-      try{ await d.delete(); }
-      catch(_){ await d.set(Object.assign({}, item.payload, { deleted:true })); }
-      return;
-    }
-    if(this.mode==="local") return;              // demo mode: localStorage only
     const r = await fetch(API, {
       method:"POST", headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ token: RUNNER_TOKEN, kind:item.kind, payload:item.payload })
@@ -1673,7 +1644,6 @@ const Store = {
   },
 
   async pull(){
-    if(this.mode!=="http") return;
     try{
       const r = await fetch(API + "?t=" + Date.now(), { cache:"no-store" });
       if(!r.ok) throw new Error("http " + r.status);
@@ -1682,45 +1652,6 @@ const Store = {
       if(j.ver) noteVersion(j.ver);
       if(!this.queue().length) this.setStatus("ok");
     }catch(_){ this.setStatus(navigator.onLine ? "err" : "off"); }
-  },
-
-  wireDb(){
-    /* onSnapshot hands back a QuerySnapshot — .docs of DocumentSnapshots,
-       each with data() as a FUNCTION. Subscribe once; never re-subscribe to
-       recover, the listener reconnects on its own. */
-    const fail = () => this.setStatus("err");
-    try{
-      this.db.collection("events").onSnapshot(snap => {
-        const list = (snap && snap.docs ? snap.docs : [])
-          .map(d => { try { return d.data(); } catch(_){ return null; } })
-          .filter(e => e && e.id);
-        this.merge(list, null);
-        if(!this.queue().length) this.setStatus("ok");
-      }, fail);
-
-      this.db.doc("meta/config").onSnapshot(snap => {
-        const c = snap && snap.exists ? snap.data() : null;
-        if(c && typeof c === "object"){
-          this.config = Object.assign({}, this.config, c);
-          this.emit();
-        }
-      }, fail);
-
-      // belt and braces: the stream is primary, this just catches a stalled one
-      setInterval(() => this.refreshDb(), 30000);
-      this.setStatus("ok");
-    }catch(_){ fail(); }
-  },
-
-  async refreshDb(){
-    if(!this.db || document.hidden) return;
-    try{
-      const snap = await this.db.collection("events").get();
-      this.merge((snap.docs||[]).map(d => d.data()).filter(e => e && e.id), null);
-      const c = await this.db.doc("meta/config").get();
-      if(c.exists) { this.config = Object.assign({}, this.config, c.data()); this.emit(); }
-      if(!this.queue().length) this.setStatus("ok");
-    }catch(_){ /* the listener is still the primary path */ }
   },
 
   /* ---- public writes ---- */
@@ -1816,7 +1747,6 @@ const RUNNER_TOKEN = (() => {
 
 const CAN_LOG = !!RUNNER_TOKEN;
 document.documentElement.dataset.view = CAN_LOG ? "crew" : "public";
-const ARTIFACT = !!(window.claude && typeof window.claude.use === "function");
 /* One link for the whole team. Everyone can log him in and out, everyone sees the
    board; the two tabs just decide which you're looking at. The token in the hash
    keeps strangers out of the write path. */
@@ -2170,14 +2100,12 @@ function renderChip(){
     c.textContent = "Following"; c.className = "chip";
     return;
   }
-  $("noKey").classList.add("hide");
   const map = {
     ok:    ["Live","ok"],
     sync:  ["Syncing…",""],
     queued:[q + " to send","warn"],
     err:   ["Offline","err"],
-    off:   ["No signal","err"],
-    local: ["Demo","warn"]
+    off:   ["No signal","err"]
   };
   const [txt, cls] = map[Store.status] || ["…",""];
   c.textContent = txt; c.className = "chip " + cls;
@@ -2499,7 +2427,7 @@ function renderBoard(st, P){
       '<tr class="'+(isNow?'now':past?'past':'')+(c.tp?' tp':'')+'">'+
       '<td><span class="nm">'+c.s+
         (isDark(inn!=null?inn:P.eta[i]) ? '<span class="moon" title="after dark">\u263D</span>' : '')+
-        '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.skip?'NOTHING TO DO':c.crew?(c.bag?'CREW + BACKUP BAG':'CREW'):'NO CREW')+'</span>'+
+        '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.tp?'TIMING POINT':c.skip?'NOTHING TO DO':c.crew?(c.bag?'CREW + BACKUP BAG':'CREW'):'NO CREW')+'</span>'+
       '</span><span class="d2">'+c.km.toFixed(1)+' km · '+c.v+' m'+'</span>'+cutCell+'</td>'+
       '<td class="mono d2">'+clk(planA)+'</td>'+
       '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+
@@ -2860,7 +2788,6 @@ function askForKey(){
   location.reload();
 }
 $("syncChip").addEventListener("click", askForKey);
-$("noKey").addEventListener("click", askForKey);
 $("crewLink").addEventListener("click", askForKey);
 if(!CAN_LOG) $("crewLink").classList.remove("hide");
 $("updBtn").addEventListener("click", applyUpdate);
@@ -2898,12 +2825,11 @@ $("nightBtn").addEventListener("click", () => {
   render();
   setInterval(render, 1000);
 
-  if("serviceWorker" in navigator && location.protocol==="https:" && Store.mode!=="artifact"){
+  if("serviceWorker" in navigator && location.protocol==="https:"){
     navigator.serviceWorker.register("sw.js").catch(()=>{});
   }
   document.addEventListener("visibilitychange", () => {
     if(document.hidden) return;
-    if(Store.mode === "artifact") Store.refreshDb();   // http polling: Store.schedule()
     Store.drain(); render();
   });
 })();

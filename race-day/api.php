@@ -220,7 +220,6 @@ if ($kind === 'event' && is_array($p) && isset($p['id'])) {
        always written it; the server used to whitelist only the old startMs name,
        so a correction made in Settings never reached the other phones. */
     if (isset($p['gunMs']) && is_numeric($p['gunMs'])) $cfg['gunMs'] = (float) $p['gunMs'];
-    if (isset($p['startMs']))   $cfg['startMs']   = (float) $p['startMs'];
     if (isset($p['needs']) && is_array($p['needs'])) {
         $items = [];
         foreach ((array) ($p['needs']['items'] ?? []) as $it) {
