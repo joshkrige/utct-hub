@@ -757,7 +757,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
     border:1px solid var(--line); border-radius:13px; padding:4px; margin-bottom:10px}
   .tab{border:none; background:transparent; color:var(--dim); font:inherit; font-size:13px;
     font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:10px 6px;
-    border-radius:9px; cursor:pointer; position:relative}
+    border-radius:9px; cursor:pointer; position:relative; white-space:nowrap}
+  /* Three tabs on a narrow phone: tighten rather than wrap onto two lines. */
+  @media (max-width:430px){ html:not([data-view="public"]) .tab{font-size:11.5px; letter-spacing:.02em; padding:10px 3px} }
   .tab.on{background:var(--panel2); color:var(--fg); box-shadow:0 1px 3px rgba(0,0,0,.4)}
   .dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--bad);
     margin-left:6px; vertical-align:middle}
@@ -1010,7 +1012,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div class="tabs">
       <button class="tab on" data-pane="paneLog">Log in / out</button>
       <button class="tab" data-pane="paneBoard">Status<span class="dot hide" id="tabDot"></span></button>
-      <button class="tab" data-pane="paneMap">Map</button>
+      <button class="tab" data-pane="paneMap">Race overview</button>
     </div>
 
     <div id="paneLog">
@@ -1034,19 +1036,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
 
     <div id="paneBoard" class="hide">
-    <div class="hero ovw" id="ovw">
-      <div class="lab">Race overview</div>
-      <div class="ovprog">
-        <div class="ovbar"><div id="ovBar"></div></div>
-        <div class="ovkm"><b id="ovKm">0.0 km</b> of 99.2 km<span id="ovPct"></span></div>
-      </div>
-      <div class="ovgrid">
-        <div class="cell"><div class="k">Elapsed</div><div class="v mono" id="ovEl">–</div><div class="s" id="ovElS">&nbsp;</div></div>
-        <div class="cell"><div class="k">Climbed</div><div class="v mono" id="ovUp">–</div><div class="s">of 4,731 m</div></div>
-        <div class="cell"><div class="k">Pace</div><div class="v" id="ovPace">–</div><div class="s" id="ovPaceS">&nbsp;</div></div>
-        <div class="cell"><div class="k">Checkpoints</div><div class="v mono" id="ovCp">–</div><div class="s" id="ovCpS">&nbsp;</div></div>
-      </div>
-    </div>
     <div class="hero" id="hero">
       <div class="lab">Where he is</div>
       <div class="status" id="cStatus">Waiting for the start</div>
@@ -1103,6 +1092,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
 
     <div id="paneMap" class="hide">
+    <div class="hero ovw" id="ovw">
+      <div class="lab">Race overview</div>
+      <div class="ovprog">
+        <div class="ovbar"><div id="ovBar"></div></div>
+        <div class="ovkm"><b id="ovKm">0.0 km</b> of 99.2 km<span id="ovPct"></span></div>
+      </div>
+      <div class="ovgrid">
+        <div class="cell"><div class="k">Elapsed</div><div class="v mono" id="ovEl">–</div><div class="s" id="ovElS">&nbsp;</div></div>
+        <div class="cell"><div class="k">Climbed</div><div class="v mono" id="ovUp">–</div><div class="s">of 4,731 m</div></div>
+        <div class="cell"><div class="k">Pace</div><div class="v" id="ovPace">–</div><div class="s" id="ovPaceS">&nbsp;</div></div>
+        <div class="cell"><div class="k">Checkpoints</div><div class="v mono" id="ovCp">–</div><div class="s" id="ovCpS">&nbsp;</div></div>
+      </div>
+    </div>
       <div class="hero">
         <div class="lab">Estimated position</div>
         <div class="status" id="mapWhere">—</div>
@@ -1220,7 +1222,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v57";
+const VERSION = "v58";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
