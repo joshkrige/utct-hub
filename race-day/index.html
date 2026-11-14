@@ -758,8 +758,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .tab{border:none; background:transparent; color:var(--dim); font:inherit; font-size:13px;
     font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:10px 6px;
     border-radius:9px; cursor:pointer; position:relative; white-space:nowrap}
-  /* Three tabs on a narrow phone: tighten rather than wrap onto two lines. */
-  @media (max-width:430px){ html:not([data-view="public"]) .tab{font-size:11.5px; letter-spacing:.02em; padding:10px 3px} }
   .tab.on{background:var(--panel2); color:var(--fg); box-shadow:0 1px 3px rgba(0,0,0,.4)}
   .dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--bad);
     margin-left:6px; vertical-align:middle}
@@ -1012,7 +1010,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <div class="tabs">
       <button class="tab on" data-pane="paneLog">Log in / out</button>
       <button class="tab" data-pane="paneBoard">Status<span class="dot hide" id="tabDot"></span></button>
-      <button class="tab" data-pane="paneMap">Race overview</button>
+      <button class="tab" data-pane="paneMap">Overview</button>
     </div>
 
     <div id="paneLog">
@@ -1222,7 +1220,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v58";
+const VERSION = "v59";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
