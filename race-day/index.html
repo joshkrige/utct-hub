@@ -851,6 +851,23 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .duskrow{font-size:11px; color:var(--dim); padding:7px 8px;
     background:color-mix(in srgb, var(--info) 9%, transparent)}
 
+  /* Look ahead: any crew stop's list, without pretending he is on his way. */
+  .stoppick{display:flex; gap:6px; overflow-x:auto; margin:-2px -2px 12px; padding:2px;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch}
+  .stoppick::-webkit-scrollbar{display:none}
+  .stoppick button{flex:0 0 auto; border:1px solid var(--line); background:transparent;
+    color:var(--dim); border-radius:999px; padding:7px 12px; font-size:12px; font-weight:700;
+    cursor:pointer; white-space:nowrap}
+  .stoppick button.live{border-color:var(--go); color:var(--fg)}
+  .stoppick button.on{background:var(--fg); color:var(--bg); border-color:var(--fg)}
+  .stoppick button.past{opacity:.45}
+  .ahead{display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin:0 0 12px; padding:9px 11px; border-radius:10px; font-size:12px; line-height:1.35;
+    background:color-mix(in srgb, var(--info) 14%, transparent); color:var(--fg)}
+  .ahead .mini{flex:0 0 auto}
+  ul.jobs.ro li{cursor:default}
+  ul.jobs.ro li .box{opacity:.35}
+
   .hero{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:10px}
   .hero.alert{border-color:var(--bad); background:color-mix(in srgb, var(--bad) 9%, var(--panel))}
   .hero .lab{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:800}
@@ -1038,6 +1055,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <div class="sub" id="needsWhen">—</div>
     </div>
     <div class="hero hide" id="jobsCard">
+      <div class="stoppick" id="stopPick"></div>
+      <div class="ahead hide" id="aheadBar">
+        <span id="aheadTxt">Looking ahead</span>
+        <button class="mini" id="aheadBack">Back to now</button>
+      </div>
       <div class="lab" id="jobsLab">Your jobs at the next stop</div>
       <div class="jobslead" id="jobsLead"></div>
       <ul class="jobs" id="jobsList"></ul>
@@ -1174,7 +1196,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v53";
+const VERSION = "v54";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2531,14 +2553,32 @@ function renderBoard(st, P){
   $("crewFoot").textContent = "Times " + TZ_LABEL + " · " + VERSION;
 
   // jobs for the stop he's standing in, else the next crew stop
-  const ji = (pos.phase==="aid" && CPS[pos.cp].crew) ? pos.cp
-           : (pos.phase==="pre" ? 0 : nxi);
+  const liveJi = (pos.phase==="aid" && CPS[pos.cp].crew) ? pos.cp
+               : (pos.phase==="pre" ? 0 : nxi);
+  /* Someone planning ahead can open any crew stop's list. It changes nothing
+     that has been logged, and the live stop is one tap away. */
+  if(jobsView === liveJi) jobsView = null;
+  const ahead = jobsView != null;
+  const ji = ahead ? jobsView : liveJi;
   const J = JOBS[ji];
-  if(J && pos.phase!=="finished"){
+  if(J && (ahead || pos.phase!=="finished")){
     $("jobsCard").classList.remove("hide");
+    $("stopPick").innerHTML = Object.keys(JOBS).map(Number).map(k =>
+      '<button data-stop="' + k + '" class="'
+        + (k === ji ? "on " : "") + (k === liveJi && pos.phase!=="finished" ? "live " : "")
+        + (k < liveJi || pos.phase==="finished" ? "past" : "") + '">'
+        + (k === 0 ? "Start" : k === LAST ? "Finish" : CPS[k].s) + "</button>").join("");
+    $("aheadBar").classList.toggle("hide", !ahead);
+    if(ahead){
+      const at = P.inT[ji] != null ? "he was here at " + clk(P.inT[ji])
+               : ji === 0 ? "race start " + clk(P.gun)
+               : "expected about " + clk(P.eta[ji]);
+      $("aheadTxt").innerHTML = "<b>Looking ahead</b> · " + CPS[ji].s + " · " + at
+        + (pos.phase==="finished" ? "" : ". Ticks open when it's the live stop.");
+    }
     const ticks = st.config.ticks || {};
     const done = J.do.filter((_,i) => ticks[ji+":"+i]).length;
-    $("jobsLab").innerHTML = ((ji===pos.cp && pos.phase==="aid")
+    $("jobsLab").innerHTML = ((!ahead && ji===pos.cp && pos.phase==="aid")
         ? "He's here now · your jobs at " + CPS[ji].s
         : "Your jobs at " + CPS[ji].s)
       + '<span class="jobcount">' + done + "/" + J.do.length + "</span>";
@@ -2550,7 +2590,7 @@ function renderBoard(st, P){
     /* He can be standing at a checkpoint the crew cannot reach, and the jobs on
        screen then belong to a different stop entirely. Say so, or it reads like
        the wrong list. */
-    if(ji !== pos.cp && pos.phase === "aid" && !CPS[pos.cp].crew){
+    if(!ahead && ji !== pos.cp && pos.phase === "aid" && !CPS[pos.cp].crew){
       lead = "<b>He's at " + CPS[pos.cp].s + " — you can't reach him there.</b> "
            + "Nothing to do until " + CPS[ji].s + ". " + lead;
     }
@@ -2562,8 +2602,12 @@ function renderBoard(st, P){
       lead = '<b>This one is in the dark.</b> ' + lead;
     }
     $("jobsLead").innerHTML = lead;
+    /* Read-only while looking ahead: a tick made while planning would show as
+       done when he actually arrives. */
+    $("jobsList").classList.toggle("ro", ahead);
     $("jobsList").innerHTML = J.do.map((x,i) =>
-      '<li class="' + (ticks[ji+":"+i] ? "done" : "") + '" data-k="' + ji + ':' + i + '">'
+      '<li class="' + (ticks[ji+":"+i] ? "done" : "") + '"'
+      + (ahead ? '' : ' data-k="' + ji + ':' + i + '"') + '>'
       + '<span class="box">✓</span><span class="txt">' + x + "</span></li>").join("");
     $("jobsWatch").innerHTML = J.watch;
     const mp = $("jobsMap");
@@ -2578,6 +2622,8 @@ function renderBoard(st, P){
   if(lastSeenEvent && last && last!==lastSeenEvent && Pref.get("beep",false)) ping();
   lastSeenEvent = last;
 }
+
+let jobsView = null;          // a crew stop opened for planning; null = follow the race
 
 /* Leave-now alert.
 
@@ -2830,6 +2876,13 @@ $("jobsList").addEventListener("click", e => {
   Store.setTick(k, on);
   render();
 });
+
+$("stopPick").addEventListener("click", e => {
+  const b = e.target.closest("button[data-stop]"); if(!b) return;
+  jobsView = +b.dataset.stop;
+  render();
+});
+$("aheadBack").addEventListener("click", () => { jobsView = null; render(); });
 
 $("mapFollowBtn").addEventListener("click", () => setFollow(!follow()));
 
