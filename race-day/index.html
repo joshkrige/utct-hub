@@ -1156,18 +1156,17 @@ svg.leaflet-image-layer.leaflet-interactive path {
 "use strict";
 /* ============================================================
    UTCT 100 km — runner check-in / crew tracker
-   Course data: official UTCT 100 km checkpoint table
-   (99.17 km, 4,676 m D+, 26 h limit, 04:00 Sat start).
-   Pure timing-only checkpoints (Platteklip Gorge, Nursery Ravine,
-   Dead Man's Tree) are deliberately NOT loggable — Josh only ever
-   taps at a real aid station, so there is nothing to get wrong.
+   Course data: official RMB UTCT 2026 Route Timing Schedule
+   (99.21 km, 4,731 m D+, 26 h limit, 04:00 Sat start).
+   Timing-only points (Platteklip Gorge, Nursery Ravine, Dead Man's
+   Tree) are logged with a single tap; every aid station takes two.
    ============================================================ */
 
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v37";
-const VERSION_DATE = "6 Nov 2026";
+const VERSION = "v38";
+const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
 const TZ_LABEL = "SAST";
@@ -1455,7 +1454,9 @@ function project(state){
   if(pos.phase==="pre"){ cursor = start; startIdx = 1; eta[0]=start; etd[0]=start; }
   else if(pos.phase==="aid"){
     eta[pos.cp] = inT[pos.cp];
-    etd[pos.cp] = inT[pos.cp] + (CPS[pos.cp].stop*60*sRatio)*1000;
+    /* Still in the stop after its planned length: he leaves now at the
+       earliest, and everything downstream moves with the clock. */
+    etd[pos.cp] = Math.max(inT[pos.cp] + (CPS[pos.cp].stop*60*sRatio)*1000, Date.now());
     cursor = etd[pos.cp]; startIdx = pos.cp + 1;
   } else if(pos.phase==="leg"){
     etd[pos.cp] = outT[pos.cp]; cursor = outT[pos.cp]; startIdx = pos.cp + 1;
@@ -1469,6 +1470,11 @@ function project(state){
   }
   for(let i=startIdx; i<CPS.length; i++){
     cursor += plan.legs[i-1].t * ratio * 1000;
+    /* If he is already past due at the next point, the honest estimate is
+       "now at the earliest" — otherwise the next arrival sits in the past and
+       every cut-off margin downstream looks healthier than it is until
+       somebody taps. */
+    if(i === startIdx && pos.phase === "leg") cursor = Math.max(cursor, Date.now());
     eta[i] = cursor;
     if(i<LAST){ cursor += CPS[i].stop*60*sRatio*1000; etd[i] = cursor; }
   }
@@ -1557,6 +1563,7 @@ const Store = {
     this.events = [...seen.values()].sort((a,b)=>a.t-b.t);
     if(cfg){
       this.config = Object.assign({}, this.config, cfg);
+      for(const q of this.queue()) if(q.kind === "config") Object.assign(this.config, q.payload);
       const pending = this.queue().filter(q => q.kind === "tick");
       if(pending.length){
         const ticks = Object.assign({}, this.config.ticks || {});
@@ -1572,26 +1579,49 @@ const Store = {
   /* ---- offline queue ---- */
   queue(){ return JSON.parse(localStorage.getItem(LS_QUEUE) || "[]"); },
   setQueue(q){ localStorage.setItem(LS_QUEUE, JSON.stringify(q)); },
-  enqueue(item){ const q = this.queue(); q.push(item); this.setQueue(q); },
+  enqueue(item){ item.qid = uid(); const q = this.queue(); q.push(item); this.setQueue(q); },
+  unqueue(qid){ this.setQueue(this.queue().filter(x => x.qid !== qid)); },
 
+  /* The outbox exists for the hours he is out of signal, so "the network is
+     down" must never count against a tap. Only an answer from the server saying
+     the item itself is bad can retire it. One drain runs at a time and works
+     from the stored queue item by item — two overlapping drains each writing
+     back their own idea of "what is left" is how a queued tap gets lost. */
   async drain(){
     if(this.mode === "http" && !RUNNER_TOKEN){ this.setStatus("err"); return; }
-    let q = this.queue();
-    if(!q.length){ if(this.status!=="err") this.setStatus(this.mode==="local"?"local":"ok"); return; }
-    this.setStatus("sync");
-    const left = [];
-    for(const item of q){
-      try{ await this.push(item); }
-      catch(_){
-        /* An item that can never succeed must not wedge the outbox forever —
-           after a few goes we drop it rather than retry it for the whole race. */
-        item.tries = (item.tries || 0) + 1;
-        if(item.tries < 5) left.push(item);
+    if(this.draining){ this.drainAgain = true; return; }
+    this.draining = true;
+    let blocked = false;
+    try{
+      for(;;){
+        const q = this.queue();
+        if(!q.length) break;
+        const item = q[0];
+        if(!item.qid){ item.qid = uid(); this.setQueue(q); }      // queued by an older build
+        if(this.status !== "sync") this.setStatus("sync");
+        try{
+          await this.push(item);
+          this.unqueue(item.qid);
+        }catch(err){
+          const fresh = this.queue();
+          const mine = fresh.find(x => x.qid === item.qid);
+          const hopeless = err && err.permanent;                 // the server refused this item
+          const flaky = this.mode === "artifact";                // no status codes to go on there
+          if(mine && (hopeless || flaky)){
+            mine.tries = (mine.tries || 0) + 1;
+            if(mine.tries >= (hopeless ? 3 : 5)){ this.unqueue(item.qid); continue; }
+            this.setQueue(fresh);
+            if(hopeless) continue;
+          }
+          blocked = true;                                        // no signal: keep everything, in order
+          break;
+        }
       }
-    }
-    this.setQueue(left);
-    this.setStatus(left.length ? "queued" : "ok");
-    if(!left.length) this.pull();
+    } finally { this.draining = false; }
+    const left = this.queue().length;
+    if(left) this.setStatus(blocked && !navigator.onLine ? "off" : "queued");
+    else { if(this.status !== "err") this.setStatus(this.mode==="local" ? "local" : "ok"); this.pull(); }
+    if(this.drainAgain){ this.drainAgain = false; if(!blocked) this.drain(); }
   },
 
   async push(item){
@@ -1604,7 +1634,7 @@ const Store = {
         catch(_){ await d.set(Object.assign({}, this.config)); }
         return;
       }
-      if(item.kind!=="event") { await this.db.doc("meta/config").set(item.payload); return; }
+      if(item.kind!=="event") { await this.db.doc("meta/config").set(Object.assign({}, this.config, item.payload)); return; }
       const d = this.db.collection("events").doc(item.payload.id);
       if(!item.payload.deleted){ await d.set(item.payload); return; }
       /* If the store won't delete the row, write a tombstone instead — readers
@@ -1618,7 +1648,13 @@ const Store = {
       method:"POST", headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ token: RUNNER_TOKEN, kind:item.kind, payload:item.payload })
     });
-    if(!r.ok) throw new Error("http " + r.status);
+    if(!r.ok){
+      const err = new Error("http " + r.status);
+      /* 400 means this item is malformed and will never go through. Anything
+         else — a refused code, a busy server — may yet come right. */
+      err.permanent = r.status === 400;
+      throw err;
+    }
     const j = await r.json();
     if(j && j.events) this.merge(j.events, j.config);
   },
@@ -1632,7 +1668,7 @@ const Store = {
     if(this.pollMs === want) return;
     this.pollMs = want;
     clearInterval(this.pollTimer);
-    this.pollTimer = setInterval(()=>this.pull(), want);
+    this.pollTimer = setInterval(()=>{ this.pull(); if(this.queue().length) this.drain(); }, want);
     if(!document.hidden) this.pull();
   },
 
@@ -1697,15 +1733,31 @@ const Store = {
     this.drain();
     return ev;
   },
-  removeLast(){
-    if(!this.events.length) return null;
-    const ev = this.events[this.events.length-1];
-    const kill = { id:ev.id, cp:ev.cp, type:ev.type, t:ev.t, deleted:true };
-    this.events = this.events.slice(0,-1);
+  removeEvents(list){
+    if(!list.length) return;
+    const ids = new Set(list.map(e => e.id));
+    this.events = this.events.filter(e => !ids.has(e.id));
     this.emit();
-    this.enqueue({ kind:"event", payload:kill });
+    for(const e of list) this.enqueue({ kind:"event",
+      payload:{ id:e.id, cp:e.cp, type:e.type, t:e.t, deleted:true } });
     this.drain();
-    return ev;
+  },
+  /* The furthest tap along the course is "the last one", whatever the clocks
+     say. A timing point is one tap that writes two events, so it undoes as one. */
+  lastTap(){
+    if(!this.events.length) return [];
+    let top = this.events[0];
+    for(const e of this.events){
+      if(e.cp > top.cp || (e.cp === top.cp && e.type === "out")) top = e;
+    }
+    return CPS[top.cp] && CPS[top.cp].tp
+      ? this.events.filter(e => e.cp === top.cp)
+      : [top];
+  },
+  removeLast(){
+    const gone = this.lastTap();
+    this.removeEvents(gone);
+    return gone[0] || null;
   },
   resetAll(){
     const gone = this.events.slice();
@@ -1714,13 +1766,17 @@ const Store = {
     this.emit();
     for(const e of gone) this.enqueue({ kind:"event",
       payload:{ id:e.id, cp:e.cp, type:e.type, t:e.t, deleted:true } });
-    this.enqueue({ kind:"config", payload:this.config });
+    this.enqueue({ kind:"config", payload:{ needs:this.config.needs, ticks:{} } });
     this.drain();
   },
+  /* Only the keys that changed go to the server. Sending the whole config
+     meant a phone holding a stale copy — or one that queued a change hours ago
+     on the mountain — put back the old gun time and wiped every job tick the
+     others had made since. */
   saveConfig(patch){
     this.config = Object.assign({}, this.config, patch);
     this.emit();
-    this.enqueue({ kind:"config", payload:this.config });
+    this.enqueue({ kind:"config", payload:patch });
     this.drain();
   },
 
@@ -2042,7 +2098,7 @@ function updateMap(st, P){
   } else {
     const i = pos.cp, j = nextLog(i);
     const span = P.eta[j] - P.outT[i];
-    const f = clamp(span > 0 ? (Date.now() - P.outT[i]) / span : 0, 0, 1);
+    const f = clamp(span > 0 ? (Date.now() - P.outT[i]) / span : 0, 0, 0.97);   // never *at* the next point until it is tapped
     e = CP_E[i] + f * (CP_E[j] - CP_E[i]);
     where = "Between " + CPS[i].s + " and " + CPS[j].s;
     sub = Math.round(f*100) + "% of the leg · into " + CPS[j].s + " about " + clk(P.eta[j]);
@@ -2149,9 +2205,10 @@ function renderLog(st, P){
   } else { // on a leg -> the next point anyone is standing at
     const nx = nextLog(pos.cp);
     meta = "Tap when Josh";
-    verb = nx===LAST ? "FINISHES" : "ARRIVES";
-    place = (nx===LAST ? "at " : "at ") + CPS[nx].s;
-    sub = (nx===LAST ? "the finish" : "CP " + nx) + " · " + CPS[nx].km.toFixed(1) + " km";
+    verb = nx===LAST ? "FINISHES" : CPS[nx].tp ? "PASSES" : "ARRIVES";
+    place = (CPS[nx].tp ? "" : "at ") + CPS[nx].n.replace(" · Gardens RFC","");
+    sub = (nx===LAST ? "the finish" : CPS[nx].tp ? "timing point · one tap, no stop" : "CP " + nx)
+        + " · " + CPS[nx].km.toFixed(1) + " km";
     cls = "arrive"; action = { cp:nx, type:"in" };
   }
 
@@ -2173,7 +2230,7 @@ function renderLog(st, P){
   let cell = $("rCutCell"), done = false;
   for(let i=1; i<CPS.length; i++){
     if(CPS[i].cut==null) continue;
-    if(P.inT[i]!=null) continue;
+    if(P.inT[i]!=null || i <= pos.cp) continue;       // behind him, tapped or not
     const limit = P.gun + CPS[i].cut*3600*1000;
     const buf = (limit - (P.eta[i]||limit))/1000;
     $("rCut").textContent = hm(buf, true);
@@ -2327,7 +2384,7 @@ function renderBoard(st, P){
   // next crew-accessible point
   let nxi = -1;
   for(let i=1; i<CPS.length; i++){
-    if(!CPS[i].crew || P.inT[i] != null) continue;
+    if(!CPS[i].crew || P.inT[i] != null || i <= pos.cp) continue;
     nxi = i; break;
   }
   if(nxi>0){
@@ -2419,7 +2476,7 @@ function renderBoard(st, P){
     const inn = P.inT[i], out = P.outT[i];
     const et = P.eta[i];
     const isNow = (pos.phase==="aid" && pos.cp===i) || (pos.phase==="leg" && pos.cp+1===i);
-    const past = inn!=null;
+    const past = inn!=null || i <= pos.cp;            // behind him, tapped or not
 
     let etaCell;
     if(past && i===LAST) etaCell = '<span class="pill">'+clk(inn)+'</span>';
@@ -2546,7 +2603,7 @@ function checkLeaveNow(P, pos){
   if(!CAN_LOG || !Pref.get("beep", false)) return;
   if(pos.phase === "finished") return;
   let nxi = -1;
-  for(let i=1; i<CPS.length; i++){ if(CPS[i].crew && !CPS[i].skip && P.inT[i]==null){ nxi=i; break; } }
+  for(let i=1; i<CPS.length; i++){ if(CPS[i].crew && !CPS[i].skip && P.inT[i]==null && i > pos.cp){ nxi=i; break; } }
   if(nxi < 0 || leaveWarned[nxi]) return;
   const drive = CPS[nxi].drive || 0;
   if(!drive || P.eta[nxi] == null) return;
@@ -2559,11 +2616,26 @@ function checkLeaveNow(P, pos){
   }
 }
 
+/* iOS only lets a page make sound from an audio context that was started by a
+   touch. A fresh context created from a timer — which is exactly when the
+   leave-now alert fires — stays silent. So: one shared context, woken by the
+   first touch anywhere on the page, reused for every alert after that. */
+let AUDIO = null;
+function wakeAudio(){
+  try{
+    const C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    if(!AUDIO) AUDIO = new C();
+    if(AUDIO.state === "suspended") AUDIO.resume();
+  }catch(_){}
+}
+document.addEventListener("pointerdown", wakeAudio, { passive:true });
+
 function ping(){
   try{ if(navigator.vibrate) navigator.vibrate([120,60,120]); }catch(_){}
   try{
-    const C = window.AudioContext || window.webkitAudioContext; if(!C) return;
-    const a = new C(), o = a.createOscillator(), g = a.createGain();
+    wakeAudio();
+    const a = AUDIO; if(!a) return;
+    const o = a.createOscillator(), g = a.createGain();
     o.connect(g); g.connect(a.destination); o.frequency.value = 880; o.type = "sine";
     g.gain.setValueAtTime(0.0001, a.currentTime);
     g.gain.exponentialRampToValueAtTime(0.25, a.currentTime+0.02);
@@ -2591,10 +2663,12 @@ $("bigBtn").addEventListener("click", e => {
 });
 
 $("undoBtn").addEventListener("click", () => {
-  const last = Store.events[Store.events.length-1];
+  const gone = Store.lastTap();
+  const last = gone[gone.length-1];
   if(!last) return;
   confirmDlg("Undo last tap?",
-    "This removes " + last.type.toUpperCase() + " at " + CPS[last.cp].s + " (" + clk(last.t) + ").",
+    "This removes " + (CPS[last.cp].tp ? "the pass through " : last.type.toUpperCase() + " at ")
+      + CPS[last.cp].s + " (" + clk(last.t) + ").",
     () => { Store.removeLast(); toast("Undone"); render(); });
 });
 
@@ -2606,15 +2680,30 @@ $("fixBtn").addEventListener("click", () => {
   sel.value = String(P.pos.phase==="leg" ? nextLog(P.pos.cp) : prevLog(P.pos.cp));
   $("dlgFix").showModal();
 });
+/* Setting the position is a statement of fact: "he is HERE". Everything logged
+   beyond that point contradicts it and has to go — which is what a correction
+   backwards means, and why it used to do nothing: it only ever added taps.
+   Times already logged at or before the chosen point are kept as they are. */
 $("fixGo").addEventListener("click", () => {
-  const cp = +$("fixCp").value, s = $("fixState").value;
-  const now = Date.now();
-  // fill in anything missed before this point so the model stays continuous
-  const st = state(); const have = new Set(st.events.map(e=>e.cp+":"+e.type));
-  if(!have.has("0:out")) Store.log(0,"out");
-  Store.log(cp, "in");
-  if(s==="out") Store.log(cp, "out");
-  $("dlgFix").close(); toast("Set to " + CPS[cp].s); render();
+  const cp = +$("fixCp").value;
+  const wantOut = $("fixState").value === "out" || !!CPS[cp].tp;
+  const st = state();
+  const beyond = st.events.filter(e => e.cp > cp || (e.cp === cp && e.type === "out" && !wantOut));
+  const apply = () => {
+    Store.removeEvents(beyond);
+    const have = new Set(state().events.map(e => e.cp + ":" + e.type));
+    /* "At the start" means not yet running; any other answer implies the gun. */
+    if((cp > 0 || wantOut) && !have.has("0:out")) Store.log(0, "out");
+    if(cp > 0 && !have.has(cp + ":in")) Store.log(cp, "in");
+    if(cp > 0 && wantOut && !have.has(cp + ":out")) Store.log(cp, "out");
+    toast("Set to " + CPS[cp].s); render();
+  };
+  $("dlgFix").close();
+  if(beyond.length){
+    confirmDlg("Move him back to " + CPS[cp].s + "?",
+      "This removes " + beyond.length + " tap" + (beyond.length>1?"s":"")
+        + " logged beyond that point.", apply);
+  } else apply();
 });
 
 /* First user-typed text to reach innerHTML anywhere in the app. Escape it:
@@ -2728,8 +2817,9 @@ $("cfgSave").addEventListener("click", () => {
 function confirmDlg(title, body, go){
   $("cfTitle").textContent = title; $("cfBody").textContent = body;
   const d = $("dlgConfirm");
-  const h = () => { d.close(); go(); $("cfGo").removeEventListener("click", h); };
-  $("cfGo").addEventListener("click", h);
+  /* Assigned, not added: a listener added per call survives a Cancel, and the
+     cancelled action then runs alongside the next thing anyone confirms. */
+  $("cfGo").onclick = () => { d.close(); go(); };
   d.showModal();
 }
 document.addEventListener("click", e => {
@@ -2796,6 +2886,12 @@ $("nightBtn").addEventListener("click", () => {
   const h = new Date().getHours();
   const auto = Pref.get("nightAuto", true);
   applyNight(auto ? (h>=18 || h<6) : Pref.get("night", false));
+
+  setInterval(() => {
+    if(!Pref.get("nightAuto", true)) return;
+    const hh = new Date().getHours();
+    applyNight(hh>=18 || hh<6);
+  }, 60000);
 
   Store.onChange = render;
   Store.init();

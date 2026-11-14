@@ -39,13 +39,17 @@ if (!is_dir($dir)) {
     @file_put_contents($dir . '/.htaccess', "Require all denied\nDeny from all\n");
 }
 
-function load_state(string $file): array {
+/* $ok is false only when a state file EXISTS but could not be read or parsed.
+   A reader can shrug that off; a writer must not, because carrying on would
+   save one new tap on top of nothing and erase the race. */
+function load_state(string $file, ?bool &$ok = null): array {
+    $ok = true;
     $blank = ['events' => [], 'config' => new stdClass()];
     if (!is_file($file)) return $blank;
     $raw = @file_get_contents($file);
-    if ($raw === false || $raw === '') return $blank;
+    if ($raw === false || $raw === '') { $ok = false; return $blank; }
     $j = json_decode($raw, true);
-    if (!is_array($j)) return $blank;
+    if (!is_array($j)) { $ok = false; return $blank; }
     return [
         'events' => isset($j['events']) && is_array($j['events']) ? $j['events'] : [],
         'config' => isset($j['config']) && is_array($j['config']) ? $j['config'] : [],
@@ -134,7 +138,14 @@ if (!isset($body['token']) || !hash_equals($RUNNER_TOKEN, (string) $body['token'
 $lock = @fopen($dir . '/.lock', 'c');
 if ($lock) { flock($lock, LOCK_EX); }
 
-$state  = load_state($file);
+$state  = load_state($file, $readable);
+if (!$readable) {
+    /* 503, not 400: the phone keeps the tap queued and tries again. */
+    http_response_code(503);
+    echo json_encode(['error' => 'state unreadable, not overwriting']);
+    if ($lock) { flock($lock, LOCK_UN); fclose($lock); }
+    exit;
+}
 $kind   = $body['kind'] ?? '';
 $p      = $body['payload'] ?? null;
 
@@ -148,7 +159,11 @@ if ($kind === 'event' && is_array($p) && isset($p['id'])) {
     } else {
         $cp   = isset($p['cp']) ? (int) $p['cp'] : -1;
         $type = ($p['type'] ?? '') === 'out' ? 'out' : 'in';
-        $t    = isset($p['t']) ? (float) $p['t'] : round(microtime(true) * 1000);
+        $now  = round(microtime(true) * 1000);
+        $t    = isset($p['t']) ? (float) $p['t'] : $now;
+        /* A phone whose clock runs fast would log an arrival that has not
+           happened yet. Past times are legitimate (taps queued offline). */
+        if ($t > $now + 120000) $t = $now;
         if ($cp < 0 || $cp > 40) {
             http_response_code(400);
             echo json_encode(['error' => 'bad cp']);
