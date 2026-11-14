@@ -770,6 +770,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .bigbtn[disabled]{filter:grayscale(.55) brightness(.6); cursor:default}
   .bigbtn .verb{font-size:12.5vw; line-height:.95; font-weight:900; letter-spacing:-.02em}
   .bigbtn .place{font-size:6vw; line-height:1.15; font-weight:800; opacity:.92; max-width:15ch}
+  /* Whose stop is it? Readable from the button alone: a filled badge means the
+     crew are needed there, an outlined one means they are not. */
+  .bigbtn .bbtag{display:inline-block; margin-top:2.2vw; padding:.5em 1em; border-radius:999px;
+    font-size:3.5vw; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
+    border:2px solid rgba(0,0,0,.55); color:rgba(0,0,0,.7)}
+  .bigbtn .bbtag.crew{background:rgba(0,0,0,.82); border-color:transparent; color:#fff}
+  @media (min-width:520px){ .bigbtn .bbtag{font-size:15px; margin-top:10px} }
   .bigbtn .meta{font-size:3.9vw; font-weight:800; letter-spacing:.09em; text-transform:uppercase; opacity:.78}
   .bigbtn .sub2{font-size:3.3vw; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
     opacity:.6; margin-top:8px}
@@ -983,6 +990,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         <span class="meta" id="bbMeta">Tap when Josh</span>
         <span class="verb" id="bbVerb">ARRIVES</span>
         <span class="place" id="bbPlace">at Signal Hill</span>
+        <span class="bbtag hide" id="bbTag"></span>
         <span class="sub2" id="bbSub">CP 1 · 11.9 km</span>
       </button>
       <div class="row" style="margin:10px 0">
@@ -1166,7 +1174,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v39";
+const VERSION = "v40";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -2135,10 +2143,24 @@ function renderLog(st, P){
     meta = "Tap when Josh";
     verb = nx===LAST ? "FINISHES" : CPS[nx].tp ? "PASSES" : "ARRIVES";
     place = (CPS[nx].tp ? "" : "at ") + CPS[nx].n.replace(" · Gardens RFC","");
-    sub = (nx===LAST ? "the finish" : CPS[nx].tp ? "timing point · one tap, no stop" : "CP " + nx)
+    sub = (nx===LAST ? "the finish" : CPS[nx].tp ? "one tap, no stop" : "CP " + nx)
         + " · " + CPS[nx].km.toFixed(1) + " km";
     cls = "arrive"; action = { cp:nx, type:"in" };
   }
+
+  /* The stop this button is about: the one he is in, or the one he is heading to. */
+  const tg = $("bbTag");
+  const ti = pos.phase==="aid" ? pos.cp : pos.phase==="leg" ? nextLog(pos.cp) : -1;
+  if(ti > 0){
+    const c = CPS[ti];
+    const isCrew = c.crew && !c.skip;
+    tg.textContent = c.tp ? "Timing point · no crew"
+                   : ti===LAST ? "Finish · crew"
+                   : isCrew ? "Crew point"
+                   : c.skip ? "Crew optional · nothing to do"
+                   : "No crew · aid station only";
+    tg.className = "bbtag" + (isCrew ? " crew" : "");
+  } else tg.className = "bbtag hide";
 
   $("bbVerb").textContent = verb;
   $("bbPlace").textContent = place;
