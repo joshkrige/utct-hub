@@ -1174,7 +1174,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v40";
+const VERSION = "v41";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1217,7 +1217,7 @@ const CPS = [
 /* One job per line, so every line is a thing you can tick.
 
    The same job is written the same way at every stop, in the same order:
-   phone, bottles, food, body, kit, layers, phone back. The crew should be able
+   phone, bottles, solids, body, kit, layers, phone back. The crew should be able
    to learn the rhythm once and then stop reading carefully at 3am. Only the
    things that genuinely differ between stops are phrased differently. */
 const JOBS = {
@@ -1234,7 +1234,7 @@ const JOBS = {
   2:{ lead:"Next time you see him is <b>over four hours later</b> \u2014 Platteklip Gorge (876 m in 4.83 km), then the exposed plateau.",
       do:["<b>Charge his phone.</b>",
           "Bottles: <b>Tailwind, 2.5 scoops each</b>, filled to 2L.",
-          "Food into his pack pockets: Tailwind bar, dates, Bioplus, Farbar. <b>Four to six hours' worth.</b>",
+          "<b>Solids: 5 portions on him before he leaves.</b> Ask him which \u2014 Tailwind bar, dates, Bioplus, Farbar.",
           "Make him eat something in front of you.",
           "Chafe check.",
           "Sunscreen: face, ears, neck, arms.",
@@ -1247,7 +1247,7 @@ const JOBS = {
       do:["<b>Charge his phone.</b>",
           "<b>Ice</b> \u2014 in the cap, down his shirt, in the bottles. Worth more than anything else in the car.",
           "Bottles: <b>Tailwind, 2.5 scoops each</b>, cold. Salt toward 1,000 mg an hour from here.",
-          "Food into his pack pockets: Tailwind bar, dates, Bioplus, Farbar.",
+          "<b>Solids: 5 portions on him before he leaves.</b> Ask him which \u2014 Tailwind bar, dates, Bioplus, Farbar.",
           "Real food now, while his stomach still wants it \u2014 potatoes, a sandwich, something savoury.",
           "Chafe check.",
           "Magnesium and massage gun on his legs.",
@@ -1260,7 +1260,7 @@ const JOBS = {
       do:["<b>Charge his phone.</b>",
           "<b>Headtorch and spare batteries onto him.</b> Alphen is the next crew point and it will be dark long before then.",
           "Bottles: <b>Tailwind, 2.5 scoops each</b>, with ice.",
-          "Food into his pack pockets: Tailwind bar, dates, Bioplus, Farbar. <b>Second half of his nutrition \u2014 about 630 g of carbs for the last 42 km.</b>",
+          "<b>Solids: 5 portions on him before he leaves.</b> Ask him which \u2014 Tailwind bar, dates, Bioplus, Farbar.",
           "<b>Fresh shoes and dry socks.</b> Blisters now \u2014 the one stop where feet are worth the minutes.",
           "Toasted sarmie.",
           "Chafe check.",
@@ -1275,7 +1275,7 @@ const JOBS = {
       do:["<b>Charge his phone.</b>",
           "<b>Torch: check the beam, swap the batteries.</b> No drop bag left, and the rest is dark.",
           "Bottles: <b>Tailwind, 2.5 scoops each</b> \u2014 warm, not iced.",
-          "Food into his pack pockets: Tailwind bar, dates, Bioplus, Farbar.",
+          "<b>Solids: 5 portions on him before he leaves.</b> Ask him which \u2014 Tailwind bar, dates, Bioplus, Farbar.",
           "Hot, sweet and liquid \u2014 tea, broth, Coke. Assume solids are getting difficult.",
           "Pasta meal if he'll take it.",
           "Red Bull.",
@@ -1291,6 +1291,7 @@ const JOBS = {
       do:["<b>Charge his phone.</b>",
           "<b>Torch: confirm it will last another two to three hours.</b> Swap the batteries if there's any doubt.",
           "Bottles: <b>Tailwind, 2.5 scoops each</b> \u2014 a top-up, he doesn't need the weight now.",
+          "<b>Solids: 5 portions on him before he leaves.</b> Ask him which \u2014 Tailwind bar, dates, Bioplus, Farbar.",
           "<b>Red Bull</b> \u2014 the last one of the race.",
           "Woolies wrap, or anything warm and sweet he'll actually eat.",
           "Chafe check.",
