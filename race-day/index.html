@@ -869,6 +869,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
   ul.jobs.ro li .box{opacity:.35}
 
   /* Race overview: the at-a-glance numbers anyone following wants first. */
+  .watching{float:right; text-transform:none; letter-spacing:0; font-weight:700; color:var(--dim)}
+  .watching::before{content:""; display:inline-block; width:7px; height:7px; border-radius:50%;
+    background:var(--go); margin-right:6px; vertical-align:1px}
   .ovprog{margin:4px 0 12px}
   .ovbar{height:8px; border-radius:99px; background:var(--line); overflow:hidden}
   .ovbar>div{height:100%; width:0; border-radius:99px; background:var(--go); transition:width .6s}
@@ -1091,7 +1094,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
     <div id="paneMap" class="hide">
     <div class="hero ovw" id="ovw">
-      <div class="lab">Race overview</div>
+      <div class="lab">Race overview<span class="watching hide" id="ovWatch"></span></div>
       <div class="ovprog">
         <div class="ovbar"><div id="ovBar"></div></div>
         <div class="ovkm"><b id="ovKm">0.0 km</b> of 99.2 km<span id="ovPct"></span></div>
@@ -1220,7 +1223,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v62";
+const VERSION = "v63";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1735,11 +1738,13 @@ const Store = {
 
   async pull(){
     try{
-      const r = await fetch(API + "?t=" + Date.now(), { cache:"no-store" });
+      const r = await fetch(API + "?t=" + Date.now() + "&v=" + VIEWER_ID
+        + (document.hidden ? "" : "&on=1") + (CAN_LOG ? "&c=1" : ""), { cache:"no-store" });
       if(!r.ok) throw new Error("http " + r.status);
       const j = await r.json();
       this.merge(j.events||[], j.config||null);
       if(j.ver) noteVersion(j.ver);
+      WATCH = j.watch || null;
       if(!this.queue().length) this.setStatus("ok");
     }catch(_){ this.setStatus(navigator.onLine ? "err" : "off"); }
   },
@@ -1836,6 +1841,11 @@ const RUNNER_TOKEN = (() => {
 })();
 
 const CAN_LOG = !!RUNNER_TOKEN;
+
+/* A random id per open page, so the server can count who is watching. Not
+   stored anywhere and not tied to a person: a reload is a new id. */
+const VIEWER_ID = Math.random().toString(36).slice(2, 12) + Date.now().toString(36).slice(-4);
+let WATCH = null;
 document.documentElement.dataset.view = CAN_LOG ? "crew" : "public";
 /* One link for the whole team. Everyone can log him in and out, everyone sees the
    board; the two tabs just decide which you're looking at. The token in the hash
@@ -2671,6 +2681,13 @@ function progressNow(P){
 
 function renderOverview(st, P){
   const pos = P.pos, g = progressNow(P);
+  const w = $("ovWatch");
+  if(WATCH && WATCH.n > 0){
+    const fans = WATCH.n - WATCH.crew;
+    w.textContent = WATCH.n + " watching now" + (CAN_LOG && WATCH.crew ? " · " + WATCH.crew + " crew" : "");
+    w.title = fans + " supporters, " + WATCH.crew + " crew";
+    w.classList.remove("hide");
+  } else w.classList.add("hide");
   const pct = g.km / CPS[LAST].km * 100;
   $("ovBar").style.width = pct.toFixed(1) + "%";
   $("ovKm").textContent = (g.est ? "≈ " : "") + g.km.toFixed(1) + " km";

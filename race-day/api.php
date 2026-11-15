@@ -110,11 +110,44 @@ function out(array $state, int $code = 200): void {
         'config' => (is_array($cfg) && count($cfg)) ? $cfg : new stdClass(),
         'now'    => round(microtime(true) * 1000),
         'ver'    => deployed_version(),
+        'watch'  => $GLOBALS['WATCH'] ?? null,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 }
 
+/* ---- who is watching ----
+   Every open page polls every few seconds, and says whether it is on screen.
+   A page counts as watching while it has polled, on screen, in the last 20 s.
+   Only a random id is kept — no IP, no names — and nothing older than a
+   minute. This is best effort: any failure here returns null and the race
+   data is served exactly as before. */
+function note_viewer(string $dir): ?array {
+    $id = isset($_GET['v']) ? (string) $_GET['v'] : '';
+    if (!preg_match('/^[a-z0-9]{6,24}$/', $id)) return null;
+    $vf = $dir . '/viewers.json';
+    $lk = @fopen($dir . '/viewers.lock', 'c');
+    if (!$lk) return null;
+    if (!flock($lk, LOCK_EX)) { fclose($lk); return null; }
+    $now = time();
+    $all = is_file($vf) ? json_decode((string) @file_get_contents($vf), true) : [];
+    if (!is_array($all)) $all = [];
+    foreach ($all as $k => $v) if (!is_array($v) || $now - (int) ($v['t'] ?? 0) > 60) unset($all[$k]);
+    if (!empty($_GET['on'])) $all[$id] = ['t' => $now, 'c' => !empty($_GET['c']) ? 1 : 0];
+    else unset($all[$id]);                          // hidden: not watching
+    $tmp = $vf . '.' . getmypid() . '.tmp';
+    if (@file_put_contents($tmp, json_encode($all)) !== false) @rename($tmp, $vf);
+    flock($lk, LOCK_UN); fclose($lk);
+    $n = 0; $crew = 0;
+    foreach ($all as $v) if ($now - (int) $v['t'] <= 20) { $n++; $crew += (int) $v['c']; }
+    return ['n' => $n, 'crew' => $crew];
+}
+
 /* ---- read ---- */
-if ($_SERVER['REQUEST_METHOD'] === 'GET') { out(load_state($file)); exit; }
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $watch = null;
+    try { $watch = note_viewer($dir); } catch (Throwable $e) { $watch = null; }
+    $GLOBALS['WATCH'] = $watch;
+    out(load_state($file)); exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
