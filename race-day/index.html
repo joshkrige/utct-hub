@@ -882,6 +882,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .ovgrid .cell{background:transparent}
   .ovgrid .v{font-size:22px}
 
+  .hmpick{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+  .hmpick select{flex:1 1 0; font:inherit; font-size:20px; font-weight:800; padding:10px 12px;
+    border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--fg);
+    -webkit-appearance:none; appearance:none; text-align:center; text-align-last:center}
+  .hmpick span{font-size:18px; font-weight:800; color:var(--dim)}
+
   .hero{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:10px}
   .hero.alert{border-color:var(--bad); background:color-mix(in srgb, var(--bad) 9%, var(--panel))}
   .hero .lab{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); font-weight:800}
@@ -1159,14 +1165,18 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <h3>Settings</h3>
   <p id="cfgWho">—</p>
   <div id="cfgRunnerOnly">
-    <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Target finish time — how long, not what time</label>
-    <input id="cfgTarget" type="text" placeholder="22h00">
+    <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Target race time</label>
+    <!-- Native selects: on an iPhone these open as a scroll wheel. -->
+    <div class="hmpick">
+      <select id="cfgTargetH" aria-label="Hours"></select><span>h</span>
+      <select id="cfgTargetM" aria-label="Minutes"></select>
+    </div>
     <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Official gun time — anchors the cut-offs</label>
     <input id="cfgStart" type="text" placeholder="04:00">
     <button class="b red" id="cfgReset" style="width:100%;margin-top:4px">Clear all times — start fresh</button>
   </div>
   <div id="cfgCrewOnly">
-    <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Your name — shown next to anything you log</label>
+    <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Your name, shown on your taps</label>
     <input id="cfgWho2" type="text" maxlength="20" placeholder="e.g. Helena">
     <label style="display:flex;gap:9px;align-items:center;font-size:13px;color:var(--dim);margin:2px 0 10px">
       <input type="checkbox" id="cfgBeep" style="width:auto;margin:0"> Sound + vibrate on new taps, and when it's time to leave
@@ -1223,8 +1233,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v64";
-const VERSION_DATE = "14 Nov 2026";
+const VERSION = "v65";
+const VERSION_DATE = "16 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
 const TZ_LABEL = "SAST";
@@ -2909,8 +2919,16 @@ $("cogBtn").addEventListener("click", () => {
   const st = state();
   $("cfgWho").innerHTML = "<b>" + VERSION + "</b> · " + VERSION_DATE
     + "<br>Target time is shared with everyone. "
-    + "Drive time and sound stay on this phone only.";
-  $("cfgTarget").value = hm(st.config.targetSec);
+    + "Your name and sound stay on this phone only.";
+  /* 8h to 26h (the cut-off), in 5-minute steps — the range the server accepts. */
+  const tgt = Math.round(clamp(st.config.targetSec, 8*3600, 26*3600) / 300) * 300;
+  const H = $("cfgTargetH"), M = $("cfgTargetM");
+  if(!H.options.length){
+    for(let h=8; h<=26; h++) H.add(new Option(String(h), String(h)));
+    for(let m=0; m<60; m+=5) M.add(new Option(String(m).padStart(2,"0"), String(m)));
+  }
+  H.value = String(Math.floor(tgt/3600));
+  M.value = String(Math.floor((tgt%3600)/60));
   $("cfgStart").value = clk(st.config.gunMs || Date.parse(RACE_START_ISO));
   const P = project(st);
   $("cfgBeep").checked = !!Pref.get("beep",false);
@@ -2943,7 +2961,7 @@ function showPane(id){
   window.scrollTo(0,0);
 }
 $("cfgSave").addEventListener("click", () => {
-  const t = parseHM($("cfgTarget").value, state().config.targetSec);
+  const t = (+$("cfgTargetH").value)*3600 + (+$("cfgTargetM").value)*60;
   const base = new Date(state().config.gunMs || Date.parse(RACE_START_ISO));
   const s = parseHM($("cfgStart").value, null);
   const patch = { targetSec: clamp(t, 8*3600, 26*3600) };
