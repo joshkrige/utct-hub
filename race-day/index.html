@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0b0d10">
+<script>if(window.navigator.standalone===true)document.documentElement.classList.add("standalone");</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Josh, UTCT 100K</title>
@@ -704,6 +705,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
             calc(16px + var(--safe-b)) calc(12px + var(--safe-l))}
   .mono{font-variant-numeric:tabular-nums; font-feature-settings:"tnum"}
 
+  /* Home-screen app only. The status bar is translucent there, so whatever
+     scrolls beneath it shows through, blurred by iOS, over the top of the
+     page. A solid strip the height of the status bar sits behind it, and the
+     page starts a little lower so nothing begins right under the clock. */
+  @media (display-mode: standalone){
+    .wrap{padding-top:calc(22px + var(--safe-t))}
+    body::before{content:""; position:fixed; z-index:9999; left:0; right:0; top:0;
+      height:var(--safe-t); background:var(--bg); pointer-events:none}
+  }
+  html.standalone .wrap{padding-top:calc(22px + var(--safe-t))}
+  html.standalone body::before{content:""; position:fixed; z-index:9999; left:0; right:0; top:0;
+    height:var(--safe-t); background:var(--bg); pointer-events:none}
+
   /* ---- top bar ---- */
   .bar{display:flex; align-items:center; gap:7px; padding:6px 2px 10px; flex-wrap:nowrap}
   .bar h1{font-size:13px; margin:0; letter-spacing:.12em; text-transform:uppercase;
@@ -1233,7 +1247,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v65";
+const VERSION = "v66";
 const VERSION_DATE = "16 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
