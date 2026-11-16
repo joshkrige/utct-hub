@@ -69,14 +69,20 @@ if ($ref !== '' && !preg_match('/^[0-9a-f]{7,40}$/', $ref)) {
     echo "bad ref\n";
     exit;
 }
-$source = 'pinned';
-if ($ref === '') {
-    $sha = fetch_url('https://api.github.com/repos/' . REPO . '/commits/main',
-                     ['Accept: application/vnd.github.sha']);
-    $sha = $sha === null ? '' : strtolower(trim($sha));
-    if (preg_match('/^[0-9a-f]{40}$/', $sha)) { $ref = $sha; $source = 'latest main'; }
-    else { $ref = 'main'; $source = 'main (API unavailable, may be up to 5 min stale)'; }
+/* Only the current head of main is ever deployed. Anyone holding the key
+   could otherwise name an old commit and roll the live app back to a version
+   with bugs since fixed. An explicit ref must match main's head. */
+$head = fetch_url('https://api.github.com/repos/' . REPO . '/commits/main',
+                  ['Accept: application/vnd.github.sha']);
+$head = $head === null ? '' : strtolower(trim($head));
+if (!preg_match('/^[0-9a-f]{40}$/', $head)) $head = '';
+if ($ref !== '' && ($head === '' || strpos($head, $ref) !== 0)) {
+    http_response_code(409);
+    echo "refused: $ref is not the current head of main\n";
+    exit;
 }
+if ($head !== '') { $ref = $head; $source = 'latest main'; }
+else { $ref = 'main'; $source = 'main (API unavailable, may be up to 5 min stale)'; }
 $raw = 'https://raw.githubusercontent.com/' . REPO . '/' . $ref . '/' . DIR;
 
 $results = [];

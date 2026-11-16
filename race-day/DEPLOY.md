@@ -18,7 +18,7 @@ git clone --depth 1 https://github.com/joshkrige/utct-hub.git ~/utct-src
 
 # 2. the write token — stays on the server, never in git
 cd ~/public_html/utct2026
-printf '<?php return "c737-3c40-1d89-b36e";\n' > secret.php
+printf '<?php return "YOUR-CREW-CODE";\n' > secret.php
 chmod 600 secret.php
 
 # 3. first copy across
@@ -42,7 +42,7 @@ Check it worked: open `https://singa.studio/utct2026/api.php`. You should see
 Upload `deploy.php` into `utct2026` once. After that, opening
 
 ```
-https://singa.studio/utct2026/deploy.php?key=c737-3c40-1d89-b36e
+https://singa.studio/utct2026/deploy.php?key=YOUR-CREW-CODE
 ```
 
 pulls the current files straight from GitHub and writes them, in about a second.

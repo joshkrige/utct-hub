@@ -131,7 +131,10 @@ function note_viewer(string $dir): ?array {
     $all = is_file($vf) ? json_decode((string) @file_get_contents($vf), true) : [];
     if (!is_array($all)) $all = [];
     foreach ($all as $k => $v) if (!is_array($v) || $now - (int) ($v['t'] ?? 0) > 60) unset($all[$k]);
-    if (!empty($_GET['on'])) $all[$id] = ['t' => $now, 'c' => !empty($_GET['c']) ? 1 : 0];
+    /* Capped: a script inventing thousands of viewers must not grow this file
+       or make every poll slower. Past the cap, new ids are simply not counted. */
+    if (!empty($_GET['on']) && (isset($all[$id]) || count($all) < 300))
+        $all[$id] = ['t' => $now, 'c' => !empty($_GET['c']) ? 1 : 0];
     else unset($all[$id]);                          // hidden: not watching
     $tmp = $vf . '.' . getmypid() . '.tmp';
     if (@file_put_contents($tmp, json_encode($all)) !== false) @rename($tmp, $vf);

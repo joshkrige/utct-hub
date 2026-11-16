@@ -1223,7 +1223,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v63";
+const VERSION = "v64";
 const VERSION_DATE = "14 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1717,6 +1717,9 @@ const Store = {
       /* 400 means this item is malformed and will never go through. Anything
          else — a refused code, a busy server — may yet come right. */
       err.permanent = r.status === 400;
+      /* 403: the server no longer accepts this phone's code — it has been
+         changed. Keep every queued tap, and let the crew paste the new one. */
+      if(r.status === 403){ this.keyRejected = true; this.setStatus("badkey"); }
       throw err;
     }
     const j = await r.json();
@@ -2205,9 +2208,10 @@ function renderChip(){
     sync:  ["Syncing…",""],
     queued:[q + " to send","warn"],
     err:   ["Offline","err"],
-    off:   ["No signal","err"]
+    off:   ["No signal","err"],
+    badkey:["Code changed · tap","err"]
   };
-  const [txt, cls] = map[Store.status] || ["…",""];
+  const [txt, cls] = map[Store.keyRejected ? "badkey" : Store.status] || ["…",""];
   c.textContent = txt; c.className = "chip " + cls;
 }
 
@@ -2557,10 +2561,10 @@ function renderBoard(st, P){
       '</span><span class="d2">'+c.km.toFixed(1)+' km · '+c.v+' m'+'</span>'+cutCell+'</td>'+
       '<td class="mono d2">'+clk(planA)+'</td>'+
       '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+
-        (byIn[i]?'<br><span class="by">'+byIn[i]+'</span>':'')+'</td>'+
+        (byIn[i]?'<br><span class="by">'+esc(byIn[i])+'</span>':'')+'</td>'+
       '<td class="mono">'+(out!=null?clk(out):'<span class="d2">–</span>')+
         (inn!=null&&out!=null?'<br><span class="d2">'+mins((out-inn)/1000)+'</span>':'')+
-        (byOut[i]?'<br><span class="by">'+byOut[i]+'</span>':'')+'</td>'+
+        (byOut[i]?'<br><span class="by">'+esc(byOut[i])+'</span>':'')+'</td>'+
       '<td class="mono">'+etaCell+'</td></tr>'
     );
   }
@@ -2997,8 +3001,10 @@ $("mapModeBtn").addEventListener("click", () => {
 /* Belt and braces for the installed app: if a device somehow has no token,
    let whoever is holding it paste the crew link in rather than be stuck. */
 function askForKey(){
-  if(Store.mode !== "http" || RUNNER_TOKEN) return;
-  const v = prompt("Paste the crew link, or just the code after the #r=");
+  if(RUNNER_TOKEN && !Store.keyRejected) return;
+  const v = prompt(Store.keyRejected
+    ? "The crew code has changed. Paste the new crew link, or just the code after #r= — your unsent taps will go through with it."
+    : "Paste the crew link, or just the code after the #r=");
   if(!v) return;
   const m = /r=([A-Za-z0-9\-]+)/.exec(v) || /^([A-Za-z0-9\-]{8,})$/.exec(v.trim());
   if(!m){ toast("That doesn't look like the link"); return; }
