@@ -1009,6 +1009,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
     font-weight:800; z-index:99; box-shadow:0 8px 24px rgba(0,0,0,.5); opacity:0; pointer-events:none;
     transition:opacity .2s}
   .toast.on{opacity:1}
+dialog h3:focus{outline:none}
 </style>
 </head>
 <body>
@@ -1109,7 +1110,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
       </table>
     </div>
       <div class="foot" id="crewFoot"></div>
-      <button class="crewlink hide" id="crewLink">I'm on the crew — enter my code</button>
     </div>
 
     <div id="paneMap" class="hide">
@@ -1146,6 +1146,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
       </div>
       <div class="foot" id="mapFoot"></div>
     </div>
+      <button class="crewlink hide" id="crewLink">I'm on the crew — enter my code</button>
   </div>
 </div>
 
@@ -1153,7 +1154,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 <!-- dialogs -->
 <dialog id="dlgFix">
-  <h3>Set where you are</h3>
+  <h3 tabindex="-1" autofocus>Set where you are</h3>
   <p>Only use this if a tap was missed. Pick the checkpoint and whether you're in it or already gone.</p>
   <select id="fixCp"></select>
   <select id="fixState">
@@ -1164,7 +1165,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 </dialog>
 
 <dialog id="dlgNeeds">
-  <h3>What does he need?</h3>
+  <h3 tabindex="-1" autofocus>What does he need?</h3>
   <p>Tap any. The crew at the next stop see it immediately.</p>
   <div id="needsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px"></div>
   <div style="display:flex;gap:7px;margin-bottom:12px">
@@ -1176,7 +1177,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 </dialog>
 
 <dialog id="dlgCfg">
-  <h3>Settings</h3>
+  <h3 tabindex="-1" autofocus>Settings</h3>
   <p id="cfgWho">—</p>
   <div id="cfgRunnerOnly">
     <label class="lab2" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:800">Target race time</label>
@@ -1200,7 +1201,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 </dialog>
 
 <dialog id="dlgRules" style="max-width:420px">
-  <h3>Rules that carry a penalty</h3>
+  <h3 tabindex="-1" autofocus>Rules that carry a penalty</h3>
   <p>Six things. Breaking one costs him 30 minutes or the race.</p>
   <div class="rules" id="rulesBody"></div>
   <h3 style="margin-top:20px">If something goes wrong</h3>
@@ -1222,7 +1223,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 </dialog>
 
 <dialog id="dlgConfirm">
-  <h3 id="cfTitle">Confirm</h3>
+  <h3 id="cfTitle" tabindex="-1" autofocus>Confirm</h3>
   <p id="cfBody">—</p>
   <div class="btns"><button class="b" data-close>No</button><button class="b red" id="cfGo">Yes</button></div>
 </dialog>
@@ -1247,7 +1248,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v66";
+const VERSION = "v67";
 const VERSION_DATE = "16 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -3063,7 +3064,7 @@ $("nightBtn").addEventListener("click", () => {
    BOOT
    ============================================================ */
 (function boot(){
-  showPane(CAN_LOG ? Pref.get("pane", "paneLog") : "paneBoard");
+  showPane(CAN_LOG ? Pref.get("pane", "paneLog") : "paneMap");
   buildMap();
   if(Pref.get("mapMode","simple") === "topo") setMapMode("topo");
 
