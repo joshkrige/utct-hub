@@ -1248,7 +1248,7 @@ dialog h3:focus{outline:none}
 /* Bumped on every deploy. Shown on the Status tab and in Settings so anyone can
    check at a glance that their phone is running the current app and not a
    cached copy. */
-const VERSION = "v71";
+const VERSION = "v72";
 const VERSION_DATE = "16 Nov 2026";
 
 const RACE_START_ISO = "2026-11-21T04:00:00+02:00";  // gun time
@@ -1273,7 +1273,7 @@ const CPS = [
   { n:"Llandudno",           s:"Llandudno",      km:41.52, v:1882, cut:10.5, crew:true,  stop:5,
     drive:20, driveNote:"new location for 2026", map:"https://maps.app.goo.gl/shNx12LcYnS38vC49" },
   { n:"Rocket Road",         s:"Rocket Rd",      km:47.33, v:2123, cut:null, crew:false, stop:2 },
-  { n:"Hout Bay",            s:"Hout Bay",       km:57.35, v:2654, cut:14.5, crew:true,  stop:8, bag:true,
+  { n:"Hout Bay",            s:"Hout Bay",       km:57.35, v:2654, cut:14.5, crew:true,  stop:8,
     drive:15, map:"https://goo.gl/maps/Hb7PauXSjvNFhFRd7" },
   { n:"Constantia Glen",     s:"Constantia",     km:71.02, v:3599, cut:null, crew:false, stop:3 },
   { n:"Alphen Trail",        s:"Alphen",         km:76.35, v:3709, cut:19.0, crew:true,  stop:5,
@@ -1296,11 +1296,9 @@ const CPS = [
    things that genuinely differ between stops are phrased differently. */
 const JOBS = {
   0:{ lead:"Wake by 02:15 and eat. Leave by 03:00.",
-      do:["<b>Backup drop bag into the main marquee by 03:15.</b> It goes to Hout Bay and will not wait for him.",
-          "Number pinned to the <b>front</b>.",
+      do:["Number pinned to the <b>front</b>.",
           "Timing chip on his pack, visible.",
-          "Headtorch on and tested."],
-      watch:"The drop-bag check-in is the one thing this morning that cannot be undone." },
+          "Headtorch on and tested."] },
 
   2:{ lead:"Next time you see him is <b>over four hours later</b> \u2014 Platteklip Gorge (876 m in 4.83 km), then the exposed plateau.",
       do:["<b>Charge his phone.</b>",
@@ -1340,7 +1338,7 @@ const JOBS = {
           "<b>Phone back in his pack.</b>"],
       watch:"Behind on fluid or salt looks like: salt crust on his face, no toilet stops, snappy answers. Fix it here, not at Hout Bay." },
 
-  7:{ lead:"The big one. <b>44% of the climbing is still ahead</b>, and the next stage is the hardest of the race \u2014 945 m, three hours or more. The drop bag here is backup only; leave it sealed unless something has gone wrong.",
+  7:{ lead:"The big one. <b>44% of the climbing is still ahead</b>, and the next stage is the hardest of the race \u2014 945 m, three hours or more.",
       do:["<b>Charge his phone.</b>",
           "Drink: Coke, water, Red Bull, whatever he wants.",
           "<b>Eat a meal: wrap.</b> Have pasta and a burger there too, in case he wants something else.",
@@ -1362,7 +1360,7 @@ const JOBS = {
           "Red Bull into a reachable pocket.",
           "<b>Phone back in his pack.</b>",
           "<b>Once he's gone: dry the black Agravic 4s.</b> He needs them again at Alphen."],
-      watch:"<b>Keep the stop under fifteen minutes.</b> This is where races get lost to a chair \u2014 set a timer out loud. If you genuinely can't get here, phone him: his backup bag is at this station and he collects it himself." },
+      watch:"<b>Keep the stop under fifteen minutes.</b> This is where races get lost to a chair \u2014 set a timer out loud. If you genuinely can't get here, phone him straight away." },
 
   9:{ lead:"Straight off the hardest stage of the race. Expect him flat and quiet.",
       do:["<b>Black Agravic 4s dry and ready</b> before he arrives.",
@@ -1379,7 +1377,7 @@ const JOBS = {
           "<b>Clean socks: the longer puffer socks.</b>",
           "<b>Change shoes back to the black Agravic 4s.</b>",
           "Dry buff on.",
-          "<b>Torch: check the beam.</b> No drop bag left, and the rest is dark.",
+          "<b>Torch: check the beam.</b> The rest is dark.",
           "Warm layer on before he leaves, not once he's cold.",
           "<b>2x bottles of Tailwind:</b> Tailwind first, ice to the top, then water.",
           "<b>Salt:</b> 1 Drip Drop sachet in his 3rd bottle.",
@@ -1412,8 +1410,7 @@ const JOBS = {
           "Water and a hot drink.",
           "Something salty and something sweet.",
           "After his shower: massage gun on his legs.",
-          "After his shower: magnesium spray on his legs.",
-          "Collect the backup drop bag \u2014 it comes back here from Hout Bay."],
+          "After his shower: magnesium spray on his legs."],
       watch:"All compulsory kit and both reserves must still be on him as he crosses the line \u2014 don't meet him early and relieve him of anything." },
 };
 
@@ -2579,7 +2576,7 @@ function renderBoard(st, P){
       '<tr class="'+(isNow?'now':past?'past':'')+(c.tp?' tp':'')+'">'+
       '<td><span class="nm">'+c.s+
         (isDark(raceClock(inn!=null?inn:P.eta[i], P)) ? '<span class="moon" title="after dark">\u263D</span>' : '')+
-        '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.tp?'TIMING POINT':c.skip?'NOTHING TO DO':c.crew?(c.bag?'CREW + BACKUP BAG':'CREW'):'NO CREW')+'</span>'+
+        '<span class="crewtag '+(c.crew?'':'notag')+'">'+(c.tp?'TIMING POINT':c.skip?'NOTHING TO DO':c.crew?'CREW':'NO CREW')+'</span>'+
       '</span><span class="d2">'+c.km.toFixed(1)+' km · '+c.v+' m'+'</span>'+cutCell+'</td>'+
       '<td class="mono d2">'+clk(planA)+'</td>'+
       '<td class="mono">'+(inn!=null?clk(inn):'<span class="d2">–</span>')+
@@ -2675,7 +2672,8 @@ function renderBoard(st, P){
       '<li class="' + (ticks[ji+":"+i] ? "done" : "") + '"'
       + (ahead ? '' : ' data-k="' + ji + ':' + i + '"') + '>'
       + '<span class="box">✓</span><span class="txt">' + x + "</span></li>").join("");
-    $("jobsWatch").innerHTML = J.watch;
+    $("jobsWatch").innerHTML = J.watch || "";
+    $("jobsWatch").classList.toggle("hide", !J.watch);
     const mp = $("jobsMap");
     mp.classList.toggle("hide", !CPS[ji].map);
     if(CPS[ji].map) mp.href = CPS[ji].map;

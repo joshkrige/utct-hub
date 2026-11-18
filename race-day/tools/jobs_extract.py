@@ -27,7 +27,7 @@ try:
               else if(isDark(raceClock(jt, P)) && ji > 0)
                 lead = '<b>This one is in the dark.</b> ' + lead;
               return { n:c.n, s:c.s, km:c.km, cut:c.cut||null, eta: ji===0 ? hm(P.gun) : hm(jt),
-                       bag:!!c.bag, lead, do:J.do, watch:J.watch||"" };
+                       lead, do:J.do, watch:J.watch||"" };
             }) };
         }""")
         print(json.dumps(out))
