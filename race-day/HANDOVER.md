@@ -35,7 +35,7 @@ returns. Polls every 3s while visible.
 99.17 km · 4,676 m D+ · 26 h limit · 04:00 Sat start. Crew-facing plan **22h00**
 (Josh's own sub-20 goal is private and deliberately not in the app).
 Cut-offs: Kloof Nek 08:00, Hout Bay 18:30, Alphen 23:00, Newlands 03:00,
-finish 06:00. Crew points: Kloof Nek, Llandudno, Hout Bay (+ backup drop bag),
+finish 06:00. Crew points: Kloof Nek, Llandudno, Hout Bay,
 Alphen, Newlands. Signal Hill is tappable but crew have nothing to do there.
 Table Mountain, Rocket Road, Constantia Glen are volunteer-only — Josh taps
 those himself; each tap sharpens the projection.
